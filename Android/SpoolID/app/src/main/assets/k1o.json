@@ -1,12 +1,13 @@
 {
   "Creality":{
-    "PLA":"Hyper PLA\nCR-PLA\nCR-Silk\nEnder-PLA\nEN-PLA+\nCR-PLA Matte\nCR-PLA Fluo\nCR-Wood\nHP Ultra PLA\nCR-PLA Carbon\nSoleyin Ultra PLA",
+    "PLA":"Hyper PLA\nCR-PLA\nCR-Silk\nEnder-PLA\nEN-PLA+\nCR-PLA Matte\nCR-PLA Fluo\nCR-Wood\nHP Ultra PLA\nSoleyin Ultra PLA\nHyper L-W PLA\nHyper Stardust\nHyper Marble",
     "PLA-CF":"Hyper PLA-CF\nCR-PLA Carbon",
     "PETG":"Hyper PETG\nCR-PETG",
     "ABS":"Hyper ABS\nCR-ABS",
     "TPU":"HP-TPU\nCR-TPU",
     "PA":"CR-Nylon",
-    "ASA":"HP-ASA"
+    "ASA":"HP-ASA",
+    "PA-CF":"Hyper PAHT-CF"
   },
   "Generic":{
     "PLA":"Generic PLA\nGeneric PLA-Silk",

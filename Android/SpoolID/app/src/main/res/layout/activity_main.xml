@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+
+<androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:fillViewport="true"
+    tools:openDrawer="start">
+
+
+<ScrollView
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F4F4F4"
@@ -24,7 +34,7 @@
         android:layout_marginTop="10dp"
         android:layout_marginBottom="4dp"
         android:layout_marginEnd="-6dp"
-        android:contentDescription="add"
+        android:importantForAccessibility="no"
         app:layout_constraintEnd_toEndOf="@+id/type"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/twotone_add_24"
@@ -37,7 +47,7 @@
         android:layout_marginTop="10dp"
         android:layout_marginBottom="4dp"
         android:layout_marginEnd="44dp"
-        android:contentDescription="edit"
+        android:importantForAccessibility="no"
         app:layout_constraintEnd_toStartOf="@+id/addbutton"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/twotone_edit_24"
@@ -50,23 +60,21 @@
         android:layout_marginTop="10dp"
         android:layout_marginBottom="4dp"
         android:layout_marginEnd="44dp"
-        android:contentDescription="delete"
+        android:importantForAccessibility="no"
         app:srcCompat="@drawable/twotone_delete_24"
         app:tint="#1976D2"
         app:layout_constraintEnd_toStartOf="@+id/editbutton"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/uploadbutton"
+        android:id="@+id/menubutton"
         android:layout_width="38dp"
         android:layout_height="38dp"
         android:layout_marginTop="10dp"
-        android:layout_marginBottom="4dp"
-        android:layout_marginEnd="44dp"
-        android:contentDescription="upload"
-        app:srcCompat="@drawable/twotone_file_upload_24"
-        app:tint="#1976D2"
-        app:layout_constraintEnd_toStartOf="@+id/deletebutton"
+        android:importantForAccessibility="no"
+        app:srcCompat="@drawable/twotone_menu_24"
+        app:tint="@color/text_color"
+        app:layout_constraintStart_toStartOf="@+id/lbltype"
         app:layout_constraintTop_toTopOf="parent" />
 
 
@@ -306,7 +314,7 @@
         android:textSize="16sp"
         app:layout_constraintEnd_toStartOf="@+id/writebutton"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ubtn" />
+        app:layout_constraintTop_toBottomOf="@+id/lbltagid" />
 
     <Button
         android:id="@+id/writebutton"
@@ -320,7 +328,7 @@
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/readbutton"
-        app:layout_constraintTop_toBottomOf="@+id/ubtn" />
+        app:layout_constraintTop_toBottomOf="@+id/lbltagid" />
 
     <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/autoread"
@@ -336,31 +344,6 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@id/lblcolor"
         app:layout_constraintTop_toBottomOf="@+id/colorspin" />
-
-    <ImageView
-        android:id="@+id/cbtn"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="28dp"
-        android:contentDescription="@string/open_custom_tag_editor"
-        app:layout_constraintEnd_toEndOf="@+id/autoread"
-        app:layout_constraintTop_toBottomOf="@+id/autoread"
-        app:srcCompat="@drawable/twotone_settings_applications_24"
-        app:tint="#1976D2" />
-
-    <ImageView
-        android:id="@+id/ubtn"
-        android:layout_width="42dp"
-        android:layout_height="42dp"
-        android:contentDescription="@string/update"
-        android:layout_marginEnd="20dp"
-        android:layout_marginTop="3dp"
-        app:layout_constraintEnd_toStartOf="@+id/cbtn"
-        app:layout_constraintTop_toTopOf="@+id/cbtn"
-        app:srcCompat="@drawable/twotone_download_for_offline_24"
-        app:tint="#1976D2"
-        tools:layout_editor_absoluteX="232dp"
-        tools:layout_editor_absoluteY="437dp" />
 
     <TextView
         android:id="@+id/txtmsg"
@@ -378,3 +361,15 @@
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
+
+<com.google.android.material.navigation.NavigationView
+    android:id="@+id/nav_view"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:layout_gravity="start"
+    android:fitsSystemWindows="false"
+    android:theme="@style/Theme.MaterialComponents.Light"
+    app:itemTextAppearance="@style/NavigationDrawerText"
+    app:headerLayout="@layout/nav_header_main"
+    app:menu="@menu/activity_main_drawer" />
+</androidx.drawerlayout.widget.DrawerLayout>

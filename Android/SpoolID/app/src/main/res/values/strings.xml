@@ -110,4 +110,5 @@
     <string name="rgb_sliders">RGB Sliders</string>
     <string name="color_picker">Color Picker</string>
     <string name="preset_colors">Preset Colors</string>
+    <string name="no_tag_found">No Tag Found</string>
 </resources>

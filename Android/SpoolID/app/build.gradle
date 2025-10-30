@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "dngsoftware.spoolid"
-        minSdk 19
+        minSdk 21
         targetSdk 36
         versionCode 1
         versionName "1.0"
@@ -35,6 +35,8 @@ dependencies {
     implementation libs.preference
     implementation libs.appcompat.v161
     implementation libs.room.runtime
+    implementation libs.google.material
+    implementation libs.documentfile
     annotationProcessor libs.room.compiler
-	implementation libs.flexbox
+    implementation libs.flexbox
 }

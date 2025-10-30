@@ -1,6 +1,5 @@
 package dngsoftware.spoolid;
 
-import static androidx.core.app.ActivityCompat.requestPermissions;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -11,19 +10,14 @@ import android.content.SharedPreferences;
 import android.content.pm.FeatureInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
-import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
+import android.net.Uri;
 import android.nfc.tech.MifareClassic;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.util.TypedValue;
-import android.view.MotionEvent;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.Spinner;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
@@ -32,6 +26,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -302,24 +300,19 @@ public class Utils {
         return sb.toString();
     }
 
-    public static int getPixelColor(MotionEvent event, ImageView picker) {
-        int viewX = (int) event.getX();
-        int viewY = (int) event.getY();
-        int viewWidth = picker.getWidth();
-        int viewHeight = picker.getHeight();
-        Bitmap image = ((BitmapDrawable) picker.getDrawable()).getBitmap();
-        int imageWidth = image.getWidth();
-        int imageHeight = image.getHeight();
-        int imageX = (int) ((float) viewX * ((float) imageWidth / (float) viewWidth));
-        int imageY = (int) ((float) viewY * ((float) imageHeight / (float) viewHeight));
-        return image.getPixel(imageX, imageY);
-    }
-
     public static void SetPermissions(Context context) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.NFC) != PackageManager.PERMISSION_GRANTED) {
-            String[] perms = {Manifest.permission.NFC, Manifest.permission.INTERNET};
-            int permsRequestCode = 200;
-            requestPermissions((Activity) context, perms, permsRequestCode);
+        String[] REQUIRED_PERMISSIONS = {Manifest.permission.NFC, Manifest.permission.INTERNET,
+                Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
+        Activity activity = (Activity) context;
+        List<String> permissionsToRequest = new ArrayList<>();
+        for (String permission : REQUIRED_PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(permission);
+            }
+        }
+        if (!permissionsToRequest.isEmpty()) {
+            String[] permsArray = permissionsToRequest.toArray(new String[0]);
+            ActivityCompat.requestPermissions(activity, permsArray, 200);
         }
     }
 
@@ -333,11 +326,6 @@ public class Utils {
             } catch (Exception ignored) {
             }
         }).start();
-    }
-
-    public static float dp2Px(Context context, float dipValue) {
-        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dipValue, metrics);
     }
 
     public static byte[] createKey(byte[] tagId) {
@@ -767,6 +755,45 @@ public class Utils {
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putLong(sKey, lValue);
         editor.apply();
+    }
+
+    public static void copyFileToUri(Context context, File sourceFile, Uri destinationUri) throws IOException {
+        try (InputStream in = new FileInputStream(sourceFile);
+             OutputStream out = context.getContentResolver().openOutputStream(destinationUri)) {
+            if (out == null) {
+                throw new IOException("Failed to open output stream for URI: " + destinationUri);
+            }
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = in.read(buffer)) > 0) {
+                out.write(buffer, 0, length);
+            }
+        }
+    }
+
+    public static void copyFile(File sourceFile, File destinationFile) throws IOException {
+        try (InputStream in = new FileInputStream(sourceFile);
+             OutputStream out = new FileOutputStream(destinationFile)) {
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = in.read(buffer)) > 0) {
+                out.write(buffer, 0, length);
+            }
+        }
+    }
+
+    public static void copyUriToFile(Context context, Uri sourceUri, File destinationFile) throws IOException {
+        try (InputStream in = context.getContentResolver().openInputStream(sourceUri);
+             OutputStream out = new FileOutputStream(destinationFile)) {
+            if (in == null) {
+                throw new IOException("Failed to open input stream for URI: " + sourceUri);
+            }
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = in.read(buffer)) > 0) {
+                out.write(buffer, 0, length);
+            }
+        }
     }
 
     public static int[] presetColors() {

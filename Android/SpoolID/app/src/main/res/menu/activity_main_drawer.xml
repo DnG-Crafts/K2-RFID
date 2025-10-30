@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+    <item android:title="Printer Database">
+        <menu>
+            <item
+                android:id="@+id/nav_upload"
+                android:icon="@drawable/twotone_upload_24"
+                android:title="Upload Database" />
+            <item
+                android:id="@+id/nav_download"
+                android:icon="@drawable/twotone_file_download_24"
+                android:title="Download Database" />
+        </menu>
+    </item>
+
+    <item android:title="App Database">
+        <menu>
+            <item
+                android:id="@+id/nav_export"
+                android:icon="@drawable/twotone_export_24"
+                android:title="Export App Database" />
+            <item
+                android:id="@+id/nav_import"
+                android:icon="@drawable/twotone_import_24"
+                android:title="Import App Database" />
+        </menu>
+    </item>
+
+    <item android:title="RFID Functions">
+        <menu>
+            <item
+                android:id="@+id/nav_manual"
+                android:icon="@drawable/twotone_settings_applications_24"
+                android:title="Custom Tag Data Input" />
+            <item
+                android:id="@+id/nav_format"
+                android:icon="@drawable/twotone_layers_clear_24"
+                android:title="Format Tag" />
+        </menu>
+    </item>
+</menu>
