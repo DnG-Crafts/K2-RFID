@@ -23,7 +23,7 @@ public abstract class filamentDB extends RoomDatabase {
     }
 
     public static File getDatabaseFile(Context context, String pType) {
-        return context.getDatabasePath("material_database_" + pType + ".db");
+        return context.getDatabasePath("material_database_" + pType);
     }
 
     public static void closeInstance() {

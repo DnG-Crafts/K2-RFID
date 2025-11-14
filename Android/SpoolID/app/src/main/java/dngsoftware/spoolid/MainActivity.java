@@ -46,6 +46,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.nfc.NfcAdapter;
@@ -65,11 +66,11 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
@@ -97,11 +98,6 @@ import com.google.android.flexbox.FlexboxLayout;
 import com.google.android.material.navigation.NavigationView;
 import org.json.JSONObject;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
@@ -143,12 +139,16 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     private ActivityResultLauncher<Intent> exportDirectoryChooser;
     private ActivityResultLauncher<Intent> importFileChooser;
     private ActivityResultLauncher<String> requestPermissionLauncher;
+    private ActivityResultLauncher<Void> cameraLauncher;
     private static final int ACTION_EXPORT = 1;
     private static final int ACTION_IMPORT = 2;
+
     private int pendingAction = -1;
     NavigationView navigationView;
     private DrawerLayout drawerLayout;
 
+    private static final int PERMISSION_REQUEST_CODE = 2;
+    private PickerDialogBinding colorDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -680,6 +680,29 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         WriteTag("AB124" + vendorId + "A2" + filamentId + color + Length + serialNum + reserve);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ;
+
     @SuppressLint("ClickableViewAccessibility")
     void openPicker() {
         try {
@@ -689,6 +712,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             pickerDialog.setTitle(R.string.pick_color);
             PickerDialogBinding dl = PickerDialogBinding.inflate(getLayoutInflater());
             View rv = dl.getRoot();
+            colorDialog = dl;
+
             pickerDialog.setContentView(rv);
             gradientBitmap = null;
 
@@ -711,8 +736,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
             setupPresetColors(dl);
             updateColorDisplay(dl, dl.redSlider.getProgress(), dl.greenSlider.getProgress(), dl.blueSlider.getProgress());
-
-
             setupGradientPicker(dl);
 
             dl.gradientPickerView.setOnTouchListener((v, event) -> {
@@ -736,20 +759,27 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                     dl.rgbSlidersHeader,
                     dl.rgbSlidersContent,
                     dl.rgbSlidersToggleIcon,
-                    GetSetting(this,"RGB_VIEW",false)
+                    GetSetting(this, "RGB_VIEW", false)
             );
             setupCollapsibleSection(dl,
                     dl.gradientPickerHeader,
                     dl.gradientPickerContent,
                     dl.gradientPickerToggleIcon,
-                    GetSetting(this,"PICKER_VIEW",true)
+                    GetSetting(this, "PICKER_VIEW", true)
             );
             setupCollapsibleSection(dl,
                     dl.presetColorsHeader,
                     dl.presetColorsContent,
                     dl.presetColorsToggleIcon,
-                    GetSetting(this,"PRESET_VIEW",true)
+                    GetSetting(this, "PRESET_VIEW", true)
             );
+            setupCollapsibleSection(dl,
+                    dl.photoColorHeader,
+                    dl.photoColorContent,
+                    dl.photoColorToggleIcon,
+                    GetSetting(this, "PHOTO_VIEW", false)
+            );
+
 
             SeekBar.OnSeekBarChangeListener rgbChangeListener = new SeekBar.OnSeekBarChangeListener() {
                 @Override
@@ -758,10 +788,12 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 }
 
                 @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {}
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
 
                 @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {}
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
             };
 
             dl.redSlider.setOnSeekBarChangeListener(rgbChangeListener);
@@ -769,6 +801,29 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             dl.blueSlider.setOnSeekBarChangeListener(rgbChangeListener);
 
             dl.txtcolor.setOnClickListener(v -> showHexInputDialog(dl));
+
+            dl.photoImage.setOnClickListener(v -> {
+                Drawable drawable = ContextCompat.getDrawable(dl.photoImage.getContext(), R.drawable.camera);
+                if (dl.photoImage.getDrawable() != null && drawable != null) {
+                    if (Objects.equals(dl.photoImage.getDrawable().getConstantState(), drawable.getConstantState())) {
+                        checkPermissionsAndCapture();
+                    }
+                } else {
+                    checkPermissionsAndCapture();
+                }
+            });
+
+            dl.clearImage.setOnClickListener(v -> {
+
+                dl.photoImage.setImageResource( R.drawable.camera);
+                dl.photoImage.setDrawingCacheEnabled(false);
+                dl.photoImage.buildDrawingCache(false);
+                dl.photoImage.setOnTouchListener(null);
+                dl.clearImage.setVisibility(View.GONE);
+
+            });
+
+
 
             pickerDialog.show();
         } catch (Exception ignored) {}
@@ -1588,7 +1643,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         });
     }
 
-    private void setupCollapsibleSection(PickerDialogBinding dl, LinearLayout header, final LinearLayout content, final ImageView toggleIcon, boolean isExpandedInitially) {
+    private void setupCollapsibleSection(PickerDialogBinding dl, LinearLayout header, final ViewGroup content, final ImageView toggleIcon, boolean isExpandedInitially) {
         content.setVisibility(isExpandedInitially ? View.VISIBLE : View.GONE);
         toggleIcon.setImageResource(isExpandedInitially ? R.drawable.ic_arrow_up : R.drawable.ic_arrow_down);
         header.setOnClickListener(v -> {
@@ -1604,6 +1659,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 else if (header.getId() == dl.presetColorsHeader.getId()) {
                     SaveSetting(this,"PRESET_VIEW",false);
                 }
+                else if (header.getId() == dl.photoColorHeader.getId()) {
+                    SaveSetting(this,"PHOTO_VIEW",false);
+                }
             } else {
                 content.setVisibility(View.VISIBLE);
                 toggleIcon.setImageResource(R.drawable.ic_arrow_up);
@@ -1618,6 +1676,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 }
                 else if (header.getId() == dl.presetColorsHeader.getId()) {
                     SaveSetting(this,"PRESET_VIEW",true);
+                }
+                else if (header.getId() == dl.photoColorHeader.getId()) {
+                    SaveSetting(this,"PHOTO_VIEW",true);
                 }
             }
         });
@@ -1657,10 +1718,10 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                             );
                             performSAFExport(treeUri);
                         } else {
-                            Toast.makeText(this, "Failed to get export directory.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.failed_to_get_export_directory, Toast.LENGTH_SHORT).show();
                         }
                     } else {
-                        Toast.makeText(this, "Export cancelled.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.export_cancelled, Toast.LENGTH_SHORT).show();
                     }
                 }
         );
@@ -1673,10 +1734,10 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                         if (fileUri != null) {
                             performSAFImport(fileUri);
                         } else {
-                            Toast.makeText(this, "Failed to select import file.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, R.string.failed_to_select_import_file, Toast.LENGTH_SHORT).show();
                         }
                     } else {
-                        Toast.makeText(this, "Import cancelled.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, R.string.import_cancelled, Toast.LENGTH_SHORT).show();
                     }
                 }
         );
@@ -1691,9 +1752,22 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                             performLegacyImport();
                         }
                     } else {
-                        Toast.makeText(this, "Storage permission denied. Cannot perform action.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, R.string.storage_permission_denied_cannot_perform_action, Toast.LENGTH_LONG).show();
                     }
                     pendingAction = -1;
+                }
+        );
+
+        cameraLauncher = registerForActivityResult(
+                new ActivityResultContracts.TakePicturePreview(),
+                bitmap -> {
+                    if (bitmap != null) {
+                        colorDialog.photoImage.setImageBitmap(bitmap);
+                        setupPhotoPicker(colorDialog.photoImage);
+                    } else {
+                        // Handle failure or cancellation
+                        Toast.makeText(this, R.string.photo_capture_cancelled_or_failed, Toast.LENGTH_SHORT).show();
+                    }
                 }
         );
     }
@@ -1723,7 +1797,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
     private void startSAFExportProcess() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        intent.putExtra(Intent.EXTRA_TITLE, "Select backup folder");
+        intent.putExtra(Intent.EXTRA_TITLE, getString(R.string.select_backup_folder));
         exportDirectoryChooser.launch(intent);
     }
 
@@ -1735,7 +1809,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 filamentDB.closeInstance();
                 DocumentFile pickedDir = DocumentFile.fromTreeUri(this, treeUri);
                 if (pickedDir == null || !pickedDir.exists() || !pickedDir.canWrite()) {
-                    runOnUiThread(() -> Toast.makeText(this, "Cannot write to selected directory.", Toast.LENGTH_LONG).show());
+                    runOnUiThread(() -> Toast.makeText(this, R.string.cannot_write_to_selected_directory, Toast.LENGTH_LONG).show());
                     return;
                 }
                 String dbBaseName = dbFile.getName().replace(".db", "");
@@ -1743,12 +1817,12 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 if (dbDestFile != null) {
                     copyFileToUri(this, dbFile, dbDestFile.getUri());
                 } else {
-                    runOnUiThread(() -> Toast.makeText(this, "Failed to create .db backup file.", Toast.LENGTH_LONG).show());
+                    runOnUiThread(() -> Toast.makeText(this, R.string.failed_to_create_db_backup_file, Toast.LENGTH_LONG).show());
                     return;
                 }
-                runOnUiThread(() -> Toast.makeText(this, "Database exported successfully!", Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> Toast.makeText(this, R.string.database_exported_successfully, Toast.LENGTH_LONG).show());
             } catch (Exception e) {
-                runOnUiThread(() -> Toast.makeText(this, "Database SAF export failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.database_saf_export_failed) + e.getMessage(), Toast.LENGTH_LONG).show());
             } finally {
                 filamentDB.getInstance(this, PrinterType);
             }
@@ -1768,9 +1842,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 String dbBaseName = dbFile.getName().replace(".db", "");
                 File dbDestFile = new File(downloadsDir, dbBaseName + ".db");
                 copyFile(dbFile, dbDestFile);
-                runOnUiThread(() -> Toast.makeText(this, "Database exported successfully to Downloads folder!", Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> Toast.makeText(this, R.string.database_exported_successfully_to_downloads_folder, Toast.LENGTH_LONG).show());
             } catch (Exception e) {
-                runOnUiThread(() -> Toast.makeText(this, "Database legacy export failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.database_legacy_export_failed) + e.getMessage(), Toast.LENGTH_LONG).show());
             } finally {
                 filamentDB.getInstance(this, PrinterType);
             }
@@ -1790,7 +1864,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
     private void performSAFImport(Uri sourceUri) {
         if (!sourceUri.toString().toLowerCase().contains("material_database_" + PrinterType.toLowerCase())) {
-            runOnUiThread(() -> Toast.makeText(this, "Incorrect database file selected\nThe " + PrinterType.toUpperCase() + " database is required", Toast.LENGTH_LONG).show());
+            runOnUiThread(() -> Toast.makeText(this, String.format(getString(R.string.incorrect_database_file_selected_the_s_database_is_required), PrinterType.toUpperCase()), Toast.LENGTH_LONG).show());
             return;
         }
         executorService.execute(() -> {
@@ -1805,9 +1879,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 filamentDB.getInstance(this, PrinterType);
                 setMatDb(PrinterType);
                 SaveSetting(this, "version_" + PrinterType, getDBVersion(this, PrinterType));
-                runOnUiThread(() -> Toast.makeText(this, "Database imported successfully!", Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> Toast.makeText(this, R.string.database_imported_successfully, Toast.LENGTH_LONG).show());
             } catch (Exception e) {
-                runOnUiThread(() -> Toast.makeText(this, "Database SAF import failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.database_saf_import_failed) + e.getMessage(), Toast.LENGTH_LONG).show());
             } finally {
                 if (filamentDB.INSTANCE == null) {
                     filamentDB.getInstance(this, PrinterType);
@@ -1828,11 +1902,11 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
                 File sourceDbFile = new File(downloadsDir, dbFile.getName());
                 if (!dbFile.getName().toLowerCase().contains("material_database_" + PrinterType.toLowerCase())) {
-                    runOnUiThread(() -> Toast.makeText(this, "Incorrect database file selected\nThe " + PrinterType.toUpperCase() + " database is required" , Toast.LENGTH_LONG).show());
+                    runOnUiThread(() -> Toast.makeText(this, format(getString(R.string.incorrect_database_file_selected_the_s_database_is_required), PrinterType.toUpperCase()), Toast.LENGTH_LONG).show());
                     return;
                 }
                 if (!sourceDbFile.exists()) {
-                    runOnUiThread(() -> Toast.makeText(this, "Backup file not found in Downloads: " + sourceDbFile.getName(), Toast.LENGTH_LONG).show());
+                    runOnUiThread(() -> Toast.makeText(this, getString(R.string.backup_file_not_found_in_downloads) + sourceDbFile.getName(), Toast.LENGTH_LONG).show());
                     return;
                 }
                 File dbDir = dbFile.getParentFile();
@@ -1843,10 +1917,10 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 filamentDB.getInstance(this, PrinterType);
                 setMatDb(PrinterType);
                 SaveSetting(this, "version_" + PrinterType, getDBVersion(this, PrinterType));
-                runOnUiThread(() -> Toast.makeText(this, "Database imported successfully!", Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> Toast.makeText(this, R.string.database_imported_successfully, Toast.LENGTH_LONG).show());
 
             } catch (Exception e) {
-                runOnUiThread(() -> Toast.makeText(this, "Database legacy import failed: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                runOnUiThread(() -> Toast.makeText(this, getString(R.string.database_legacy_import_failed) + e.getMessage(), Toast.LENGTH_LONG).show());
             } finally {
                 if (filamentDB.INSTANCE == null) {
                     filamentDB.getInstance(this, PrinterType);
@@ -1860,8 +1934,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
     private void showImportDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Import Database");
-        builder.setMessage("Restore " + PrinterType.toUpperCase() + " database?");
+        builder.setTitle(R.string.import_database);
+        builder.setMessage(String.format(getString(R.string.restore_s_database), PrinterType.toUpperCase()));
         builder.setPositiveButton("Import", (dialog, which) -> checkPermissionAndStartAction(ACTION_IMPORT));
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
         builder.create().show();
@@ -1870,11 +1944,66 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
     private void showExportDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Export Database");
-        builder.setMessage("Backup " + PrinterType.toUpperCase() + " database?");
+        builder.setTitle(R.string.export_database);
+        builder.setMessage(String.format(getString(R.string.backup_s_database_material_database_s_db), PrinterType.toUpperCase(), PrinterType.toLowerCase()));
         builder.setPositiveButton("Export", (dialog, which) -> checkPermissionAndStartAction(ACTION_EXPORT));
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
         builder.create().show();
+    }
+
+
+    private void checkPermissionsAndCapture() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, PERMISSION_REQUEST_CODE);
+        }
+        else {
+            takePicture();
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                takePicture();
+            } else {
+                Toast.makeText(this, R.string.camera_permission_is_required_to_take_photos, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void takePicture() {
+        if (cameraLauncher != null) {
+            cameraLauncher.launch(null);
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void setupPhotoPicker(ImageView imageView) {
+        colorDialog.clearImage.setVisibility(View.VISIBLE);
+        imageView.setDrawingCacheEnabled(true);
+        imageView.buildDrawingCache(true);
+        imageView.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN || event.getAction() == MotionEvent.ACTION_MOVE) {
+                Bitmap bitmap = imageView.getDrawingCache();
+                float touchX = event.getX();
+                float touchY = event.getY();
+                if (touchX >= 0 && touchX < bitmap.getWidth() && touchY >= 0 && touchY < bitmap.getHeight()) {
+                    try {
+                        int pixel = bitmap.getPixel((int) touchX, (int) touchY);
+                        int r = Color.red(pixel);
+                        int g = Color.green(pixel);
+                        int b = Color.blue(pixel);
+                        colorDialog.colorDisplay.setBackgroundColor(Color.rgb(r, g, b));
+                        colorDialog.txtcolor.setText(String.format("%06X", (0xFFFFFF & pixel)));
+                        setSlidersFromColor(colorDialog, Color.argb(255, Color.red(pixel), Color.green(pixel), Color.blue(pixel)));
+                    } catch (Exception ignored) {}
+                }
+            }
+            return true;
+        });
     }
 
 }
