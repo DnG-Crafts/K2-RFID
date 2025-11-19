@@ -34,6 +34,7 @@ import static dngsoftware.spoolid.Utils.restartApp;
 import static dngsoftware.spoolid.Utils.restorePrinterDB;
 import static dngsoftware.spoolid.Utils.saveDBToPrinter;
 import static dngsoftware.spoolid.Utils.setMaterialInfo;
+import static dngsoftware.spoolid.Utils.setNfcLaunchMode;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -87,6 +88,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.GravityCompat;
@@ -166,6 +168,21 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        MenuItem launchItem = navigationView.getMenu().findItem(R.id.nav_launch);
+        SwitchCompat launchSwitch = Objects.requireNonNull(launchItem.getActionView()).findViewById(R.id.drawer_switch);
+        launchSwitch.setChecked(GetSetting(this, "autoLaunch", true));
+        launchSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            setNfcLaunchMode(this, isChecked);
+            SaveSetting(this, "autoLaunch", isChecked);
+        });
+
+        MenuItem readItem = navigationView.getMenu().findItem(R.id.nav_read);
+        SwitchCompat readSwitch = Objects.requireNonNull(readItem.getActionView()).findViewById(R.id.drawer_switch);
+        readSwitch.setChecked(GetSetting(this, "autoread", false));
+        readSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SaveSetting(this, "autoread", isChecked);
+        });
+
         PrinterType = GetSetting(this, "printer", "k2");
 
         padapter = new ArrayAdapter<>(this, R.layout.spinner_item, printerTypes);
@@ -198,8 +215,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                     Toast.makeText(getApplicationContext(), R.string.this_device_does_not_support_mifare_classic_tags, Toast.LENGTH_SHORT).show();
                     main.readbutton.setEnabled(false);
                     main.writebutton.setEnabled(false);
-                    main.autoread.setChecked(false);
-                    main.autoread.setEnabled(false);
                     main.colorspin.setEnabled(false);
                     main.spoolsize.setEnabled(false);
                     main.colorview.setEnabled(false);
@@ -215,8 +230,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 main.writebutton.setEnabled(false);
                 main.readbutton.setVisibility(View.INVISIBLE);
                 main.writebutton.setVisibility(View.INVISIBLE);
-                main.autoread.setChecked(false);
-                main.autoread.setEnabled(false);
                 main.colorspin.setEnabled(false);
                 main.spoolsize.setEnabled(false);
                 main.colorview.setEnabled(false);
@@ -284,9 +297,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             }
             return false;
         });
-
-        main.autoread.setChecked(GetSetting(this, "autoread", false));
-        main.autoread.setOnCheckedChangeListener((buttonView, isChecked) -> SaveSetting(this, "autoread", isChecked));
 
         sadapter = new ArrayAdapter<>(this, R.layout.spinner_item, materialWeights);
         main.spoolsize.setAdapter(sadapter);
@@ -680,28 +690,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         WriteTag("AB124" + vendorId + "A2" + filamentId + color + Length + serialNum + reserve);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    ;
 
     @SuppressLint("ClickableViewAccessibility")
     void openPicker() {

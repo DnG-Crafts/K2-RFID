@@ -1,6 +1,5 @@
 package dngsoftware.spoolid;
 
-
 import static dngsoftware.spoolid.Utils.filamentTypes;
 import static dngsoftware.spoolid.Utils.filamentVendors;
 import android.annotation.SuppressLint;
