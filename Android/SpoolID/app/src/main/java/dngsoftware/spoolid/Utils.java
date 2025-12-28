@@ -807,6 +807,25 @@ public class Utils {
         }
     }
 
+    public static String getMifareBlockDefinition(int sector, int blockInSector, int totalBlocksInSector) {
+        if (sector == 0 && blockInSector == 0) {
+            return "MANUFACTURER (UID)";
+        }
+        if (blockInSector == totalBlocksInSector - 1) {
+            return "Keys A/B + Access Bits";
+        }
+        return "USER DATA";
+    }
+
+    public static String getTypeName(int type) {
+        switch (type) {
+            case MifareClassic.TYPE_CLASSIC: return "Mifare Classic";
+            case MifareClassic.TYPE_PLUS: return "Mifare Plus";
+            case MifareClassic.TYPE_PRO: return "Mifare Pro";
+            default: return "Mifare";
+        }
+    }
+
     public static int[] presetColors() {
         return new int[]{
                 Color.parseColor("#25C4DA"),

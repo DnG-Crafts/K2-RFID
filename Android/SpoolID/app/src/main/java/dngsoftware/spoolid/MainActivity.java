@@ -23,7 +23,9 @@ import static dngsoftware.spoolid.Utils.getJsonDB;
 import static dngsoftware.spoolid.Utils.getMaterialBrands;
 import static dngsoftware.spoolid.Utils.getMaterialPos;
 import static dngsoftware.spoolid.Utils.getMaterials;
+import static dngsoftware.spoolid.Utils.getMifareBlockDefinition;
 import static dngsoftware.spoolid.Utils.getPositionByValue;
+import static dngsoftware.spoolid.Utils.getTypeName;
 import static dngsoftware.spoolid.Utils.materialWeights;
 import static dngsoftware.spoolid.Utils.playBeep;
 import static dngsoftware.spoolid.Utils.populateDatabase;
@@ -88,6 +90,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
@@ -117,6 +120,7 @@ import dngsoftware.spoolid.databinding.EditDialogBinding;
 import dngsoftware.spoolid.databinding.ManualDialogBinding;
 import dngsoftware.spoolid.databinding.PickerDialogBinding;
 import dngsoftware.spoolid.databinding.SaveDialogBinding;
+import dngsoftware.spoolid.databinding.TagDialogBinding;
 import dngsoftware.spoolid.databinding.UpdateDialogBinding;
 
 public class MainActivity extends AppCompatActivity implements NfcAdapter.ReaderCallback, NavigationView.OnNavigationItemSelectedListener {
@@ -129,8 +133,11 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     Tag currentTag = null;
     int SelectedSize, SelectedBrand;
     String MaterialName, MaterialID, MaterialWeight, MaterialColor, PrinterType;
-    Dialog pickerDialog, customDialog, saveDialog, updateDialog, editDialog, addDialog;
+    Dialog pickerDialog, customDialog, saveDialog, updateDialog, editDialog, addDialog, tagDialog;
     AlertDialog inputDialog;
+    tagAdapter tagAdapter;
+    RecyclerView tagView;
+    tagItem[] tagItems;
     boolean encrypted = false;
     byte[] encKey;
     private ActivityMainBinding main;
@@ -144,13 +151,12 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     private ActivityResultLauncher<Void> cameraLauncher;
     private static final int ACTION_EXPORT = 1;
     private static final int ACTION_IMPORT = 2;
-
     private int pendingAction = -1;
     NavigationView navigationView;
     private DrawerLayout drawerLayout;
-
     private static final int PERMISSION_REQUEST_CODE = 2;
     private PickerDialogBinding colorDialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -255,8 +261,12 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
         main.addbutton.setOnClickListener(view -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Create Filament?");
-            builder.setMessage("Using " + MaterialName + " as a template");
+            SpannableString titleText = new SpannableString("Create Filament?");
+            titleText.setSpan(new ForegroundColorSpan(Color.parseColor("#1976D2")), 0, titleText.length(), 0);
+            SpannableString messageText = new SpannableString("Using " + MaterialName + " as a template");
+            messageText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, messageText.length(), 0);
+            builder.setTitle(titleText);
+            builder.setMessage(messageText);
             builder.setPositiveButton("Create", (dialog, which) -> {
                 loadAdd();
                 dialog.dismiss();
@@ -264,14 +274,23 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
             AlertDialog alert = builder.create();
             alert.show();
+            if (alert.getWindow() != null) {
+                alert.getWindow().setBackgroundDrawableResource(android.R.color.white);
+                alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#1976D2"));
+                alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#1976D2"));
+            }
         });
 
         main.editbutton.setOnClickListener(view -> loadEdit());
 
         main.deletebutton.setOnClickListener(view -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Delete Filament?");
-            builder.setMessage("Brand:  " + GetMaterialBrand(matDb, MaterialID) + "\nType:    " + MaterialName);
+            SpannableString titleText = new SpannableString("Delete Filament?");
+            titleText.setSpan(new ForegroundColorSpan(Color.parseColor("#1976D2")), 0, titleText.length(), 0);
+            SpannableString messageText = new SpannableString("Brand:  " + GetMaterialBrand(matDb, MaterialID) + "\nType:    " + MaterialName);
+            messageText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, messageText.length(), 0);
+            builder.setTitle(titleText);
+            builder.setMessage(messageText);
             builder.setPositiveButton("Delete", (dialog, which) -> {
                 removeFilament(matDb, MaterialID);
                 setMatDb(PrinterType);
@@ -280,6 +299,11 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
             AlertDialog alert = builder.create();
             alert.show();
+            if (alert.getWindow() != null) {
+                alert.getWindow().setBackgroundDrawableResource(android.R.color.white);
+                alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#1976D2"));
+                alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#1976D2"));
+            }
         });
 
         main.menubutton.setOnClickListener(view -> drawerLayout.openDrawer(GravityCompat.START));
@@ -391,11 +415,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdownNow();
         }
-
         if (pickerDialog != null && pickerDialog.isShowing()) {
             pickerDialog.dismiss();
         }
@@ -413,6 +435,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         }
         if (addDialog != null && addDialog.isShowing()) {
             addDialog.dismiss();
+        }
+        if (tagDialog != null && tagDialog.isShowing()) {
+            tagDialog.dismiss();
         }
         if (nfcAdapter != null && nfcAdapter.isEnabled()) {
             try {
@@ -603,8 +628,12 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     void FormatTag() {
         if (currentTag != null) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.format_tag_q);
-            builder.setMessage(R.string.erase_message);
+            SpannableString titleText = new SpannableString(getString(R.string.format_tag_q));
+            titleText.setSpan(new ForegroundColorSpan(Color.parseColor("#1976D2")), 0, titleText.length(), 0);
+            SpannableString messageText = new SpannableString(getString(R.string.erase_message));
+            messageText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, messageText.length(), 0);
+            builder.setTitle(titleText);
+            builder.setMessage(messageText);
             builder.setPositiveButton(R.string.format, (dialog, which) -> {
                 MifareClassic mfc = MifareClassic.get(currentTag);
                 if (mfc != null && mfc.getType() == MifareClassic.TYPE_CLASSIC) {
@@ -653,6 +682,11 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
             AlertDialog alert = builder.create();
             alert.show();
+            if (alert.getWindow() != null) {
+                alert.getWindow().setBackgroundDrawableResource(android.R.color.white);
+                alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#1976D2"));
+                alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#1976D2"));
+            }
         } else {
             Toast.makeText(getApplicationContext(), R.string.no_tag_found, Toast.LENGTH_SHORT).show();
         }
@@ -706,12 +740,16 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             gradientBitmap = null;
 
             dl.btncls.setOnClickListener(v -> {
-                if (dl.txtcolor.getText().toString().length() == 6) {
-                    try {
-                        MaterialColor = dl.txtcolor.getText().toString();
-                        int color = Color.rgb(dl.redSlider.getProgress(), dl.greenSlider.getProgress(), dl.blueSlider.getProgress());
-                        main.colorview.setBackgroundColor(color);
-                    } catch (Exception ignored) {
+                MaterialColor = dl.txtcolor.getText().toString();
+                if (customDialog != null && customDialog.isShowing()) {
+                    manual.txtcolor.setText(String.format("0%s", MaterialColor));
+                }else {
+                    if (dl.txtcolor.getText().toString().length() == 6) {
+                        try {
+                            int color = Color.rgb(dl.redSlider.getProgress(), dl.greenSlider.getProgress(), dl.blueSlider.getProgress());
+                            main.colorview.setBackgroundColor(color);
+                        } catch (Exception ignored) {
+                        }
                     }
                 }
                 pickerDialog.dismiss();
@@ -1164,10 +1202,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
     void loadAdd() {
         try {
-
             RecyclerView recyclerView;
             jsonAdapter recycleAdapter;
-
             addDialog = new Dialog(this, R.style.Theme_SpoolID);
             addDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
             addDialog.setCanceledOnTouchOutside(false);
@@ -1346,10 +1382,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             spannableString.setSpan(new ForegroundColorSpan(Color.parseColor("#1976D2")), 41, 43, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             sdl.updatedesc.setText(spannableString);
 
-
             sdl.chkprevent.setOnCheckedChangeListener((buttonView, isChecked) -> SaveSetting(this, "prevent_" + PrinterType, isChecked));
             sdl.chkprevent.setChecked(GetSetting(this, "prevent_" + PrinterType, true));
-
 
             sdl.chkreboot.setOnCheckedChangeListener((buttonView, isChecked) -> SaveSetting(this, "reboot_" + PrinterType, isChecked));
             sdl.chkreboot.setChecked(GetSetting(this, "reboot_" + PrinterType, true));
@@ -1394,12 +1428,17 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 sdl.txtmsg.setTextColor(getResources().getColor(R.color.text_color));
                 if (sdl.chkreset.isChecked()) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle("Warning!");
+                    SpannableString titleText = new SpannableString("Warning!");
+                    titleText.setSpan(new ForegroundColorSpan(Color.parseColor("#1976D2")), 0, titleText.length(), 0);
+                    SpannableString messageText;
                     if (resetapp) {
-                        builder.setMessage("This will restore the default printer and app databases");
+                        messageText = new SpannableString("This will restore the default printer and app databases");
                     } else {
-                        builder.setMessage("This will restore the default printer database");
+                        messageText = new SpannableString("This will restore the default printer database");
                     }
+                    messageText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, messageText.length(), 0);
+                    builder.setTitle(titleText);
+                    builder.setMessage(messageText);
                     builder.setPositiveButton("Reset", (dialog, which) -> {
                         sdl.txtmsg.setText(R.string.resetting);
                         new Thread(() -> {
@@ -1431,6 +1470,11 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                     builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
                     AlertDialog alert = builder.create();
                     alert.show();
+                    if (alert.getWindow() != null) {
+                        alert.getWindow().setBackgroundDrawableResource(android.R.color.white);
+                        alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#1976D2"));
+                        alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#1976D2"));
+                    }
                     return;
                 }
 
@@ -1688,6 +1732,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             openCustom();
         }else if (id == R.id.nav_format) {
             FormatTag();
+        }else if (id == R.id.nav_memory) {
+            loadTagMemory();
         }
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
@@ -1922,21 +1968,41 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
     private void showImportDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.import_database);
-        builder.setMessage(String.format(getString(R.string.restore_s_database), PrinterType.toUpperCase()));
+        SpannableString titleText = new SpannableString(getString(R.string.import_database));
+        titleText.setSpan(new ForegroundColorSpan(Color.parseColor("#1976D2")), 0, titleText.length(), 0);
+        SpannableString messageText = new SpannableString(String.format(getString(R.string.restore_s_database), PrinterType.toUpperCase()));
+        messageText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, messageText.length(), 0);
+        builder.setTitle(titleText);
+        builder.setMessage(messageText);
         builder.setPositiveButton("Import", (dialog, which) -> checkPermissionAndStartAction(ACTION_IMPORT));
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-        builder.create().show();
+        AlertDialog alert = builder.create();
+        alert.show();
+        if (alert.getWindow() != null) {
+            alert.getWindow().setBackgroundDrawableResource(android.R.color.white);
+            alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#1976D2"));
+            alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#1976D2"));
+        }
     }
 
 
     private void showExportDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.export_database);
-        builder.setMessage(String.format(getString(R.string.backup_s_database_material_database_s_db), PrinterType.toUpperCase(), PrinterType.toLowerCase()));
+        SpannableString titleText = new SpannableString(getString(R.string.export_database));
+        titleText.setSpan(new ForegroundColorSpan(Color.parseColor("#1976D2")), 0, titleText.length(), 0);
+        SpannableString messageText = new SpannableString(String.format(getString(R.string.backup_s_database_material_database_s_db), PrinterType.toUpperCase(), PrinterType.toLowerCase()));
+        messageText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, messageText.length(), 0);
+        builder.setTitle(titleText);
+        builder.setMessage(messageText);
         builder.setPositiveButton("Export", (dialog, which) -> checkPermissionAndStartAction(ACTION_EXPORT));
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-        builder.create().show();
+        AlertDialog alert = builder.create();
+        alert.show();
+        if (alert.getWindow() != null) {
+            alert.getWindow().setBackgroundDrawableResource(android.R.color.white);
+            alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#1976D2"));
+            alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#1976D2"));
+        }
     }
 
 
@@ -1962,11 +2028,13 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         }
     }
 
+
     private void takePicture() {
         if (cameraLauncher != null) {
             cameraLauncher.launch(null);
         }
     }
+
 
     @SuppressLint("ClickableViewAccessibility")
     private void setupPhotoPicker(ImageView imageView) {
@@ -1994,4 +2062,99 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         });
     }
 
+
+    void loadTagMemory() {
+        try {
+            tagDialog = new Dialog(this, R.style.Theme_SpoolID);
+            tagDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            tagDialog.setCanceledOnTouchOutside(false);
+            tagDialog.setTitle("Tag Memory");
+            TagDialogBinding tdl = TagDialogBinding.inflate(getLayoutInflater());
+            View rv = tdl.getRoot();
+            tagDialog.setContentView(rv);
+            tdl.btncls.setOnClickListener(v -> tagDialog.dismiss());
+            tagView = tdl.recyclerView;
+            LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+            layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+            layoutManager.scrollToPosition(0);
+            tagView.setLayoutManager(layoutManager);
+            tdl.btnread.setOnClickListener(v -> readTagMemory(tdl));
+            tagDialog.show();
+            if (currentTag != null) {
+                readTagMemory(tdl);
+            }
+        } catch (Exception ignored) {}
+    }
+
+
+    void readTagMemory(TagDialogBinding tdl)
+    {
+        if (currentTag == null) {
+            Toast.makeText(getApplicationContext(), getString(R.string.no_tag_found), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try (MifareClassic mfc = MifareClassic.get(currentTag)) {
+            try {
+                mfc.connect();
+                int sectorCount = mfc.getSectorCount();
+                int currentBlock = 0;
+                tdl.lbldesc.setText(getTypeName(mfc.getType()));
+                tagItems = new tagItem[sectorCount * 16];
+                boolean auth;
+                for (int s = 0; s < sectorCount; s++) {
+                    if (s == 1) {
+                        byte[] key = MifareClassic.KEY_DEFAULT;
+                        if (encrypted) {
+                            key = encKey;
+                        }
+                        auth = mfc.authenticateSectorWithKeyA(1, key);
+                    }
+                    else {
+                         auth = mfc.authenticateSectorWithKeyA(s, MifareClassic.KEY_DEFAULT);
+                    }
+                    if (auth) {
+                        int firstBlock = mfc.sectorToBlock(s);
+                        int blockCount = mfc.getBlockCountInSector(s);
+                        for (int b = 0; b < blockCount; b++) {
+                            currentBlock = firstBlock + b;
+                            byte[] data = mfc.readBlock(currentBlock);
+                            String hexString = bytesToHex(data);
+                            String definition = getMifareBlockDefinition(s, b, blockCount);
+                            tagItems[currentBlock] = new tagItem();
+                            tagItems[currentBlock].tKey = String.format(Locale.getDefault(), "Block %d | %s", currentBlock, definition);
+                            tagItems[currentBlock].tValue = hexString;
+                            if (currentBlock == 0) {
+                                tagItems[currentBlock].tImage = AppCompatResources.getDrawable(this, R.drawable.locked);
+                            } else if (definition.contains("USER DATA")) {
+                                tagItems[currentBlock].tImage = AppCompatResources.getDrawable(this, R.drawable.writable);
+                            } else {
+                                tagItems[currentBlock].tImage = AppCompatResources.getDrawable(this, R.drawable.internal);
+                            }
+                        }
+                    } else {
+                        tagItems[currentBlock+1] = new tagItem();
+                        tagItems[currentBlock+1].tKey = "FAILED AUTHENTICATION";
+                        tagItems[currentBlock+1].tValue = "Key Required";
+                        tagItems[currentBlock+1].tImage = AppCompatResources.getDrawable(this, R.drawable.failed);
+                    }
+                }
+                tagItem[] filledItems = new tagItem[currentBlock+1];
+                System.arraycopy(tagItems, 0, filledItems, 0, currentBlock+1);
+                tagAdapter = new tagAdapter(getBaseContext(), filledItems);
+                tagAdapter.setHasStableIds(true);
+                runOnUiThread(() -> {
+                    tagView.removeAllViewsInLayout();
+                    tagView.setAdapter(null);
+                    tagView.setAdapter(tagAdapter);
+                });
+            } catch (Exception ignored) {
+                Toast.makeText(getApplicationContext(), getString(R.string.error_reading_tag), Toast.LENGTH_SHORT).show();
+            }
+            finally {
+                try {if (mfc.isConnected()) mfc.close();} catch (Exception ignored) {}
+            }
+        } catch (Exception ignored) {
+            Toast.makeText(getApplicationContext(), getString(R.string.no_tag_found), Toast.LENGTH_SHORT).show();
+        }
+    }
 }
