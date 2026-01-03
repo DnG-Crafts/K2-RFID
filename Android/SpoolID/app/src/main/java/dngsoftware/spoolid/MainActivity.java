@@ -441,6 +441,34 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         });
     }
 
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        if (printerDb.isEmpty()) {
+            openManage(true);
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+        if (id == R.id.nav_upload) {
+            openUpload();
+        } else if (id == R.id.nav_download) {
+            openUpdate();
+        }else if (id == R.id.nav_export) {
+            showExportDialog();
+        }else if (id == R.id.nav_import) {
+            showImportDialog();
+        }else if (id == R.id.nav_manual) {
+            openCustom();
+        }else if (id == R.id.nav_format) {
+            FormatTag();
+        }else if (id == R.id.nav_memory) {
+            loadTagMemory();
+        } else if (id == R.id.nav_manage) {
+            openManage(false);
+        }
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;
+    }
 
     @Override
     protected void onDestroy() {
@@ -1005,7 +1033,10 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             UpdateDialogBinding dl = UpdateDialogBinding.inflate(getLayoutInflater());
             View rv = dl.getRoot();
             updateDialog.setContentView(rv);
-
+            dl.chkpres.setChecked(GetSetting(this, "preserve", false));
+            dl.chkpres.setOnClickListener(v -> {
+               SaveSetting(this, "preserve", dl.chkpres.isChecked());
+            });
             executorService.execute(() -> {
                 try {
                     String searchName = PrinterType;
@@ -1249,7 +1280,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                             JSONObject materials = new JSONObject(json);
                             JSONObject result = new JSONObject(materials.getString("result"));
                             long newVer = result.getLong("version");
-                            matDb.deleteAll();
+                            if (!dl.chkpres.isChecked()) matDb.deleteAll();
                             populateDatabase(this, matDb, json, PrinterType);
                             SaveSetting(this, "version_" + PrinterType, newVer);
                             mainHandler.postDelayed(() -> {
@@ -1828,35 +1859,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         });
     }
 
-
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        int id = item.getItemId();
-        if (printerDb.isEmpty()) {
-            openManage(true);
-            drawerLayout.closeDrawer(GravityCompat.START);
-            return true;
-        }
-        if (id == R.id.nav_upload) {
-            openUpload();
-        } else if (id == R.id.nav_download) {
-            openUpdate();
-        }else if (id == R.id.nav_export) {
-            showExportDialog();
-        }else if (id == R.id.nav_import) {
-            showImportDialog();
-        }else if (id == R.id.nav_manual) {
-            openCustom();
-        }else if (id == R.id.nav_format) {
-            FormatTag();
-        }else if (id == R.id.nav_memory) {
-            loadTagMemory();
-        } else if (id == R.id.nav_manage) {
-            openManage(false);
-        }
-        drawerLayout.closeDrawer(GravityCompat.START);
-        return true;
-    }
 
     private void setupActivityResultLaunchers() {
         exportDirectoryChooser = registerForActivityResult(

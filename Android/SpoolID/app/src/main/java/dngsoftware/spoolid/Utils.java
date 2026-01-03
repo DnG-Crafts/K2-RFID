@@ -385,13 +385,20 @@ public class Utils {
             for (int i = 0; i < list.length(); i++) {
                 JSONObject item = list.getJSONObject(i);
                 JSONObject base = item.getJSONObject("base");
+                String currentID = base.getString("id").trim();
+                Filament existingFilament = db.getFilamentById(currentID);
                 Filament filament = new Filament();
+                filament.filamentID = currentID;
                 filament.position = i;
-                filament.filamentID = base.getString("id").trim();
                 filament.filamentName = base.getString("name").trim();
                 filament.filamentVendor = base.getString("brand").trim();
                 filament.filamentParam = item.toString();
-                db.addItem(filament);
+                if (existingFilament != null) {
+                    filament.dbKey = existingFilament.dbKey;
+                    db.updateItem(filament);
+                } else {
+                    db.addItem(filament);
+                }
             }
         } catch (Exception ignored) {
         }

@@ -156,4 +156,5 @@
     <string name="remove">Remove</string>
     <string name="remove_printer">Remove Printer</string>
     <string name="do_you_want_to_remove_s">Do you want to remove %s?</string>
+    <string name="preserve_custom_filaments">Preserve custom filaments</string>
 </resources>

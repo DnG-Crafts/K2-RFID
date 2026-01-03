@@ -30,7 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="34dp"
+        android:layout_marginTop="5dp"
         android:layout_marginEnd="16dp"
         android:textColor="#1976D2"
         android:textSize="22sp"
@@ -151,14 +151,14 @@
         android:layout_marginTop="40dp"
         android:layout_marginEnd="16dp"
         android:layout_marginStart="8dp"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="40dp"
         android:padding="14dp"
         android:text="@string/check"
         android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/btncls"
         app:layout_constraintTop_toBottomOf="@+id/chkprnt"
+        app:layout_constraintBottom_toBottomOf="parent"
         tools:ignore="DuplicateClickableBoundsCheck,VisualLintOverlap" />
 
     <Button
@@ -181,13 +181,14 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="40dp"
         android:layout_marginEnd="70dp"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="40dp"
         android:padding="14dp"
         android:text="@string/close"
         android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnchk"
         app:layout_constraintStart_toStartOf="parent"
+
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/chkprnt" />
 
     <TextView
@@ -221,10 +222,24 @@
         app:layout_constraintTop_toBottomOf="@+id/lblpip" />
 
     <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/chkpres"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/preserve_custom_filaments"
+        android:textColor="@color/text_color"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/chkprnt"
+        app:layout_constraintEnd_toEndOf="@+id/txtaddress"
+        app:layout_constraintStart_toStartOf="@+id/lblpip"
+        app:layout_constraintTop_toBottomOf="@+id/updatedesc" />
+
+    <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/chkprnt"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="12dp"
         android:text="@string/get_update_from_printer"
         android:textColor="@color/text_color"
         android:textSize="18sp"
@@ -232,7 +247,7 @@
         app:layout_constraintBottom_toTopOf="@+id/btnchk"
         app:layout_constraintEnd_toEndOf="@+id/txtaddress"
         app:layout_constraintStart_toStartOf="@+id/lblpip"
-        app:layout_constraintTop_toBottomOf="@+id/updatedesc" />
+        app:layout_constraintTop_toBottomOf="@+id/chkpres" />
 
     <FrameLayout
         android:id="@+id/imgframe"
@@ -240,7 +255,6 @@
         android:layout_height="0dp"
         android:clickable="true"
         android:focusable="true"
-        android:layout_marginTop="32dp"
         app:layout_constraintEnd_toEndOf="@+id/btnupd"
         app:layout_constraintStart_toStartOf="@+id/btncls"
         app:layout_constraintTop_toBottomOf="@+id/type"
@@ -277,7 +291,7 @@
         android:textColor="@color/text_color"
         android:textSize="18sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@+id/chkprnt"
+        app:layout_constraintBottom_toTopOf="@+id/chkpres"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/txtpsw"
