@@ -2280,17 +2280,20 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
     private void showToast(final Object content, final int duration) {
         mainHandler.post(() -> {
-            if (currentToast != null) currentToast.cancel();
-            if (content instanceof Integer) {
-                currentToast = Toast.makeText(this, (Integer) content, duration);
-            } else if (content instanceof String) {
-                currentToast = Toast.makeText(this, (String) content, duration);
-            } else {
-                currentToast = Toast.makeText(this, String.valueOf(content), duration);
-            }
-            currentToast.show();
+            try {
+                if (currentToast != null) currentToast.cancel();
+                if (content instanceof Integer) {
+                    currentToast = Toast.makeText(this, (Integer) content, duration);
+                } else if (content instanceof String) {
+                    currentToast = Toast.makeText(this, (String) content, duration);
+                } else {
+                    currentToast = Toast.makeText(this, String.valueOf(content), duration);
+                }
+                currentToast.show();
+            } catch (Exception ignored) {}
         });
     }
+
 
     void openManage(boolean isEmpty) {
         try {
@@ -2365,22 +2368,39 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             mdl.btncls.setOnClickListener(v -> printerDialog.dismiss());
 
             mdl.btnrem.setOnClickListener(v -> {
-                int pos = mdl.type.getSelectedItemPosition();
-                if (pos != -1) {
-                    String printerName = mdl.type.getItemAtPosition(pos).toString();
-                    manager.removeItem(printerName);
-                    items.remove(printerName);
-                    mdl.btnrem.setVisibility(View.INVISIBLE);
-                    mdl.txtmsg.setText("");
-                    printerDb.remove(printerName);
-                    String dbName = "material_database_" + printerName.toLowerCase();
-                    filamentDB.getInstance(this, dbName).close();
-                    deleteDatabase(dbName);
-                    main.brand.setAdapter(null);
-                    main.material.setAdapter(null);
-                    padapter.notifyDataSetChanged();
-                    manageAdapter.notifyDataSetChanged();
-                    showToast(getString(R.string.removed) + printerName, Toast.LENGTH_SHORT);
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                SpannableString titleText = new SpannableString(getString(R.string.remove_printer));
+                titleText.setSpan(new ForegroundColorSpan(Color.parseColor("#1976D2")), 0, titleText.length(), 0);
+                SpannableString messageText = new SpannableString(format(getString(R.string.do_you_want_to_remove_s), PrinterType.toUpperCase()));
+                messageText.setSpan(new ForegroundColorSpan(Color.BLACK), 0, messageText.length(), 0);
+                builder.setTitle(titleText);
+                builder.setMessage(messageText);
+                builder.setPositiveButton(R.string.remove, (dialog, which) -> {
+                    int pos = mdl.type.getSelectedItemPosition();
+                    if (pos != -1) {
+                        String printerName = mdl.type.getItemAtPosition(pos).toString();
+                        manager.removeItem(printerName);
+                        items.remove(printerName);
+                        mdl.btnrem.setVisibility(View.INVISIBLE);
+                        mdl.txtmsg.setText("");
+                        printerDb.remove(printerName);
+                        String dbName = "material_database_" + printerName.toLowerCase();
+                        filamentDB.getInstance(this, dbName).close();
+                        deleteDatabase(dbName);
+                        main.brand.setAdapter(null);
+                        main.material.setAdapter(null);
+                        padapter.notifyDataSetChanged();
+                        manageAdapter.notifyDataSetChanged();
+                        showToast(getString(R.string.removed) + printerName, Toast.LENGTH_SHORT);
+                    }
+                });
+                builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
+                AlertDialog alert = builder.create();
+                alert.show();
+                if (alert.getWindow() != null) {
+                    alert.getWindow().setBackgroundDrawableResource(android.R.color.white);
+                    alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#1976D2"));
+                    alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#1976D2"));
                 }
             });
 
@@ -2429,6 +2449,5 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             printerDialog.show();
         } catch (Exception ignored) {}
     }
-
 
 }

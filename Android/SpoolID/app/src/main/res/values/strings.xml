@@ -153,4 +153,7 @@
     <string name="export">Export</string>
     <string name="simport">Import</string>
     <string name="adding_s">Adding %s…</string>
+    <string name="remove">Remove</string>
+    <string name="remove_printer">Remove Printer</string>
+    <string name="do_you_want_to_remove_s">Do you want to remove %s?</string>
 </resources>
