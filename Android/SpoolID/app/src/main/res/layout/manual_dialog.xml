@@ -212,7 +212,7 @@
                 android:text=""
                 android:focusable="true"
                 android:focusableInTouchMode="true"
-                android:digits="0123456789"
+                android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
                 android:inputType="textNoSuggestions|textCapCharacters"
                 android:textColor="@color/text_color"
                 app:layout_constraintBottom_toTopOf="@+id/txtcolor"

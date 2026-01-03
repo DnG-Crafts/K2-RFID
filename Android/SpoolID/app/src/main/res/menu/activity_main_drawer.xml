@@ -6,6 +6,10 @@
     <item android:title="Printer Database">
         <menu>
             <item
+                android:id="@+id/nav_manage"
+                android:icon="@drawable/twotone_dashboard_customize_24"
+                android:title="Manage Printers" />
+            <item
                 android:id="@+id/nav_upload"
                 android:icon="@drawable/twotone_upload_24"
                 android:title="Upload Database" />

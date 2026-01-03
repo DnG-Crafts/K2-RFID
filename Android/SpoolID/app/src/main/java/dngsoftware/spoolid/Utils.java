@@ -9,13 +9,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.FeatureInfo;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
 import android.net.Uri;
 import android.nfc.tech.MifareClassic;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -35,16 +37,20 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
+
 
 @SuppressLint("GetInstance")
 public class Utils {
@@ -359,31 +365,10 @@ public class Utils {
         return null;
     }
 
-    public static String getAssetDB(Context context, String pType) {
-        try {
-            StringBuilder sb = new StringBuilder();
-            AssetManager assetManager = context.getAssets();
-            InputStream inputStream = assetManager.open(pType +".json");
-            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            String line;
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-            br.close();
-            return sb.toString();
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    public static long getDBVersion(Context context, String pType) {
-        try {
-            JSONObject materials = new JSONObject(getAssetDB(context, pType));
-            JSONObject result = new JSONObject(materials.getString("result"));
-            return result.getLong("version");
-        } catch (Exception ignored) {
-            return 0;
-        }
+    public static void restorePrinterDB(Context context, String psw, String host, String pType) throws Exception {
+        JSONObject jsonDb = new JSONObject(getJsonDB(context,pType,"0.4"));
+        setJsonDB(jsonDb.toString(2), psw, host, pType, "material_database.json");
+        sendSShCommand(psw, host, "reboot");
     }
 
     public static void populateDatabase(Context context, MatDB db, String json, String pType) {
@@ -392,7 +377,7 @@ public class Utils {
             if (json != null && !json.isEmpty()) {
                 materials = new JSONObject(json);
             }else {
-                materials = new JSONObject(getAssetDB(context, pType));
+                return;
             }
             JSONObject result = new JSONObject(materials.getString("result"));
             SaveSetting(context, "version_" + pType, result.getLong("version"));
@@ -434,49 +419,6 @@ public class Utils {
         }
     }
 
-
-    public static String getJsonDB(String pType, boolean fromPrinter)
-    {
-        URL url;
-        HttpURLConnection urlConnection;
-        String server_response;
-        try {
-            if (fromPrinter)
-            {
-                url = new URL( "http://" + pType +  "/downloads/defData/material_database.json");
-            }
-            else
-            {
-                url = new URL( "https://raw.githubusercontent.com/DnG-Crafts/K2-RFID/refs/heads/main/db/" + pType + ".json");
-            }
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setConnectTimeout(5000);
-            urlConnection.setRequestMethod("GET");
-            urlConnection.setInstanceFollowRedirects(false);
-            final int responseCode = urlConnection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                server_response = readStream(urlConnection.getInputStream());
-           } else {
-                server_response = null;
-            }
-        }
-        catch (Exception e)
-        {
-            server_response = null;
-        }
-        return server_response;
-    }
-
-    public static void restorePrinterDB(Context context, String psw, String host, String pType) throws Exception {
-        JSONObject jsonDb = new JSONObject(getAssetDB(context, pType));
-        setJsonDB(jsonDb.toString(2), psw, host, pType, "material_database.json");
-        if (pType.equalsIgnoreCase("k1")) {
-            JSONObject jsonDbo = new JSONObject(getAssetDB(context,"k1o"));
-            setJsonDB(jsonDbo.toString(2), psw, host, pType, "material_option.json");
-        }
-        sendSShCommand(psw, host, "reboot");
-    }
-
     public static void saveDBToPrinter(MatDB db, String psw, String host, String pType, String version, boolean reboot) throws Exception {
         JSONObject materials = new JSONObject(getJsonDB(psw, host, pType, "material_database.json"));
         JSONObject result = new JSONObject(materials.getString("result"));
@@ -508,7 +450,6 @@ public class Utils {
             }
         }
     }
-
 
     public static void saveMatOption(String psw, String host, String pType, JSONObject materials, boolean reboot) throws Exception {
         JSONObject options = new JSONObject();
@@ -659,28 +600,6 @@ public class Utils {
         session.disconnect();
     }
 
-    private static String readStream(InputStream in) {
-        try {
-            int len;
-            byte[] buf = new byte[ 1024 ];
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            while((len = in.read(buf)) > 0)
-            {
-                outputStream.write(buf, 0, len);
-            }
-            in.close();
-            return outputStream.toString();
-        } catch (Exception ignored) {
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (Exception ignored) {}
-            }
-        }
-        return null;
-    }
-
     public static void restartApp(Context context) {
         try {
             PackageManager packageManager = context.getPackageManager();
@@ -701,12 +620,249 @@ public class Utils {
         ArrayAdapter<?> adapter = (ArrayAdapter<?>) spinner.getAdapter();
         if (adapter != null) {
             for (int i = 0; i < adapter.getCount(); i++) {
-                if (Objects.requireNonNull(adapter.getItem(i)).toString().equals(value)) {
+                if (Objects.requireNonNull(adapter.getItem(i)).toString().equalsIgnoreCase(value)) {
                     return i;
                 }
             }
         }
         return 0;
+    }
+
+    public static String fetchDataFromApi(Context context, String apiUrl) throws Exception {
+        URL url = new URL(apiUrl);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setRequestProperty("User-Agent", context.getString(R.string.api_useragent));
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("__CXY_BRAND_", "creality");
+        conn.setRequestProperty("__CXY_UID_", "");
+        conn.setRequestProperty("__CXY_OS_LANG_", "0");
+        conn.setRequestProperty("__CXY_DUID_", UUID.randomUUID().toString());
+        conn.setRequestProperty("__CXY_APP_VER_", "1.0");
+        conn.setRequestProperty("__CXY_APP_CH_", "CP_Beta");
+        conn.setRequestProperty("__CXY_OS_VER_", context.getString(R.string.api_useragent));
+        conn.setRequestProperty("__CXY_TIMEZONE_", "28800");
+        conn.setRequestProperty("__CXY_APP_ID_", "creality_model");
+        conn.setRequestProperty("__CXY_REQUESTID_", UUID.randomUUID().toString());
+        conn.setRequestProperty("__CXY_PLATFORM_", "11");
+        JSONObject body = new JSONObject();
+        body.put("engineVersion", "3.0.0");
+        if (apiUrl.contains("materialList")) body.put("pageSize", 500);
+        try (OutputStream os = conn.getOutputStream()) {
+            byte[] input = body.toString().getBytes(context.getString(R.string.utf_8));
+            os.write(input, 0, input.length);
+        }
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), context.getString(R.string.utf_8)))) {
+            StringBuilder response = new StringBuilder();
+            String responseLine;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+            return response.toString();
+        }
+    }
+
+    private static String readEntryContent(Context context, ZipInputStream zis) throws Exception {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int length;
+        while ((length = zis.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, length);
+        }
+        return outputStream.toString(context. getString(R.string.utf_8));
+    }
+
+    private static String getZipUrl(Context context, String targetPrinterName, String targetNozzle) {
+        try {
+            String printerListJson = fetchDataFromApi(context, context.getString(R.string.api_printerlist));
+            JSONObject root = new JSONObject(printerListJson);
+            JSONArray printerList = root.getJSONObject("result").getJSONArray("printerList");
+            for (int i = 0; i < printerList.length(); i++) {
+                JSONObject printer = printerList.getJSONObject(i);
+                if (printer.getString("name").equalsIgnoreCase(targetPrinterName)) {
+                    JSONArray diameters = printer.getJSONArray("nozzleDiameter");
+                    for (int j = 0; j < diameters.length(); j++) {
+                        if (diameters.getString(j).equals(targetNozzle)) {
+                            return printer.getString("zipUrl");
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    public static JSONArray findPrinters(Context context, String targetName, String targetNozzle) {
+        JSONArray results = new JSONArray();
+        try {
+            String printerListJson = fetchDataFromApi(context, context.getString(R.string.api_printerlist));
+            JSONObject root = new JSONObject(printerListJson);
+            JSONArray printerList = root.getJSONObject("result").getJSONArray("printerList");
+            for (int i = 0; i < printerList.length(); i++) {
+                JSONObject printer = printerList.getJSONObject(i);
+                String printerName = printer.getString("name");
+                if (printerName.toLowerCase().contains(targetName.toLowerCase())) {
+                    JSONArray nozzles = printer.getJSONArray("nozzleDiameter");
+                    boolean hasNozzle = false;
+                    for (int j = 0; j < nozzles.length(); j++) {
+                        if (nozzles.getString(j).equals(targetNozzle)) {
+                            hasNozzle = true;
+                            break;
+                        }
+                    }
+                    if (hasNozzle) {
+                        results.put(printer);
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return results;
+    }
+
+    public static JSONArray findPrinters(Context context, String[] targetNames, String targetNozzle) {
+        JSONArray results = new JSONArray();
+        try {
+            String printerListJson = fetchDataFromApi(context, context.getString(R.string.api_printerlist));
+            JSONObject root = new JSONObject(printerListJson);
+            JSONArray printerList = root.getJSONObject("result").getJSONArray("printerList");
+            for (int i = 0; i < printerList.length(); i++) {
+                JSONObject printer = printerList.getJSONObject(i);
+                String printerName = printer.getString("name").toLowerCase();
+                boolean nameMatches = false;
+                for (String target : targetNames) {
+                    if (printerName.contains(target.toLowerCase())) {
+                        nameMatches = true;
+                        break;
+                    }
+                }
+                if (nameMatches) {
+                    JSONArray nozzles = printer.getJSONArray("nozzleDiameter");
+                    boolean hasNozzle = false;
+                    for (int j = 0; j < nozzles.length(); j++) {
+                        if (nozzles.getString(j).equals(targetNozzle)) {
+                            hasNozzle = true;
+                            break;
+                        }
+                    }
+                    if (hasNozzle) {
+                        results.put(printer);
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return results;
+    }
+
+    private static String processMaterials(String materialListJson, List<String> filamentJsonList, String zipVersion) {
+        try {
+            JSONObject targetRoot = new JSONObject();
+            targetRoot.put("code", 0);
+            targetRoot.put("msg", "ok");
+            targetRoot.put("reqId", "0");
+            JSONObject resultObj = new JSONObject();
+            JSONArray finalListItemArray = new JSONArray();
+            JSONObject listRoot = new JSONObject(materialListJson);
+            JSONArray allBaseMaterials = listRoot.getJSONObject("result").getJSONArray("list");
+            for (String filamentJson : filamentJsonList) {
+                JSONObject sourceObj = new JSONObject(filamentJson);
+                JSONObject metadata = sourceObj.getJSONObject("metadata");
+                String targetName = metadata.getString("name");
+                String engineVersion = sourceObj.getString("engine_version");
+                JSONObject engineData = sourceObj.optJSONObject("engine_data");
+                if (engineData == null) continue;
+                JSONObject cleanBase = null;
+                for (int i = 0; i < allBaseMaterials.length(); i++) {
+                    JSONObject rawBase = allBaseMaterials.getJSONObject(i);
+                    if (rawBase.getString("name").equals(targetName)) {
+                        cleanBase = new JSONObject();
+                        Iterator<String> baseKeys = rawBase.keys();
+                        while (baseKeys.hasNext()) {
+                            String key = baseKeys.next();
+                            if (key.equals("createTime") || key.equals("status") || key.equals("userInfo")) continue;
+                            cleanBase.put(key, rawBase.get(key));
+                        }
+                        break;
+                    }
+                }
+                if (cleanBase != null) {
+                    JSONObject listItem = new JSONObject();
+                    listItem.put("engineVersion", engineVersion);
+                    listItem.put("printerIntName", "F008");
+                    JSONArray nozzleDiameter = new JSONArray();
+                    nozzleDiameter.put("0.4");
+                    listItem.put("nozzleDiameter", nozzleDiameter);
+                    JSONObject kvParam = new JSONObject();
+                    Iterator<String> engKeys = engineData.keys();
+                    while (engKeys.hasNext()) {
+                        String key = engKeys.next();
+                        kvParam.put(key, engineData.get(key));
+                    }
+                    listItem.put("kvParam", kvParam);
+                    listItem.put("base", cleanBase);
+                    finalListItemArray.put(listItem);
+                }
+            }
+            resultObj.put("list", finalListItemArray);
+            resultObj.put("count", finalListItemArray.length());
+            if (zipVersion != null && !zipVersion.isEmpty()) {
+                resultObj.put("version", zipVersion);
+            } else {
+                resultObj.put("version", String.valueOf(System.currentTimeMillis() / 1000));
+            }
+            targetRoot.put("result", resultObj);
+            return targetRoot.toString(2);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    public static String getJsonDB(Context context, String targetPrinterName, String targetNozzle) {
+        try {
+            String zipUrl = getZipUrl(context, targetPrinterName, targetNozzle);
+            if (zipUrl != null) {
+                String materialListStr = fetchDataFromApi(context, context.getString(R.string.api_materiallist));
+                URL url = new URL(zipUrl);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                ZipInputStream zis = new ZipInputStream(connection.getInputStream());
+                ZipEntry entry;
+                List<String> filamentDataList = new ArrayList<>();
+                String extractedVersion = null;
+                while ((entry = zis.getNextEntry()) != null) {
+                    String name = entry.getName();
+                    if (!entry.isDirectory() && !name.contains("/") && name.toLowerCase().endsWith(".json")) {
+                        String content = readEntryContent(context, zis);
+                        JSONObject rootDef = new JSONObject(content);
+                        extractedVersion = rootDef.optString("version", null);
+                    } else if (!entry.isDirectory() && name.toLowerCase().startsWith("materials/") && name.toLowerCase().endsWith(".json")) {
+                        filamentDataList.add(readEntryContent(context, zis));
+                    }
+                    zis.closeEntry();
+                }
+                zis.close();
+                if (!materialListStr.isEmpty() && !filamentDataList.isEmpty()) {
+                    return processMaterials(materialListStr, filamentDataList, extractedVersion);
+                } else {
+                    return null;
+                }
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    public static void loadImage(String urlString, ImageView imageView) {
+        new Thread(() -> {
+            try {
+                URL url = new URL(urlString);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+                InputStream input = connection.getInputStream();
+                Bitmap myBitmap = BitmapFactory.decodeStream(input);
+                imageView.post(() -> imageView.setImageBitmap(myBitmap));
+            } catch (Exception ignored) {}
+        }).start();
     }
 
     public static String GetSetting(Context context, String sKey, String sDefault) {
