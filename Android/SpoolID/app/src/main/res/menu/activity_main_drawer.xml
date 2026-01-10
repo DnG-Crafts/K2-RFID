@@ -3,6 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
+    <item android:title="App">
+        <menu>
+            <item
+                android:id="@+id/nav_settings"
+                android:icon="@drawable/twotone_settings_24"
+                android:title="Open Settings" />
+        </menu>
+    </item>
     <item android:title="Printer Database">
         <menu>
             <item
@@ -36,11 +44,6 @@
     <item android:title="RFID Functions">
         <menu>
             <item
-                android:id="@+id/nav_read"
-                android:icon="@drawable/twotone_contactless_24"
-                android:title="Auto Read"
-                app:actionLayout="@layout/switch_item" />
-            <item
                 android:id="@+id/nav_format"
                 android:icon="@drawable/twotone_layers_clear_24"
                 android:title="Format Tag" />
@@ -55,13 +58,4 @@
         </menu>
     </item>
 
-    <item android:title="NFC Functions">
-        <menu>
-            <item
-                android:id="@+id/nav_launch"
-                android:icon="@drawable/twotone_nfc_24"
-                android:title="Launch APP"
-                app:actionLayout="@layout/switch_item" />
-        </menu>
-    </item>
 </menu>

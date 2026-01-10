@@ -1,5 +1,6 @@
 package dngsoftware.spoolid;
 
+import static java.lang.String.format;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -16,6 +17,8 @@ import android.media.AudioManager;
 import android.media.ToneGenerator;
 import android.net.Uri;
 import android.nfc.tech.MifareClassic;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -46,6 +49,8 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.crypto.Cipher;
@@ -99,6 +104,22 @@ public class Utils {
                 return "250 G";
         }
         return "1 KG";
+    }
+
+    public static int GetMaterialIntWeight(String materialWeight) {
+        switch (materialWeight) {
+            case "1 KG":
+                return 1000;
+            case "750 G":
+                return 750;
+            case "600 G":
+                return 600;
+            case "500 G":
+                return 500;
+            case "250 G":
+                return 250;
+        }
+        return 1000;
     }
 
     public static String[] filamentVendors = {
@@ -244,6 +265,9 @@ public class Utils {
 
     public static String GetMaterialBrand(MatDB db, String materialId) {
         Filament item = db.getFilamentById(materialId);
+        if (item == null) {
+            return " ";
+        }
         return item.filamentVendor;
     }
 
@@ -360,9 +384,8 @@ public class Utils {
                     {72, 64, 67, 70, 107, 82, 110, 122, 64, 75, 65, 116, 66, 74, 112, 50}, "AES");
             cipher.init(mode, secretKeySpec);
             return cipher.doFinal(tagData);
-        } catch (Exception ignored) {
-        }
-        return null;
+        } catch (Exception ignored) {}
+        return tagData;
     }
 
     public static void restorePrinterDB(Context context, String psw, String host, String pType) throws Exception {
@@ -959,6 +982,44 @@ public class Utils {
         }
     }
 
+    public static class HexInputFilter implements InputFilter {
+        @Override
+        public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+            StringBuilder filtered = new StringBuilder();
+            for (int i = start; i < end; i++) {
+                char character = source.charAt(i);
+                if (Character.isDigit(character) || (character >= 'a' && character <= 'f') || (character >= 'A' && character <= 'F')) {
+                    filtered.append(character);
+                }
+            }
+            return filtered.toString();
+        }
+    }
+
+    public static class TextInputFilter implements InputFilter {
+        @Override
+        public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+            StringBuilder filtered = new StringBuilder();
+            for (int i = start; i < end; i++) {
+                char character = source.charAt(i);
+                if ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z')) {
+                    filtered.append(character);
+                }
+            }
+            return filtered.toString();
+        }
+    }
+
+    public static String rgbToHex(int r, int g, int b) {
+        return format("%02X%02X%02X", r, g, b);
+    }
+
+    public static boolean isValidHexCode(String hexCode) {
+        Pattern pattern = Pattern.compile("^[0-9a-fA-F]{6}$");
+        Matcher matcher = pattern.matcher(hexCode);
+        return matcher.matches();
+    }
+
     public static void setNfcLaunchMode(Context context, boolean allowLaunch ) {
         ComponentName componentName = new ComponentName(context, LaunchActivity.class);
         PackageManager packageManager = context.getPackageManager();
@@ -986,6 +1047,124 @@ public class Utils {
             case MifareClassic.TYPE_PLUS: return "Mifare Plus";
             case MifareClassic.TYPE_PRO: return "Mifare Pro";
             default: return "Mifare";
+        }
+    }
+
+    public static String smAddSpool(Context context, MatDB db, String host, int port, String MaterialID, String hexColor, String colorName, int weightGrams) {
+        String baseUrl = "http://" + host + ":" + port + "/api/v1";
+        try {
+            Filament localData = db.getFilamentById(MaterialID);
+            if (localData == null) {
+                return "MaterialID " + MaterialID + " not found";
+            }
+            String vendorName = localData.filamentVendor.trim();
+            String fNameWithColor = localData.filamentName.trim() + " (" + colorName + ")";
+            int vendorId = -1;
+            String vRes = performSmRequest(context, baseUrl + "/vendor", "GET", null);
+            if (vRes != null) {
+                JSONArray vArray = new JSONArray(vRes);
+                for (int i = 0; i < vArray.length(); i++) {
+                    JSONObject v = vArray.getJSONObject(i);
+                    if (v.getString("name").equalsIgnoreCase(vendorName)) {
+                        vendorId = v.getInt("id");
+                        break;
+                    }
+                }
+            }
+            if (vendorId == -1) {
+                JSONObject vBody = new JSONObject();
+                vBody.put("name", vendorName);
+                String newV = performSmRequest(context, baseUrl + "/vendor", "POST", vBody.toString());
+                if (newV != null) vendorId = new JSONObject(newV).getInt("id");
+            }
+            int filamentId = -1;
+            String fRes = performSmRequest(context, baseUrl + "/filament", "GET", null);
+            if (fRes != null) {
+                JSONArray fArray = new JSONArray(fRes);
+                for (int i = 0; i < fArray.length(); i++) {
+                    JSONObject f = fArray.getJSONObject(i);
+                    int vIdCheck = f.has("vendor") && !f.isNull("vendor") ? f.getJSONObject("vendor").getInt("id") : -1;
+                    if (vIdCheck == vendorId && f.getString("name").equalsIgnoreCase(fNameWithColor)) {
+                        filamentId = f.getInt("id");
+                        break;
+                    }
+                }
+            }
+            if (filamentId == -1) {
+                JSONObject fBody = new JSONObject();
+                fBody.put("name", fNameWithColor);
+                fBody.put("vendor_id", vendorId);
+                if (localData.filamentParam != null && !localData.filamentParam.isEmpty()) {
+                    JSONObject root = new JSONObject(localData.filamentParam);
+                    JSONObject kvParam = root.optJSONObject("kvParam");
+                    JSONObject base = root.optJSONObject("base");
+                    if (base != null) {
+                        fBody.put("material", base.optString("meterialType"));
+                        fBody.put("diameter", base.optDouble("diameter"));
+                    }
+                    if (kvParam != null) {
+                        if (kvParam.has("nozzle_temperature"))
+                            fBody.put("settings_extruder_temp", Integer.parseInt(kvParam.getString("nozzle_temperature")));
+                        if (kvParam.has("hot_plate_temp"))
+                            fBody.put("settings_bed_temp", Integer.parseInt(kvParam.getString("hot_plate_temp")));
+                        if (kvParam.has("filament_density"))
+                            fBody.put("density", kvParam.optDouble("filament_density"));
+                    }
+                }
+                String newF = performSmRequest(context, baseUrl + "/filament", "POST", fBody.toString());
+                if (newF != null) filamentId = new JSONObject(newF).getInt("id");
+            }
+            if (filamentId != -1) {
+                JSONObject sBody = new JSONObject();
+                sBody.put("filament_id", filamentId);
+                sBody.put("color", hexColor.replace("#", ""));
+                sBody.put("initial_weight", weightGrams);
+                sBody.put("remaining_weight", weightGrams);
+                String ret = performSmRequest(context, baseUrl + "/spool", "POST", sBody.toString());
+                if (ret != null) {
+                    return "Spool created for\n" + fNameWithColor;
+                } else {
+                    return "Failed to create spool";
+                }
+            }
+        } catch (Exception e) {
+            return "Error " + e.getMessage();
+        }
+        return null;
+    }
+
+    private static String performSmRequest(Context context, String urlString, String method, String jsonBody) throws Exception {
+        URL url = new URL(urlString);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod(method);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setConnectTimeout(10000);
+        conn.setReadTimeout(10000);
+        if (jsonBody != null && (method.equals("POST") || method.equals("PATCH") || method.equals("PUT"))) {
+            conn.setDoOutput(true);
+            try (OutputStream os = conn.getOutputStream()) {
+                byte[] input = jsonBody.getBytes(context.getString(R.string.utf_8));
+                os.write(input, 0, input.length);
+            }
+        }
+        int responseCode = conn.getResponseCode();
+        if (responseCode >= 200 && responseCode < 300) {
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), context.getString(R.string.utf_8)));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                response.append(line.trim());
+            }
+            return response.toString();
+        } else {
+            BufferedReader errorReader = new BufferedReader(new InputStreamReader(conn.getErrorStream(), context.getString(R.string.utf_8)));
+            StringBuilder errorResponse = new StringBuilder();
+            String errorLine;
+            while ((errorLine = errorReader.readLine()) != null) {
+                errorResponse.append(errorLine.trim());
+            }
+            return null;
         }
     }
 
@@ -1028,4 +1207,5 @@ public class Utils {
                 Color.parseColor("#000000")
         };
     }
+
 }

@@ -306,29 +306,43 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="100dp"
-                android:layout_marginTop="53dp"
+                android:layout_marginTop="40dp"
                 android:layout_marginEnd="90dp"
                 android:padding="14dp"
                 android:text="@string/read"
                 android:textSize="16sp"
                 app:layout_constraintEnd_toStartOf="@+id/writebutton"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/lbltagid" />
+                app:layout_constraintTop_toBottomOf="@+id/txtspman" />
 
             <Button
                 android:id="@+id/writebutton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:layout_marginTop="53dp"
+                android:layout_marginTop="40dp"
                 android:layout_marginEnd="100dp"
                 android:padding="14dp"
                 android:text="@string/write"
                 android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/readbutton"
-                app:layout_constraintTop_toBottomOf="@+id/lbltagid" />
+                app:layout_constraintTop_toBottomOf="@+id/txtspman" />
 
+            <TextView
+                android:id="@+id/txtspman"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginTop="30dp"
+                android:gravity="center"
+                android:visibility="invisible"
+                android:text="@string/add_to_spoolman"
+                android:textColor="#1976D2"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/lbltagid"  />
 
             <TextView
                 android:id="@+id/txtmsg"
@@ -341,7 +355,7 @@
                 android:textColor="#FA6F6F"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/readbutton" />
+                app:layout_constraintTop_toTopOf="@+id/lbltagid" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>

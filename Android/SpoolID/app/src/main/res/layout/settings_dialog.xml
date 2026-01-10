@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    android:maxWidth="500dp"
+    android:background="#F4F4F4"
+    android:layout_height="wrap_content">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:background="#F4F4F4"
+        android:layout_height="wrap_content">
+
+
+    <LinearLayout
+        android:id="@+id/settingsframe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:maxWidth="500dp"
+        android:padding="24dp"
+        android:background="#F4F4F4"
+        app:layout_constraintWidth_max="500dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="General Settings"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_marginTop="30dp"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginBottom="16dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="8dp">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Auto Read"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_color" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Automatically read on tag discovery"
+                    android:textSize="14sp"
+                    android:textColor="#757575" />
+            </LinearLayout>
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/readswitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="8dp">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Launch App"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_color" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Automatically open this app on tag discovery"
+                    android:textSize="14sp"
+                    android:textColor="#757575" />
+            </LinearLayout>
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/launchswitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#DDDDDD"
+            android:layout_marginVertical="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Spoolman Configuration"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="16dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="8dp">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Enable Spoolman"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_color" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Enable spoolman functionality"
+                    android:textSize="14sp"
+                    android:textColor="#757575" />
+            </LinearLayout>
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/spoolswitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layout_host"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:boxBackgroundColor="#FFFFFF"
+            app:boxStrokeColor="@color/input_border_color"
+            app:hintTextColor="@color/input_border_color"
+            android:textColorHint="@color/input_border_color"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_color"
+            android:hint="Host Address"
+            app:expandedHintEnabled="false"
+            android:layout_marginTop="12dp">
+            <EditText
+                android:id="@+id/smhost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="192.168.1.100"
+                android:textColorHint="#CCCCCC"
+                android:textColor="@color/text_color"
+                android:inputType="textUri" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layout_port"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            app:boxBackgroundColor="#FFFFFF"
+            app:boxStrokeColor="@color/input_border_color"
+            app:hintTextColor="@color/input_border_color"
+            android:textColorHint="@color/input_border_color"
+            app:boxStrokeWidth="1.5dp"
+            app:boxStrokeWidthFocused="2dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_color"
+            android:hint="Port"
+            app:expandedHintEnabled="false"
+            android:layout_marginTop="12dp">
+            <EditText
+                android:id="@+id/smport"
+                android:maxLength="5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_color"
+                android:textColorHint="#CCCCCC"
+                android:hint="7912"
+                android:inputType="number" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#DDDDDD"
+            android:layout_marginVertical="16dp"/>
+    </LinearLayout>
+
+        <Button
+            android:id="@+id/btncls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="30dp"
+            android:layout_marginBottom="30dp"
+            android:padding="14dp"
+            android:text="@string/close"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="@+id/settingsframe"
+            app:layout_constraintTop_toBottomOf="@+id/settingsframe" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="40dp"
+            android:background="#00F4F4F4"
+            app:layout_constraintEnd_toEndOf="@+id/settingsframe"
+            app:layout_constraintStart_toStartOf="@+id/settingsframe"
+            app:layout_constraintTop_toBottomOf="@+id/btncls" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

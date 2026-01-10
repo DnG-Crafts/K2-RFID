@@ -157,4 +157,9 @@
     <string name="remove_printer">Remove Printer</string>
     <string name="do_you_want_to_remove_s">Do you want to remove %s?</string>
     <string name="preserve_custom_filaments">Preserve custom filaments</string>
+    <string name="add_to_spoolman"><u>Add to Spoolman</u></string>
+    <string name="add_spool_to_spoolman">\u00A0\u00A0Add Spool to Spoolman\u00A0\u00A0</string>
+    <string name="enter_color_name">Enter color name</string>
+    <string name="spoolman_host_is_not_set">Spoolman host is not set</string>
+    <string name="settings">Settings</string>
 </resources>
