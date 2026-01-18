@@ -1,13 +1,21 @@
-﻿using CFS_RFID.Properties;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Renci.SshNet;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
+using System.Windows.Forms;
+using ImageSharpImage = SixLabors.ImageSharp.Image;
 
 namespace CFS_RFID
 {
@@ -97,9 +105,9 @@ namespace CFS_RFID
             return item.FilamentParam;
         }
 
-        public static string GetMaterialID(string materialName)
+        public static string GetMaterialID(string materialVendor, string materialName)
         {
-            Filament item = MatDB.GetFilamentByName(materialName);
+            Filament item = MatDB.GetFilamentByName(materialVendor, materialName);
             return item.FilamentId;
         }
 
@@ -159,6 +167,24 @@ namespace CFS_RFID
                     return "250 G";
             }
             return "1 KG";
+        }
+
+        public static int GetMaterialIntWeight(string materialWeight)
+        {
+            switch (materialWeight)
+            {
+                case "1 KG":
+                    return 1000;
+                case "750 G":
+                    return 750;
+                case "600 G":
+                    return 600;
+                case "500 G":
+                    return 500;
+                case "250 G":
+                    return 250;
+            }
+            return 1000;
         }
 
         public static string[] printerTypes = {
@@ -223,58 +249,70 @@ namespace CFS_RFID
             return null;
         }
 
-        public static void WriteTag(Reader reader, String tagData)
-        {
-            if (!(reader.Authentication10byte(4, 96, 1) ||
-                  reader.Authentication6byte(4, 96, 1) ||
-                  reader.Authentication10byte(4, 96, 0) ||
-                  reader.Authentication6byte(4, 96, 0)))
-            {
-                throw new Exception("Failed to authenticate");
-            }
-            byte[] sectorData = Encoding.UTF8.GetBytes(tagData);
-            int blockIndex = 4;
-            for (int i = 0; i < 48; i += 16)
-            {
-                reader.UpdateBinaryBlocks((byte)blockIndex, 16, Utils.CipherData(1, sectorData.Skip(i).Take(16).ToArray()));
-                blockIndex++;
-            }
-        }
 
         public static string ReadTag(Reader reader)
         {
-            if (!(reader.Authentication10byte(4, 96, 1) || reader.Authentication6byte(4, 96, 1)))
+            MemoryStream buff = new MemoryStream(96);
+            if (reader.Authentication10byte(4, 96, 1) || reader.Authentication6byte(4, 96, 1))
+            {
+                byte[] s1Data = new byte[48];
+                byte[] b4 = reader.ReadBinaryBlocks(4, 16);
+                byte[] b5 = reader.ReadBinaryBlocks(5, 16);
+                byte[] b6 = reader.ReadBinaryBlocks(6, 16);
+
+                Array.Copy(b4, 0, s1Data, 0, 16);
+                Array.Copy(b5, 0, s1Data, 16, 16);
+                Array.Copy(b6, 0, s1Data, 32, 16);
+                byte[] s1Decrypted = Utils.CipherData(0, s1Data);
+                buff.Write(s1Decrypted, 0, 48);
+            }
+            else
             {
                 throw new Exception("Failed to authenticate");
             }
-            MemoryStream buff = new MemoryStream(48);
-            buff.Write(reader.ReadBinaryBlocks(4, 16), 0, 16);
-            buff.Write(reader.ReadBinaryBlocks(5, 16), 0, 16);
-            buff.Write(reader.ReadBinaryBlocks(6, 16), 0, 16);
-            return Encoding.UTF8.GetString(Utils.CipherData(0, buff.ToArray()));
+            if (reader.Authentication10byte(8, 96, 0) || reader.Authentication6byte(8, 96, 0))
+            {
+                buff.Write(reader.ReadBinaryBlocks(8, 16), 0, 16);
+                buff.Write(reader.ReadBinaryBlocks(9, 16), 0, 16);
+                buff.Write(reader.ReadBinaryBlocks(10, 16), 0, 16);
+            }
+            return Encoding.UTF8.GetString(buff.ToArray()).Trim();
         }
+
 
         public static void FormatTag(Reader reader)
         {
-            if ((reader.Authentication10byte(7, 96, 1) || reader.Authentication6byte(7, 96, 1)))
+            byte[] emptyData = new byte[16]; 
+            if (reader.Authentication10byte(4, 96, 1) || reader.Authentication6byte(4, 96, 1))
             {
-                byte[] sectorData = new byte[48];
-                for (int i = 0; i < sectorData.Length; i++)
+                for (byte i = 4; i <= 6; i++)
                 {
-                    sectorData[i] = (byte)0;
+                    reader.UpdateBinaryBlocks(i, 16, emptyData);
                 }
-                int blockIndex = 4;
-                for (int i = 0; i < 48; i += 16)
+                byte[] trailer = reader.ReadBinaryBlocks(7, 16);
+                if (trailer != null)
                 {
-                    reader.UpdateBinaryBlocks((byte)blockIndex, 16, Utils.CipherData(1, sectorData.Skip(i).Take(16).ToArray()));
-                    blockIndex++;
+                    Array.Copy(KEY_DEFAULT, 0, trailer, 0, 6);  
+                    Array.Copy(KEY_DEFAULT, 0, trailer, 10, 6); 
+                    reader.UpdateBinaryBlocks(7, 16, trailer);
                 }
-                byte[] data = reader.ReadBinaryBlocks(7, 16);
-                Array.Copy(KEY_DEFAULT, 0, data, 0, KEY_DEFAULT.Length);
-                Array.Copy(KEY_DEFAULT, 0, data, 10, KEY_DEFAULT.Length);
-                reader.UpdateBinaryBlocks(7, 16, data.Take(16).ToArray());
+            }
+            if (reader.Authentication10byte(8, 96, 0) || reader.Authentication6byte(8, 96, 0))
+            {
+                for (byte i = 8; i <= 10; i++)
+                {
+                    reader.UpdateBinaryBlocks(i, 16, emptyData);
+                }
+                byte[] trailerS2 = reader.ReadBinaryBlocks(11, 16);
+                if (trailerS2 != null)
+                {
+                    Array.Copy(KEY_DEFAULT, 0, trailerS2, 0, 6);
+                    Array.Copy(KEY_DEFAULT, 0, trailerS2, 10, 6);
+                    reader.UpdateBinaryBlocks(11, 16, trailerS2);
+                }
             }
         }
+
 
         public static string ReaderVersion(Reader reader)
         {
@@ -342,18 +380,7 @@ namespace CFS_RFID
             }
             if (resData == null || resData.Length == 0)
             {
-                if (fileName.Equals("k2.json", StringComparison.OrdinalIgnoreCase))
-                {
-                    resData = Resources.k2;
-                }
-                else if (fileName.Equals("k1.json", StringComparison.OrdinalIgnoreCase))
-                {
-                    resData = Resources.k1;
-                }
-                else
-                {
-                    resData = Resources.hi;
-                }
+                return;
             }
             using (MemoryStream memoryStream = new MemoryStream(resData))
             {
@@ -366,6 +393,28 @@ namespace CFS_RFID
                 }
             }
 
+        }
+
+        public static string[] GetPrinterTypes()
+        {
+            try
+            {
+                string folderPath = AppDomain.CurrentDomain.BaseDirectory + "\\material_database\\";
+                if (!Directory.Exists(folderPath))
+                {
+                    return new string[0];
+                }
+                string[] files = Directory.GetFiles(folderPath, "*.json");
+                var printerNames = files.Select(file =>
+                {
+                    return Path.GetFileNameWithoutExtension(file);
+                });
+                return printerNames.OrderBy(name => name).ToArray();
+            }
+            catch
+            {
+                return new string[0];
+            }
         }
 
         public static string SendSShCommand(string psw, string host, string command)
@@ -402,24 +451,11 @@ namespace CFS_RFID
             {
                 try
                 {
-                    byte[] resData;
-                    if (pType.Equals("k2", StringComparison.OrdinalIgnoreCase))
-                    {
-                        resData = Resources.k2;
-                    }
-                    else if (pType.Equals("k1", StringComparison.OrdinalIgnoreCase))
-                    {
-                        SetJsonDB(Resources.k1o, psw, host, pType, "material_option.json");
-                        resData = Resources.k1;
-                    }
-                    else
-                    {
-                        resData = Resources.hi;
-                    }
+                    byte[] resData = Encoding.UTF8.GetBytes(GetJsonDB(pType, "0.4"));
                     SetJsonDB(resData, psw, host, pType, "material_database.json");
                     if (resetApp)
                     {
-                        string filePath = AppDomain.CurrentDomain.BaseDirectory + "\\material_database\\" + pType.ToLower() + ".json";
+                        string filePath = AppDomain.CurrentDomain.BaseDirectory + "\\material_database\\" + pType + ".json";
                         using (MemoryStream memoryStream = new MemoryStream(resData))
                         {
                             byte[] readBytes = new byte[memoryStream.Length];
@@ -449,7 +485,7 @@ namespace CFS_RFID
                     client.ConnectionInfo.Timeout = TimeSpan.FromSeconds(5);
                     client.Connect();
                     string filepath = "/mnt/UDISK/creality/userdata/box/material_database.json";
-                    if (pType.Equals("k1", StringComparison.OrdinalIgnoreCase))
+                    if (pType.ToLower().Contains("k1"))
                     {
                         filepath = "/usr/data/creality/userdata/box/material_database.json";
                     }
@@ -481,7 +517,7 @@ namespace CFS_RFID
                     client.ConnectionInfo.Timeout = TimeSpan.FromSeconds(5);
                     client.Connect();
                     string filepath = "/mnt/UDISK/creality/userdata/box/" + fileName;
-                    if (pType.Equals("k1", StringComparison.OrdinalIgnoreCase))
+                    if (pType.ToLower().Contains("k1"))
                     {
                         filepath = "/usr/data/creality/userdata/box/" + fileName;
                     }
@@ -513,7 +549,7 @@ namespace CFS_RFID
                     client.ConnectionInfo.Timeout = TimeSpan.FromSeconds(5);
                     client.Connect();
                     string filepath = "/mnt/UDISK/creality/userdata/box/" + fileName;
-                    if (pType.Equals("k1", StringComparison.OrdinalIgnoreCase))
+                    if (pType.ToLower().Contains("k1"))
                     {
                         filepath = "/usr/data/creality/userdata/box/" + fileName;
                     }
@@ -538,7 +574,7 @@ namespace CFS_RFID
 
         public static void GetJsonDB(string psw, string host, string pType, string fileName)
         {
-            string localfilePath = AppDomain.CurrentDomain.BaseDirectory + "\\material_database\\" + pType.ToLower() + ".json";
+            string localfilePath = AppDomain.CurrentDomain.BaseDirectory + "\\material_database\\" + pType + ".json";
             string directory = Path.GetDirectoryName(localfilePath);
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             {
@@ -558,7 +594,7 @@ namespace CFS_RFID
                     client.ConnectionInfo.Timeout = TimeSpan.FromSeconds(5);
                     client.Connect();
                     string filepath = "/mnt/UDISK/creality/userdata/box/" + fileName;
-                    if (pType.Equals("k1", StringComparison.OrdinalIgnoreCase))
+                    if (pType.ToLower().Contains("k1"))
                     {
                         filepath = "/usr/data/creality/userdata/box/" + fileName;
                     }
@@ -590,7 +626,7 @@ namespace CFS_RFID
                     client.ConnectionInfo.Timeout = TimeSpan.FromSeconds(5);
                     client.Connect();
                     string filepath = "/mnt/UDISK/creality/userdata/box/material_database.json";
-                    if (pType.Equals("k1", StringComparison.OrdinalIgnoreCase))
+                    if (pType.ToLower().Contains("k1"))
                     {
                         filepath = "/usr/data/creality/userdata/box/material_database.json";
                     }
@@ -625,7 +661,7 @@ namespace CFS_RFID
                     client.ConnectionInfo.Timeout = TimeSpan.FromSeconds(5);
                     client.Connect();
                     string filepath = "/mnt/UDISK/creality/userdata/box/material_database.json";
-                    if (pType.Equals("k1", StringComparison.OrdinalIgnoreCase))
+                    if (pType.ToLower().Contains("k1"))
                     {
                         filepath = "/usr/data/creality/userdata/box/material_database.json";
                     }
@@ -695,6 +731,265 @@ namespace CFS_RFID
                 SendSShCommand(psw, host, "reboot");
             }
         }
+
+
+        public static string FetchDataFromApi(string apiUrl)
+        {
+            using (WebClient client = new WebClient())
+            {
+                string api_useragent = "BBL-Slicer/v01.09.03.50 (dark) Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.52";
+                client.Headers[HttpRequestHeader.UserAgent] = api_useragent;
+                client.Headers[HttpRequestHeader.ContentType] = "application/json";
+                client.Headers.Add("__CXY_BRAND_", "creality");
+                client.Headers.Add("__CXY_UID_", "");
+                client.Headers.Add("__CXY_OS_LANG_", "0");
+                client.Headers.Add("__CXY_DUID_", Guid.NewGuid().ToString());
+                client.Headers.Add("__CXY_APP_VER_", "1.0");
+                client.Headers.Add("__CXY_APP_CH_", "CP_Beta");
+                client.Headers.Add("__CXY_OS_VER_", api_useragent);
+                client.Headers.Add("__CXY_TIMEZONE_", "28800");
+                client.Headers.Add("__CXY_APP_ID_", "creality_model");
+                client.Headers.Add("__CXY_REQUESTID_", Guid.NewGuid().ToString());
+                client.Headers.Add("__CXY_PLATFORM_", "11");
+                var body = new JObject { ["engineVersion"] = "3.0.0" };
+                if (apiUrl.Contains("materialList")) body["pageSize"] = 500;
+                string jsonBody = body.ToString(Formatting.None);
+                return client.UploadString(apiUrl, "POST", jsonBody);
+            }
+        }
+
+        public static string GetZipUrl(string targetPrinterName, string targetNozzle)
+        {
+            try
+            {
+                string json = FetchDataFromApi("https://api.crealitycloud.com/api/cxy/v2/slice/profile/official/printerList");
+                var root = JObject.Parse(json);
+                var printerList = root["result"]?["printerList"] as JArray;
+                if (printerList != null)
+                {
+                    foreach (var printer in printerList)
+                    {
+                        if (printer["name"]?.ToString().Equals(targetPrinterName, StringComparison.OrdinalIgnoreCase) == true)
+                        {
+                            var nozzles = printer["nozzleDiameter"] as JArray;
+                            if (nozzles != null && nozzles.Any(n => n.ToString() == targetNozzle))
+                            {
+                                return printer["zipUrl"]?.ToString();
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        public static JArray FindPrinters(string[] targetNames, string targetNozzle)
+        {
+            var results = new JArray();
+            try
+            {
+                string json = FetchDataFromApi("https://api.crealitycloud.com/api/cxy/v2/slice/profile/official/printerList");
+                var root = JObject.Parse(json);
+                var printerList = root["result"]?["printerList"] as JArray;
+
+                if (printerList != null)
+                {
+                    foreach (var printer in printerList)
+                    {
+                        string printerName = printer["name"]?.ToString().ToLower() ?? "";
+                        bool nameMatches = targetNames.Any(t => printerName.Contains(t.ToLower()));
+                        if (nameMatches)
+                        {
+                            var nozzles = printer["nozzleDiameter"] as JArray;
+                            if (nozzles != null && nozzles.Any(n => n.ToString() == targetNozzle))
+                            {
+                                results.Add(printer);
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+            return results;
+        }
+
+        public static JArray FindPrinters(string targetName, string targetNozzle)
+        {
+            var results = new JArray();
+            try
+            {
+                string json = FetchDataFromApi("https://api.crealitycloud.com/api/cxy/v2/slice/profile/official/printerList");
+                var root = JObject.Parse(json);
+                var printerList = root["result"]?["printerList"] as JArray;
+
+                if (printerList != null)
+                {
+                    foreach (var printer in printerList)
+                    {
+                        string printerName = printer["name"]?.ToString().ToLower() ?? "";
+                        if (printerName.IndexOf(targetName, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            JArray nozzles = (JArray)printer["nozzleDiameter"];
+                            bool hasNozzle = nozzles.Any(n => n.ToString() == targetNozzle);
+                            if (hasNozzle)
+                            {
+                                results.Add(printer);
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+            return results;
+        }
+       
+
+        public static string ProcessMaterials(string materialListJson, List<string> filamentJsonList, string zipVersion)
+        {
+            try
+            {
+                var finalListItemArray = new JArray();
+                var listRoot = JObject.Parse(materialListJson);
+                var allBaseMaterials = listRoot["result"]?["list"] as JArray;
+
+                foreach (var filamentJson in filamentJsonList)
+                {
+                    var sourceObj = JObject.Parse(filamentJson);
+                    string targetName = sourceObj["metadata"]?["name"]?.ToString();
+
+                    var rawBase = allBaseMaterials?.FirstOrDefault(b => b["name"]?.ToString() == targetName) as JObject;
+                    if (rawBase != null)
+                    {
+                        var cleanBase = new JObject();
+                        foreach (var prop in rawBase.Properties())
+                        {
+                            if (new[] { "createTime", "status", "userInfo" }.Contains(prop.Name)) continue;
+                            cleanBase.Add(prop.Name, prop.Value);
+                        }
+
+                        var listItem = new JObject
+                        {
+                            ["engineVersion"] = sourceObj["engine_version"],
+                            ["printerIntName"] = "F008",
+                            ["nozzleDiameter"] = new JArray { "0.4" },
+                            ["kvParam"] = sourceObj["engine_data"],
+                            ["base"] = cleanBase
+                        };
+                        finalListItemArray.Add(listItem);
+                    }
+                }
+
+                var resultObj = new JObject
+                {
+                    ["list"] = finalListItemArray,
+                    ["count"] = finalListItemArray.Count,
+                    ["version"] = zipVersion ?? DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()
+                };
+
+                var targetRoot = new JObject
+                {
+                    ["code"] = 0,
+                    ["msg"] = "ok",
+                    ["reqId"] = "0",
+                    ["result"] = resultObj
+                };
+
+                return targetRoot.ToString(Formatting.Indented);
+            }
+            catch { return null; }
+        }
+
+        public static string GetJsonDB(string targetPrinterName, string targetNozzle)
+        {
+            try
+            {
+                string zipUrl = GetZipUrl(targetPrinterName, targetNozzle);
+                if (string.IsNullOrEmpty(zipUrl)) return null;
+                string materialListStr = FetchDataFromApi("https://api.crealitycloud.com/api/cxy/v2/slice/profile/official/materialList");
+                var filamentDataList = new List<string>();
+                string extractedVersion = null;
+                using (WebClient client = new WebClient())
+                {
+                    byte[] zipData = client.DownloadData(zipUrl);
+                    using (MemoryStream ms = new MemoryStream(zipData))
+                    using (ZipArchive archive = new ZipArchive(ms))
+                    {
+                        foreach (ZipArchiveEntry entry in archive.Entries)
+                        {
+                            if (entry.FullName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                            {
+                                using (Stream entryStream = entry.Open())
+                                using (StreamReader reader = new StreamReader(entryStream))
+                                {
+                                    string content = reader.ReadToEnd();
+
+                                    if (!entry.FullName.Contains("/"))
+                                    {
+                                        var rootDef = JObject.Parse(content);
+                                        extractedVersion = rootDef["version"]?.ToString();
+                                    }
+                                    else if (entry.FullName.StartsWith("materials/", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        filamentDataList.Add(content);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if (filamentDataList.Any())
+                    return ProcessMaterials(materialListStr, filamentDataList, extractedVersion);
+            }
+            catch { }
+            return null;
+        }
+
+
+        public static void LoadPrinterImage(string urlString, PictureBox pictureBox)
+        {
+            new Thread(() =>
+            {
+                try
+                {
+                    using (WebClient client = new WebClient())
+                    {
+                        byte[] data = client.DownloadData(urlString);
+                        if (urlString.ToLower().EndsWith(".webp"))
+                        {
+                            using (MemoryStream ms = new MemoryStream(data))
+                            {
+                                using (var image = ImageSharpImage.Load<Rgba32>(ms))
+                                {
+                                    image.Mutate(x => x.BackgroundColor(SixLabors.ImageSharp.Color.ParseHex("#F4F4F4")));
+                                    using (var outStream = new MemoryStream())
+                                    {
+                                        image.SaveAsBmp(outStream);
+                                        outStream.Position = 0;
+                                        pictureBox.Image = System.Drawing.Image.FromStream(outStream);
+                                        pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            using (MemoryStream ms = new MemoryStream(data))
+                            {
+                                Bitmap bmp = new Bitmap(ms);
+                                pictureBox.Invoke((MethodInvoker)delegate
+                                {
+                                    pictureBox.Image?.Dispose();
+                                    pictureBox.Image = bmp;
+                                });
+                            }
+                        }
+                    }
+                }
+                catch { }
+            }).Start();
+        }
+
 
         public static string[] filamentVendors = {
             "3Dgenius",
@@ -825,5 +1120,158 @@ namespace CFS_RFID
             "PP-CF",
             "PCTG"};
 
+
+
+        public static string SmAddSpool(string host, int port, string materialID, string hexColor, string colorName, int weightGrams, string printerType)
+        {
+            string baseUrl = string.Format("http://{0}:{1}/api/v1", host, port);
+            try
+            {
+                var localData = GetMaterialByID(materialID);
+                if (localData == null) return "MaterialID " + materialID + " not found";
+                string vendorName = localData.FilamentVendor.Trim();
+                string fNameWithColor = localData.FilamentName.Trim() + " (" + colorName + ")";
+                int vendorId = -1;
+                string vRes = PerformSmRequest(baseUrl + "/vendor", "GET");
+                if (vRes == null)
+                {
+                    return "Error adding spool";
+                }
+                else 
+                { 
+                    JArray vArray = JArray.Parse(vRes);
+                    foreach (JObject v in vArray)
+                    {
+                        if (string.Equals(v["name"].ToString(), vendorName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            vendorId = (int)v["id"];
+                            break;
+                        }
+                    }
+                }
+                if (vendorId == -1)
+                {
+                    string vBody = JsonConvert.SerializeObject(new { 
+                        name = vendorName, 
+                        comment = "Created by: Cfs RFID"
+                    });
+                    string newV = PerformSmRequest(baseUrl + "/vendor", "POST", vBody);
+                    if (newV != null)
+                        vendorId = (int)JObject.Parse(newV)["id"];
+                }
+                int filamentId = -1;
+                string fRes = PerformSmRequest(baseUrl + "/filament", "GET");
+                if (fRes != null)
+                {
+                    JArray fArray = JArray.Parse(fRes);
+                    foreach (JObject f in fArray)
+                    {
+                        int vIdCheck = (f["vendor"] != null && f["vendor"].Type != JTokenType.Null)
+                                       ? (int)f["vendor"]["id"] : -1;
+
+                        if (vIdCheck == vendorId && string.Equals(f["name"].ToString(), fNameWithColor, StringComparison.OrdinalIgnoreCase))
+                        {
+                            filamentId = (int)f["id"];
+                            break;
+                        }
+                    }
+                }
+                if (filamentId == -1)
+                {
+                    var fBodyDict = new Dictionary<string, object>();
+                    fBodyDict.Add("name", fNameWithColor);
+                    fBodyDict.Add("vendor_id", vendorId);
+                    fBodyDict.Add("color_hex", hexColor.Replace("#", ""));
+                    fBodyDict.Add("comment", "Created by: Cfs RFID");
+                    if (!string.IsNullOrEmpty(localData.FilamentParam))
+                    {
+                        JObject root = JObject.Parse(localData.FilamentParam);
+                        if (root["base"] != null)
+                        {
+                            fBodyDict.Add("material", root["base"]["meterialType"].ToString());
+                            fBodyDict.Add("diameter", (double)root["base"]["diameter"]);
+                        }
+                        if (root["kvParam"] != null)
+                        {
+                            JToken kvParam = root["kvParam"];
+                            if (kvParam["nozzle_temperature"] != null)
+                                fBodyDict.Add("settings_extruder_temp", int.Parse(kvParam["nozzle_temperature"].ToString()));
+                            if (kvParam["hot_plate_temp"] != null)
+                                fBodyDict.Add("settings_bed_temp", int.Parse(kvParam["hot_plate_temp"].ToString()));
+                            if (kvParam["filament_density"] != null)
+                                fBodyDict.Add("density", (double)kvParam["filament_density"]);
+                        }
+                    }
+                    string newF = PerformSmRequest(baseUrl + "/filament", "POST", JsonConvert.SerializeObject(fBodyDict));
+                    if (newF != null)
+                        filamentId = (int)JObject.Parse(newF)["id"];
+                }
+
+                if (filamentId != -1)
+                {
+                    var sBodyObj = new
+                    {
+                        filament_id = filamentId,
+                        initial_weight = weightGrams,
+                        remaining_weight = weightGrams,
+                        comment = "RFID tagged for " + printerType
+                    };
+                    string sBody = JsonConvert.SerializeObject(sBodyObj);
+                    string ret = PerformSmRequest(baseUrl + "/spool", "POST", sBody);
+                    return ret != null ? "Spool created for\n" + fNameWithColor : "Failed to create spool";
+                }
+            }
+            catch (Exception e)
+            {
+                return "Error " + e.Message;
+            }
+            return null;
+        }
+
+        private static string PerformSmRequest(string url, string method, string jsonBody = null)
+        {
+            using (TimedWebClient client = new TimedWebClient())
+            {
+                client.Encoding = Encoding.UTF8;
+                client.Headers[HttpRequestHeader.ContentType] = "application/json";
+                client.Headers[HttpRequestHeader.Accept] = "application/json";
+                try
+                {
+                    if (method == "GET")
+                    {
+                        return client.DownloadString(url);
+                    }
+                    else
+                    {
+                        return client.UploadString(url, method, jsonBody ?? "");
+                    }
+                }
+                catch (WebException)
+                {
+                    return null;
+                }
+            }
+        }
+
+
+        public class TimedWebClient : WebClient
+        {
+            public int Timeout { get; set; } = 5000;
+            protected override WebRequest GetWebRequest(Uri address)
+            {
+                WebRequest request = base.GetWebRequest(address);
+                if (request != null)
+                {
+                    request.Timeout = this.Timeout;
+                }
+                return request;
+            }
+        }
+
+
+
     }
+
+
+
 }

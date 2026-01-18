@@ -19,7 +19,7 @@ namespace CFS_RFID.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -63,6 +63,16 @@ namespace CFS_RFID.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap _internal {
+            get {
+                object obj = ResourceManager.GetObject("internal", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap _lock {
             get {
                 object obj = ResourceManager.GetObject("lock", resourceCulture);
@@ -91,6 +101,16 @@ namespace CFS_RFID.Properties {
         internal static string addDesc {
             get {
                 return ResourceManager.GetString("addDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] colors {
+            get {
+                object obj = ResourceManager.GetObject("colors", resourceCulture);
+                return ((byte[])(obj));
             }
         }
         
@@ -137,20 +157,20 @@ namespace CFS_RFID.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap format {
+        internal static System.Drawing.Bitmap failed {
             get {
-                object obj = ResourceManager.GetObject("format", resourceCulture);
+                object obj = ResourceManager.GetObject("failed", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static byte[] hi {
+        internal static System.Drawing.Bitmap format {
             get {
-                object obj = ResourceManager.GetObject("hi", resourceCulture);
-                return ((byte[])(obj));
+                object obj = ResourceManager.GetObject("format", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         
@@ -160,16 +180,6 @@ namespace CFS_RFID.Properties {
         internal static string hiPsw {
             get {
                 return ResourceManager.GetString("hiPsw", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] k1 {
-            get {
-                object obj = ResourceManager.GetObject("k1", resourceCulture);
-                return ((byte[])(obj));
             }
         }
         
@@ -193,21 +203,51 @@ namespace CFS_RFID.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] k2 {
-            get {
-                object obj = ResourceManager.GetObject("k2", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to creality_2024.
         /// </summary>
         internal static string k2Psw {
             get {
                 return ResourceManager.GetString("k2Psw", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap locked {
+            get {
+                object obj = ResourceManager.GetObject("locked", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap manage {
+            get {
+                object obj = ResourceManager.GetObject("manage", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap memory {
+            get {
+                object obj = ResourceManager.GetObject("memory", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap menu {
+            get {
+                object obj = ResourceManager.GetObject("menu", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         
@@ -218,6 +258,16 @@ namespace CFS_RFID.Properties {
         internal static string resetDesc {
             get {
                 return ResourceManager.GetString("resetDesc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap settings {
+            get {
+                object obj = ResourceManager.GetObject("settings", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
         
@@ -247,6 +297,16 @@ namespace CFS_RFID.Properties {
         internal static string verPrevent {
             get {
                 return ResourceManager.GetString("verPrevent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap writable {
+            get {
+                object obj = ResourceManager.GetObject("writable", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
     }

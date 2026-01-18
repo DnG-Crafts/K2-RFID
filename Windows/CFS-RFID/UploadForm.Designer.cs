@@ -88,6 +88,7 @@
             // btnCancel
             // 
             this.btnCancel.BackColor = System.Drawing.Color.RoyalBlue;
+            this.btnCancel.FlatAppearance.BorderSize = 0;
             this.btnCancel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCancel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnCancel.ForeColor = System.Drawing.Color.White;
@@ -102,6 +103,7 @@
             // btnUpload
             // 
             this.btnUpload.BackColor = System.Drawing.Color.RoyalBlue;
+            this.btnUpload.FlatAppearance.BorderSize = 0;
             this.btnUpload.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnUpload.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnUpload.ForeColor = System.Drawing.Color.White;
@@ -126,7 +128,6 @@
             // 
             this.rtbDesc.BackColor = System.Drawing.SystemColors.Control;
             this.rtbDesc.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbDesc.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.rtbDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.rtbDesc.Location = new System.Drawing.Point(42, 385);
             this.rtbDesc.Name = "rtbDesc";

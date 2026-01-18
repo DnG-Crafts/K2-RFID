@@ -43,15 +43,23 @@
             this.rtbDesc = new System.Windows.Forms.RichTextBox();
             this.lblCver = new System.Windows.Forms.Label();
             this.lblNver = new System.Windows.Forms.Label();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.printerModel = new System.Windows.Forms.ComboBox();
+            this.pb1 = new System.Windows.Forms.PictureBox();
+            this.chkFromPrinter = new SwitchCheckBox();
+            this.lblFromPrinter = new System.Windows.Forms.Label();
+            this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pb1)).BeginInit();
             this.SuspendLayout();
             // 
             // btnCancel
             // 
             this.btnCancel.BackColor = System.Drawing.Color.RoyalBlue;
+            this.btnCancel.FlatAppearance.BorderSize = 0;
             this.btnCancel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCancel.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnCancel.ForeColor = System.Drawing.Color.White;
-            this.btnCancel.Location = new System.Drawing.Point(39, 563);
+            this.btnCancel.Location = new System.Drawing.Point(39, 617);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(126, 47);
             this.btnCancel.TabIndex = 10;
@@ -62,10 +70,11 @@
             // btnUpdate
             // 
             this.btnUpdate.BackColor = System.Drawing.Color.RoyalBlue;
+            this.btnUpdate.FlatAppearance.BorderSize = 0;
             this.btnUpdate.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnUpdate.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnUpdate.ForeColor = System.Drawing.Color.White;
-            this.btnUpdate.Location = new System.Drawing.Point(265, 563);
+            this.btnUpdate.Location = new System.Drawing.Point(265, 617);
             this.btnUpdate.Name = "btnUpdate";
             this.btnUpdate.Size = new System.Drawing.Size(126, 47);
             this.btnUpdate.TabIndex = 9;
@@ -80,7 +89,7 @@
             this.btnCheck.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCheck.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnCheck.ForeColor = System.Drawing.Color.White;
-            this.btnCheck.Location = new System.Drawing.Point(265, 563);
+            this.btnCheck.Location = new System.Drawing.Point(265, 617);
             this.btnCheck.Name = "btnCheck";
             this.btnCheck.Size = new System.Drawing.Size(126, 47);
             this.btnCheck.TabIndex = 11;
@@ -171,7 +180,6 @@
             // 
             this.rtbDesc.BackColor = System.Drawing.SystemColors.Control;
             this.rtbDesc.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbDesc.Cursor = System.Windows.Forms.Cursors.Arrow;
             this.rtbDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.rtbDesc.Location = new System.Drawing.Point(39, 320);
             this.rtbDesc.Name = "rtbDesc";
@@ -204,11 +212,69 @@
             this.lblNver.Text = "                    ";
             this.lblNver.Visible = false;
             // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.printerModel);
+            this.panel1.Controls.Add(this.pb1);
+            this.panel1.Location = new System.Drawing.Point(26, 132);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(379, 352);
+            this.panel1.TabIndex = 43;
+            // 
+            // printerModel
+            // 
+            this.printerModel.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.printerModel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.printerModel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.printerModel.FormattingEnabled = true;
+            this.printerModel.Location = new System.Drawing.Point(32, 31);
+            this.printerModel.Name = "printerModel";
+            this.printerModel.Size = new System.Drawing.Size(319, 37);
+            this.printerModel.TabIndex = 44;
+            this.printerModel.SelectedIndexChanged += new System.EventHandler(this.printerModel_SelectedIndexChanged);
+            // 
+            // pb1
+            // 
+            this.pb1.Location = new System.Drawing.Point(13, 80);
+            this.pb1.Name = "pb1";
+            this.pb1.Size = new System.Drawing.Size(352, 269);
+            this.pb1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pb1.TabIndex = 43;
+            this.pb1.TabStop = false;
+            // 
+            // chkFromPrinter
+            // 
+            this.chkFromPrinter.BorderThickness = 1;
+            this.chkFromPrinter.Location = new System.Drawing.Point(301, 546);
+            this.chkFromPrinter.MinimumSize = new System.Drawing.Size(40, 20);
+            this.chkFromPrinter.Name = "chkFromPrinter";
+            this.chkFromPrinter.Size = new System.Drawing.Size(60, 31);
+            this.chkFromPrinter.SwitchOffColor = System.Drawing.Color.LightGray;
+            this.chkFromPrinter.SwitchOnColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(118)))), ((int)(((byte)(210)))));
+            this.chkFromPrinter.TabIndex = 44;
+            this.chkFromPrinter.Text = "switchCheckBox3";
+            this.chkFromPrinter.ThumbColor = System.Drawing.Color.White;
+            this.chkFromPrinter.UseVisualStyleBackColor = true;
+            this.chkFromPrinter.CheckedChanged += new System.EventHandler(this.chkFromPrinter_CheckedChanged);
+            // 
+            // lblFromPrinter
+            // 
+            this.lblFromPrinter.AutoSize = true;
+            this.lblFromPrinter.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblFromPrinter.Location = new System.Drawing.Point(58, 550);
+            this.lblFromPrinter.Name = "lblFromPrinter";
+            this.lblFromPrinter.Size = new System.Drawing.Size(208, 20);
+            this.lblFromPrinter.TabIndex = 45;
+            this.lblFromPrinter.Text = "Get update from printer?";
+            // 
             // UpdateForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(434, 640);
+            this.ClientSize = new System.Drawing.Size(429, 696);
+            this.Controls.Add(this.lblFromPrinter);
+            this.Controls.Add(this.chkFromPrinter);
+            this.Controls.Add(this.panel1);
             this.Controls.Add(this.lblNver);
             this.Controls.Add(this.lblCver);
             this.Controls.Add(this.rtbDesc);
@@ -231,6 +297,8 @@
             this.ShowInTaskbar = false;
             this.Text = "Update";
             this.Load += new System.EventHandler(this.UpdateForm_Load);
+            this.panel1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pb1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -252,5 +320,10 @@
         private System.Windows.Forms.RichTextBox rtbDesc;
         private System.Windows.Forms.Label lblCver;
         private System.Windows.Forms.Label lblNver;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.ComboBox printerModel;
+        private System.Windows.Forms.PictureBox pb1;
+        private SwitchCheckBox chkFromPrinter;
+        private System.Windows.Forms.Label lblFromPrinter;
     }
 }

@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -15,14 +16,15 @@ namespace CFS_RFID
         private string sshDefault;
         private string currentVersion;
         private string newVersion;
-
+        private string apiVersion;
+        private string SelectedDatabase;
 
         public UpdateForm()
         {
             InitializeComponent();
         }
 
-        private void UpdateForm_Load(object sender, EventArgs e)
+        private async void UpdateForm_Load(object sender, EventArgs e)
         {
 
             btnCancel.BackColor = ColorTranslator.FromHtml("#1976D2");
@@ -34,11 +36,20 @@ namespace CFS_RFID
             btnCancel.FlatAppearance.BorderSize = 0;
             btnCheck.FlatAppearance.BorderSize = 0;
 
-            if (SelectedPrinter.Equals("hi", StringComparison.OrdinalIgnoreCase))
+            if (SelectedPrinter == null)
+            {
+                this.DialogResult = DialogResult.No;
+                this.Close();
+                return;
+            }
+
+            SelectedDatabase = SelectedPrinter;
+
+            if (SelectedPrinter.ToLower().Contains("hi"))
             {
                 sshDefault = Resources.hiPsw;
             }
-            else if (SelectedPrinter.Equals("k1", StringComparison.OrdinalIgnoreCase))
+            else if (SelectedPrinter.ToLower().Contains("k1"))
             {
                 sshDefault = Resources.k1Psw;
             }
@@ -49,11 +60,44 @@ namespace CFS_RFID
 
             txtIP.Text = Settings.GetSetting("host_" + SelectedPrinter, string.Empty);
             txtPass.Text = Settings.GetSetting("psw_" + SelectedPrinter, sshDefault);
-            lblPrinter.Text = "Creality " + SelectedPrinter.ToUpper();
-            SetDescMessage(string.Format(Resources.downloadDesc, SelectedPrinter.ToUpper()));
+            lblPrinter.Text = SelectedPrinter;
+            SetDescMessage(string.Format(Resources.downloadDesc, SelectedPrinter));
             currentVersion = GetDatabaseVersion(SelectedPrinter);
             lblCver.Text = currentVersion;
+
+            panel1.Visible = true;
+            btnCheck.Visible = false;
+            lblNver.Visible = true;
+            lblAvl.Visible = true;
+            btnUpdate.Visible = true;
+
+            try
+            {
+                printerModel.Enabled = false;
+                var result = await Task.Run(() => {
+                    JArray printerList = Utils.FindPrinters(SelectedPrinter, "0.4");
+                    return new { printerList };
+                });
+                printerModel.Items.Clear();
+                var items = result.printerList.Cast<JObject>().Select(p => new {
+                    DisplayName = p["name"]?.ToString(),
+                    FullData = p
+                }).ToList();
+                printerModel.DisplayMember = "DisplayName";
+                printerModel.DataSource = items;
+                if (printerModel.Items.Count > 0) printerModel.SelectedIndex = 0;
+
+            }
+            catch
+            {
+                lblMsg.Text = "Failed to retrieve printer data";
+            }
+            finally
+            {
+                printerModel.Enabled = true;
+            }
         }
+
 
         private void BtnCheck_Click(object sender, EventArgs e)
         {
@@ -84,11 +128,21 @@ namespace CFS_RFID
         {
             try
             {
-                string dbData = GetJsonDB(txtPass.Text, txtIP.Text, SelectedPrinter);
+                string dbData;
+                if (chkFromPrinter.Checked)
+                {
+                    dbData = GetJsonDB(txtPass.Text, txtIP.Text, SelectedPrinter);
+                }
+                else
+                {
+                    dbData = GetJsonDB(SelectedDatabase, "0.4");
+                }
+
                 if (dbData != null && !dbData.Equals(string.Empty))
                 {
                     JObject materials = JObject.Parse(dbData);
                     JObject result = (JObject)materials["result"];
+                    newVersion = result["version"].ToString();
                     if (result != null)
                     {
                         JArray list = (JArray)result["list"];
@@ -151,9 +205,9 @@ namespace CFS_RFID
         {
             rtbDesc.Text = msg;
             rtbDesc.BackColor = BackColor;
-            if (rtbDesc.Find(" " + SelectedPrinter.ToUpper() + " ") != -1)
+            if (rtbDesc.Find(" " + SelectedPrinter + " ") != -1)
             {
-                rtbDesc.Select(rtbDesc.Find(" " + SelectedPrinter.ToUpper() + " "), 4);
+                rtbDesc.Select(rtbDesc.Find(" " + SelectedPrinter + " "), SelectedPrinter.Length + 2);
                 rtbDesc.SelectionColor = ColorTranslator.FromHtml("#1976D2");
             }
             rtbDesc.DeselectAll();
@@ -172,5 +226,39 @@ namespace CFS_RFID
             };
         }
 
+        private void printerModel_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var selected = printerModel.SelectedItem as dynamic;
+            if (selected != null)
+            {
+                LoadPrinterImage(selected.FullData["thumbnail"].ToString(), pb1);
+                lblNver.Visible = true;
+                lblAvl.Visible = true;
+                apiVersion = selected.FullData["version"].ToString();
+                lblNver.Text = apiVersion;
+                SelectedDatabase = selected.FullData["name"].ToString();
+            }
+        }
+
+        private void chkFromPrinter_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkFromPrinter.Checked)
+            {
+                panel1.Visible = false;
+                btnUpdate.Visible = false;
+                btnCheck.Visible = true;
+                lblNver.Visible = false;
+                lblAvl.Visible = false;
+                lblNver.Text = "";
+            }
+            else { 
+                panel1.Visible= true;
+                btnCheck.Visible = false;
+                btnUpdate.Visible = true;
+                lblNver.Visible = true;
+                lblAvl.Visible = true;
+                lblNver.Text = apiVersion;
+            }
+        }
     }
 }

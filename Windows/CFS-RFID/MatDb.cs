@@ -1,5 +1,4 @@
 ﻿
-using CFS_RFID.Properties;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -25,18 +24,7 @@ public class MatDB
             }
             else
             {
-                if (pType.Equals("k2", StringComparison.OrdinalIgnoreCase))
-                {
-                    materials = JObject.Parse(Encoding.ASCII.GetString(Resources.k2));
-                }
-                else if (pType.Equals("k1", StringComparison.OrdinalIgnoreCase))
-                {
-                    materials = JObject.Parse(Encoding.ASCII.GetString(Resources.k1));
-                }
-                else
-                {
-                    materials = JObject.Parse(Encoding.ASCII.GetString(Resources.hi));
-                }
+                return;
             }
             JObject result = (JObject)materials["result"];
 
@@ -75,18 +63,7 @@ public class MatDB
             }
             else
             {
-                if (pType.Equals("k2", StringComparison.OrdinalIgnoreCase))
-                {
-                    materials = JObject.Parse(Encoding.ASCII.GetString(Resources.k2));
-                }
-                else if (pType.Equals("k1", StringComparison.OrdinalIgnoreCase))
-                {
-                    materials = JObject.Parse(Encoding.ASCII.GetString(Resources.k1));
-                }
-                else
-                {
-                    materials = JObject.Parse(Encoding.ASCII.GetString(Resources.hi));
-                }
+                return "0";
             }
             JObject result = (JObject)materials["result"];
             if (result != null)
@@ -134,13 +111,13 @@ public class MatDB
         }
     }
 
-    public static Filament GetFilamentByName(string filamentName)
+    public static Filament GetFilamentByName(string filamentVendor, string filamentName)
     {
         try
         {
             foreach (Filament item in mdb)
             {
-                if (item.FilamentName.Trim() == filamentName.Trim())
+                if (item.FilamentName.Trim() == filamentName.Trim() && item.FilamentVendor.Trim() == filamentVendor.Trim())
                 {
                     return item;
                 }
@@ -183,18 +160,7 @@ public class MatDB
         string filePath = AppDomain.CurrentDomain.BaseDirectory + "\\material_database\\" + pType.ToLower() + ".json";
         if (mdb == null || mdb.Count == 0)
         {
-            if (pType.Equals("k2", StringComparison.OrdinalIgnoreCase))
-            {
-                File.WriteAllText(filePath, Encoding.ASCII.GetString(Resources.k2), Encoding.ASCII);
-            }
-            else if (pType.Equals("k1", StringComparison.OrdinalIgnoreCase))
-            {
-                File.WriteAllText(filePath, Encoding.ASCII.GetString(Resources.k1), Encoding.ASCII);
-            }
-            else
-            {
-                File.WriteAllText(filePath, Encoding.ASCII.GetString(Resources.hi), Encoding.ASCII);
-            }
+            return;
         }
         else
         {

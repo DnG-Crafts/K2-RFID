@@ -5,7 +5,6 @@ namespace CFS_RFID
 {
     internal class Settings
     {
-
         public static void SaveSetting(string keyName, bool value)
         {
             try

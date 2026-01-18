@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.btnWrite = new System.Windows.Forms.Button();
             this.btnRead = new System.Windows.Forms.Button();
@@ -39,23 +40,23 @@
             this.printerModel = new System.Windows.Forms.ComboBox();
             this.vendorName = new System.Windows.Forms.ComboBox();
             this.lblConnect = new System.Windows.Forms.Label();
-            this.btnUpload = new System.Windows.Forms.Button();
             this.btnDel = new System.Windows.Forms.Button();
             this.btnEdit = new System.Windows.Forms.Button();
             this.btnAdd = new System.Windows.Forms.Button();
-            this.lblAutoRead = new System.Windows.Forms.Label();
-            this.btnUpdate = new System.Windows.Forms.Button();
-            this.btnFormat = new System.Windows.Forms.Button();
-            this.lblAutoWrite = new System.Windows.Forms.Label();
+            this.btnMenu = new System.Windows.Forms.Button();
             this.imgEnc = new System.Windows.Forms.PictureBox();
-            this.chkAutoWrite = new SwitchCheckBox();
-            this.chkAutoRead = new SwitchCheckBox();
+            this.sidebarPanel = new System.Windows.Forms.Panel();
+            this.flowMenu = new System.Windows.Forms.FlowLayoutPanel();
+            this.sidebarTimer = new System.Windows.Forms.Timer(this.components);
+            this.lblAdd = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.imgEnc)).BeginInit();
+            this.sidebarPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnWrite
             // 
             this.btnWrite.BackColor = System.Drawing.Color.RoyalBlue;
+            this.btnWrite.FlatAppearance.BorderSize = 0;
             this.btnWrite.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnWrite.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnWrite.ForeColor = System.Drawing.Color.White;
@@ -70,6 +71,7 @@
             // btnRead
             // 
             this.btnRead.BackColor = System.Drawing.Color.RoyalBlue;
+            this.btnRead.FlatAppearance.BorderSize = 0;
             this.btnRead.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRead.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnRead.ForeColor = System.Drawing.Color.White;
@@ -173,27 +175,12 @@
             // 
             this.lblConnect.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblConnect.ForeColor = System.Drawing.Color.IndianRed;
-            this.lblConnect.Location = new System.Drawing.Point(36, 374);
+            this.lblConnect.Location = new System.Drawing.Point(36, 375);
             this.lblConnect.Name = "lblConnect";
             this.lblConnect.Size = new System.Drawing.Size(317, 65);
             this.lblConnect.TabIndex = 36;
             this.lblConnect.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.lblConnect.Click += new System.EventHandler(this.LblConnect_Click);
-            // 
-            // btnUpload
-            // 
-            this.btnUpload.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(244)))), ((int)(((byte)(244)))));
-            this.btnUpload.FlatAppearance.BorderSize = 0;
-            this.btnUpload.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnUpload.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(244)))), ((int)(((byte)(244)))));
-            this.btnUpload.Image = global::CFS_RFID.Properties.Resources.upload;
-            this.btnUpload.Location = new System.Drawing.Point(92, 17);
-            this.btnUpload.Name = "btnUpload";
-            this.btnUpload.Size = new System.Drawing.Size(48, 48);
-            this.btnUpload.TabIndex = 37;
-            this.btnUpload.UseVisualStyleBackColor = false;
-            this.btnUpload.Click += new System.EventHandler(this.BtnUpload_Click);
-            this.btnUpload.MouseLeave += new System.EventHandler(this.BtnUpload_MouseLeave);
             // 
             // btnDel
             // 
@@ -202,7 +189,7 @@
             this.btnDel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(244)))), ((int)(((byte)(244)))));
             this.btnDel.Image = global::CFS_RFID.Properties.Resources.delete;
-            this.btnDel.Location = new System.Drawing.Point(171, 17);
+            this.btnDel.Location = new System.Drawing.Point(139, 17);
             this.btnDel.Name = "btnDel";
             this.btnDel.Size = new System.Drawing.Size(48, 48);
             this.btnDel.TabIndex = 33;
@@ -217,7 +204,7 @@
             this.btnEdit.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnEdit.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(244)))), ((int)(((byte)(244)))));
             this.btnEdit.Image = global::CFS_RFID.Properties.Resources.edit;
-            this.btnEdit.Location = new System.Drawing.Point(248, 17);
+            this.btnEdit.Location = new System.Drawing.Point(216, 17);
             this.btnEdit.Name = "btnEdit";
             this.btnEdit.Size = new System.Drawing.Size(48, 48);
             this.btnEdit.TabIndex = 32;
@@ -232,7 +219,7 @@
             this.btnAdd.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnAdd.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(244)))), ((int)(((byte)(244)))));
             this.btnAdd.Image = global::CFS_RFID.Properties.Resources.add;
-            this.btnAdd.Location = new System.Drawing.Point(325, 17);
+            this.btnAdd.Location = new System.Drawing.Point(293, 17);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(48, 48);
             this.btnAdd.TabIndex = 31;
@@ -240,55 +227,20 @@
             this.btnAdd.Click += new System.EventHandler(this.BtnAdd_Click);
             this.btnAdd.MouseLeave += new System.EventHandler(this.BtnAdd_MouseLeave);
             // 
-            // lblAutoRead
+            // btnMenu
             // 
-            this.lblAutoRead.AutoSize = true;
-            this.lblAutoRead.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblAutoRead.Location = new System.Drawing.Point(46, 391);
-            this.lblAutoRead.Name = "lblAutoRead";
-            this.lblAutoRead.Size = new System.Drawing.Size(197, 20);
-            this.lblAutoRead.TabIndex = 40;
-            this.lblAutoRead.Text = "Auto read tag on scan?";
-            // 
-            // btnUpdate
-            // 
-            this.btnUpdate.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(244)))), ((int)(((byte)(244)))));
-            this.btnUpdate.FlatAppearance.BorderSize = 0;
-            this.btnUpdate.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnUpdate.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(244)))), ((int)(((byte)(244)))));
-            this.btnUpdate.Image = global::CFS_RFID.Properties.Resources.download;
-            this.btnUpdate.Location = new System.Drawing.Point(15, 17);
-            this.btnUpdate.Name = "btnUpdate";
-            this.btnUpdate.Size = new System.Drawing.Size(48, 48);
-            this.btnUpdate.TabIndex = 41;
-            this.btnUpdate.UseVisualStyleBackColor = false;
-            this.btnUpdate.Click += new System.EventHandler(this.BtnUpdate_Click);
-            this.btnUpdate.MouseLeave += new System.EventHandler(this.BtnUpdate_MouseLeave);
-            // 
-            // btnFormat
-            // 
-            this.btnFormat.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(244)))), ((int)(((byte)(244)))));
-            this.btnFormat.FlatAppearance.BorderSize = 0;
-            this.btnFormat.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnFormat.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(244)))), ((int)(((byte)(244)))));
-            this.btnFormat.Image = global::CFS_RFID.Properties.Resources.format;
-            this.btnFormat.Location = new System.Drawing.Point(283, 495);
-            this.btnFormat.Name = "btnFormat";
-            this.btnFormat.Size = new System.Drawing.Size(48, 48);
-            this.btnFormat.TabIndex = 42;
-            this.btnFormat.UseVisualStyleBackColor = false;
-            this.btnFormat.Click += new System.EventHandler(this.BtnFormat_Click);
-            this.btnFormat.MouseLeave += new System.EventHandler(this.BtnFormat_MouseLeave);
-            // 
-            // lblAutoWrite
-            // 
-            this.lblAutoWrite.AutoSize = true;
-            this.lblAutoWrite.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblAutoWrite.Location = new System.Drawing.Point(46, 442);
-            this.lblAutoWrite.Name = "lblAutoWrite";
-            this.lblAutoWrite.Size = new System.Drawing.Size(199, 20);
-            this.lblAutoWrite.TabIndex = 44;
-            this.lblAutoWrite.Text = "Auto write tag on scan?";
+            this.btnMenu.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(244)))), ((int)(((byte)(244)))));
+            this.btnMenu.FlatAppearance.BorderSize = 0;
+            this.btnMenu.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnMenu.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(244)))), ((int)(((byte)(244)))));
+            this.btnMenu.Image = global::CFS_RFID.Properties.Resources.menu;
+            this.btnMenu.Location = new System.Drawing.Point(19, 16);
+            this.btnMenu.Name = "btnMenu";
+            this.btnMenu.Size = new System.Drawing.Size(48, 48);
+            this.btnMenu.TabIndex = 41;
+            this.btnMenu.UseVisualStyleBackColor = false;
+            this.btnMenu.Click += new System.EventHandler(this.BtnMenu_Click);
+            this.btnMenu.MouseLeave += new System.EventHandler(this.BtnMenu_MouseLeave);
             // 
             // imgEnc
             // 
@@ -304,54 +256,53 @@
             this.imgEnc.Click += new System.EventHandler(this.ImgEnc_Click);
             this.imgEnc.MouseLeave += new System.EventHandler(this.ImgEnc_MouseLeave);
             // 
-            // chkAutoWrite
+            // sidebarPanel
             // 
-            this.chkAutoWrite.BorderThickness = 1;
-            this.chkAutoWrite.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.chkAutoWrite.Location = new System.Drawing.Point(278, 437);
-            this.chkAutoWrite.MaximumSize = new System.Drawing.Size(100, 50);
-            this.chkAutoWrite.MinimumSize = new System.Drawing.Size(30, 15);
-            this.chkAutoWrite.Name = "chkAutoWrite";
-            this.chkAutoWrite.Size = new System.Drawing.Size(60, 31);
-            this.chkAutoWrite.SwitchOffColor = System.Drawing.Color.LightGray;
-            this.chkAutoWrite.SwitchOnColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(118)))), ((int)(((byte)(210)))));
-            this.chkAutoWrite.TabIndex = 43;
-            this.chkAutoWrite.Text = "Auto read on tag scan?";
-            this.chkAutoWrite.ThumbColor = System.Drawing.Color.White;
-            this.chkAutoWrite.UseVisualStyleBackColor = true;
-            this.chkAutoWrite.CheckedChanged += new System.EventHandler(this.ChkAutoWrite_CheckedChanged);
+            this.sidebarPanel.BackColor = System.Drawing.Color.White;
+            this.sidebarPanel.Controls.Add(this.flowMenu);
+            this.sidebarPanel.Dock = System.Windows.Forms.DockStyle.Left;
+            this.sidebarPanel.Location = new System.Drawing.Point(0, 0);
+            this.sidebarPanel.Name = "sidebarPanel";
+            this.sidebarPanel.Size = new System.Drawing.Size(27, 657);
+            this.sidebarPanel.TabIndex = 49;
             // 
-            // chkAutoRead
+            // flowMenu
             // 
-            this.chkAutoRead.BorderThickness = 1;
-            this.chkAutoRead.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.chkAutoRead.Location = new System.Drawing.Point(278, 386);
-            this.chkAutoRead.MaximumSize = new System.Drawing.Size(100, 50);
-            this.chkAutoRead.MinimumSize = new System.Drawing.Size(30, 15);
-            this.chkAutoRead.Name = "chkAutoRead";
-            this.chkAutoRead.Size = new System.Drawing.Size(60, 31);
-            this.chkAutoRead.SwitchOffColor = System.Drawing.Color.LightGray;
-            this.chkAutoRead.SwitchOnColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(118)))), ((int)(((byte)(210)))));
-            this.chkAutoRead.TabIndex = 39;
-            this.chkAutoRead.Text = "Auto read on tag scan?";
-            this.chkAutoRead.ThumbColor = System.Drawing.Color.White;
-            this.chkAutoRead.UseVisualStyleBackColor = true;
-            this.chkAutoRead.CheckedChanged += new System.EventHandler(this.ChkAutoRead_CheckedChanged);
+            this.flowMenu.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.flowMenu.Location = new System.Drawing.Point(12, 12);
+            this.flowMenu.Name = "flowMenu";
+            this.flowMenu.Size = new System.Drawing.Size(296, 633);
+            this.flowMenu.TabIndex = 49;
+            this.flowMenu.WrapContents = false;
+            // 
+            // sidebarTimer
+            // 
+            this.sidebarTimer.Interval = 10;
+            this.sidebarTimer.Tick += new System.EventHandler(this.sidebarTimer_Tick);
+            // 
+            // lblAdd
+            // 
+            this.lblAdd.AutoSize = true;
+            this.lblAdd.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.lblAdd.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblAdd.ForeColor = System.Drawing.Color.RoyalBlue;
+            this.lblAdd.Location = new System.Drawing.Point(100, 457);
+            this.lblAdd.Name = "lblAdd";
+            this.lblAdd.Size = new System.Drawing.Size(178, 25);
+            this.lblAdd.TabIndex = 50;
+            this.lblAdd.Text = "Add to Spoolman";
+            this.lblAdd.Click += new System.EventHandler(this.LblAdd_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(244)))), ((int)(((byte)(244)))));
-            this.ClientSize = new System.Drawing.Size(387, 657);
+            this.ClientSize = new System.Drawing.Size(386, 657);
+            this.Controls.Add(this.sidebarPanel);
+            this.Controls.Add(this.lblAdd);
             this.Controls.Add(this.imgEnc);
-            this.Controls.Add(this.btnFormat);
-            this.Controls.Add(this.lblAutoWrite);
-            this.Controls.Add(this.chkAutoWrite);
-            this.Controls.Add(this.btnUpdate);
-            this.Controls.Add(this.lblAutoRead);
-            this.Controls.Add(this.chkAutoRead);
-            this.Controls.Add(this.btnUpload);
+            this.Controls.Add(this.btnMenu);
             this.Controls.Add(this.vendorName);
             this.Controls.Add(this.printerModel);
             this.Controls.Add(this.btnWrite);
@@ -374,7 +325,10 @@
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.LocationChanged += new System.EventHandler(this.MainForm_LocationChanged);
+            this.Click += new System.EventHandler(this.MainForm_Click);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainForm_MouseMove);
             ((System.ComponentModel.ISupportInitialize)(this.imgEnc)).EndInit();
+            this.sidebarPanel.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -394,14 +348,12 @@
         private System.Windows.Forms.ComboBox printerModel;
         private System.Windows.Forms.ComboBox vendorName;
         private System.Windows.Forms.Label lblConnect;
-        private System.Windows.Forms.Button btnUpload;
-        private SwitchCheckBox chkAutoRead;
-        private System.Windows.Forms.Label lblAutoRead;
-        private System.Windows.Forms.Button btnUpdate;
-        private System.Windows.Forms.Button btnFormat;
-        private System.Windows.Forms.Label lblAutoWrite;
-        private SwitchCheckBox chkAutoWrite;
+        private System.Windows.Forms.Button btnMenu;
         private System.Windows.Forms.PictureBox imgEnc;
+        private System.Windows.Forms.Panel sidebarPanel;
+        private System.Windows.Forms.FlowLayoutPanel flowMenu;
+        private System.Windows.Forms.Timer sidebarTimer;
+        private System.Windows.Forms.Label lblAdd;
     }
 }
 

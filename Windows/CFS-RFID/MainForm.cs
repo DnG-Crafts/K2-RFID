@@ -2,7 +2,8 @@
 using PCSC.Monitoring;
 using System;
 using System.Drawing;
-using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using static CFS_RFID.Utils;
 
@@ -18,6 +19,186 @@ namespace CFS_RFID
         private string DbVersion = "0", FwVersion;
         private string MaterialColor, PrinterType, MaterialName, MaterialID, MaterialWeight;
         private readonly System.Windows.Forms.ToolTip toolTip = new System.Windows.Forms.ToolTip(), balloonTip = new System.Windows.Forms.ToolTip();
+        private TagMemoryForm tagMemoryForm = null;
+        bool sidebarExpand = true;
+        const int MaxWidth = 200;
+        const int MinWidth = 0;
+
+        public MainForm()
+        {
+            InitializeComponent();
+            sidebarPanel.Width = MinWidth;
+            sidebarPanel.Visible = false;
+            sidebarExpand = false;
+            SetupSidebarUI();
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+
+            BackColor = ColorTranslator.FromHtml("#F4F4F4");
+            flowMenu.BackColor = ColorTranslator.FromHtml("#ffffff");
+            sidebarPanel.BackColor = ColorTranslator.FromHtml("#ffffff");
+            btnRead.BackColor = ColorTranslator.FromHtml("#1976D2");
+            btnWrite.BackColor = ColorTranslator.FromHtml("#1976D2");
+            lblAdd.ForeColor = ColorTranslator.FromHtml("#1976D2");
+
+            materialName.Text = "PLA";
+            materialWeight.Text = "1 KG";
+            MaterialColor = "0000FF";
+            btnColor.BackColor = ColorTranslator.FromHtml("#" + MaterialColor);
+            btnMenu.ForeColor = BackColor;
+            btnEdit.ForeColor = BackColor;
+            btnDel.ForeColor = BackColor;
+            btnAdd.ForeColor = BackColor;
+
+            btnRead.FlatAppearance.BorderSize = 0;
+            btnWrite.FlatAppearance.BorderSize = 0;
+            btnColor.FlatAppearance.BorderSize = 0;
+            btnDel.FlatAppearance.BorderSize = 0;
+            btnEdit.FlatAppearance.BorderSize = 0;
+            btnAdd.FlatAppearance.BorderSize = 0;
+            btnMenu.FlatAppearance.BorderSize = 0;
+
+            toolTip.SetToolTip(btnMenu, "Show Menu");
+            toolTip.SetToolTip(btnDel, "Delete selected filament");
+            toolTip.SetToolTip(btnEdit, "Edit selected filament");
+            toolTip.SetToolTip(btnAdd, "Add a new filament");
+            balloonTip.IsBalloon = true;
+
+            printerModel.Items.AddRange(GetPrinterTypes());
+            if (printerModel.Items.Count > 0)
+            {
+                try
+                {
+                    printerModel.SelectedIndex = Settings.GetSetting("printerType", 0);
+                }
+                catch
+                {
+                    printerModel.SelectedIndex = 0;
+                }
+            }
+            else {
+                Toast.Show(this,"Add a printer to get started", Toast.LENGTH_LONG, true);
+                Timer delayTimer = new Timer();
+                delayTimer.Interval = 1000;
+                delayTimer.Tick += (s, ev) =>
+                {
+                    delayTimer.Stop();
+                    OpenManage();
+                };
+                delayTimer.Start();
+            }
+                ConnectReader();
+        }
+
+
+        private void SetupSidebarUI()
+        {
+            flowMenu.Dock = DockStyle.Fill;
+            flowMenu.AutoScroll = false; 
+            AddMenuItem("nav_close", String.Empty, Properties.Resources.menu); 
+            AddHeader("App");
+            AddMenuItem("nav_settings", "Settings", Properties.Resources.settings);
+            AddHeader("Printer Database");
+            AddMenuItem("nav_manage", "Manage Printers", Properties.Resources.manage);
+            AddMenuItem("nav_upload", "Upload Database", Properties.Resources.upload);
+            AddMenuItem("nav_download", "Download Database", Properties.Resources.download);
+            AddHeader("RFID Functions");
+            AddMenuItem("nav_format", "Format Tag", Properties.Resources.format);
+            AddMenuItem("nav_memory", "Read Tag Memory", Properties.Resources.memory);
+        }
+
+        private void AddHeader(string text)
+        {
+            Label lbl = new Label();
+            lbl.Text = text.ToUpper();
+            lbl.ForeColor = Color.Gray;
+            lbl.Font = new Font("Calibri", 7, FontStyle.Bold);
+            lbl.Size = new Size(MaxWidth, 30);
+            lbl.TextAlign = ContentAlignment.BottomLeft;
+            lbl.Padding = new Padding(10, 0, 0, 5);
+            flowMenu.Controls.Add(lbl);
+        }
+
+        private void AddMenuItem(string id, string text, System.Drawing.Image icon)
+        {
+            Button btn = new Button();
+            btn.Name = id;
+            btn.Text = "    " + text;
+            btn.Size = new Size(MaxWidth, 35);
+            btn.FlatStyle = FlatStyle.Flat;
+            btn.FlatAppearance.BorderSize = 0;
+            btn.ForeColor = Color.Black;
+            btn.Font = new Font("Microsoft Sans Serif", 9);
+            btn.TextAlign = ContentAlignment.MiddleLeft;
+            btn.ImageAlign = ContentAlignment.MiddleLeft;
+            btn.Image = icon;
+            btn.Padding = new Padding(10, 0, 0, 0);
+            btn.TextImageRelation = TextImageRelation.ImageBeforeText;
+            btn.Click += MenuItem_Click;
+            flowMenu.Controls.Add(btn);
+        }
+
+
+
+        private void MenuItem_Click(object sender, EventArgs e)
+        {
+            Button clickedButton = (Button)sender;
+            string menuId = clickedButton.Name;
+            if (sidebarExpand) sidebarTimer.Start();
+            switch (menuId)
+            {
+                case "nav_settings":
+                    OpenSettings();
+                    break;
+                case "nav_upload":
+                    OpenUpload();
+                    break;
+                case "nav_manage":
+                    OpenManage();
+                    break;
+                case "nav_download":
+                    OpenUpdate();
+                    break;
+                case "nav_format":
+                    OpenFormat();
+                    break;
+                case "nav_memory":
+                    OpenTagMemory();
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        private void sidebarTimer_Tick(object sender, EventArgs e)
+        {
+            if (sidebarExpand)
+            {
+                sidebarPanel.Width -= 20;
+                if (sidebarPanel.Width <= MinWidth)
+                {
+                    sidebarPanel.Width = MinWidth;
+                    sidebarPanel.Visible = false;
+                    sidebarExpand = false;
+                    sidebarTimer.Stop();
+                }
+            }
+            else
+            {
+                sidebarPanel.Width += 20;
+                if (sidebarPanel.Width >= MaxWidth)
+                {
+                    sidebarPanel.Width = MaxWidth;
+                    sidebarExpand = true;
+                    sidebarTimer.Stop();
+                }
+            }
+        }
+
+
 
         private void CardInserted(CardStatusEventArgs args)
         {
@@ -67,14 +248,20 @@ namespace CFS_RFID
                     }
                     else {
                         imgEnc.Visible = true;
-                        balloonTip.SetToolTip(imgEnc, "Key: " + BitConverter.ToString(encKey).Replace("-", ""));
+                        balloonTip.SetToolTip(imgEnc, "Key: " + BitConverter.ToString(encKey).Replace("-", String.Empty));
                         lblUid.Left = imgEnc.Right;
                     }
-                    if (chkAutoRead.Checked)
+
+                    if (tagMemoryForm != null && !tagMemoryForm.IsDisposed)
+                    {
+                        tagMemoryForm.UpdateReader(reader);
+                    }
+
+                    if (Settings.GetSetting("AutoRead", false))
                     {
                         ReadSpoolData();
                     }
-                    else if (chkAutoWrite.Checked)
+                    else if (Settings.GetSetting("AutoWrite", false))
                     {
                         WriteSpoolData(MaterialID, MaterialColor, GetMaterialLength(MaterialWeight));
                     }
@@ -110,14 +297,10 @@ namespace CFS_RFID
             lblConnect.Text = "Connecting...";
             btnRead.Visible = false;
             btnWrite.Visible = false;
-            btnFormat.Visible = false;
-            chkAutoRead.Visible = false;
-            chkAutoWrite.Visible = false;
             btnColor.Visible = false;
+            lblAdd.Visible = false;
             materialWeight.Visible = false;
             lblUid.Visible = false;
-            lblAutoRead.Visible = false;
-            lblAutoWrite.Visible = false;
             ActiveControl = lblConnect;
 
             try
@@ -135,20 +318,14 @@ namespace CFS_RFID
                     monitor = new Monitor(readers);
                     monitor.CardInserted += CardInserted;
                     monitor.CardRemoved += CardRemoved;
-
                     lblConnect.Visible = false;
                     lblConnect.Text = string.Empty;
                     btnRead.Visible = true;
                     btnWrite.Visible = true;
-                    btnFormat.Visible = true;
-                    chkAutoRead.Visible = true;
-                    chkAutoWrite.Visible = true;
                     btnColor.Visible = true;
                     materialWeight.Visible = true;
                     lblUid.Visible = true;
-                    lblAutoRead.Visible = true;
-                    lblAutoWrite.Visible = true;
-
+                    if (Settings.GetSetting("EnableSm", false)) lblAdd.Visible = true;
                 }
                 else
                 {
@@ -159,15 +336,11 @@ namespace CFS_RFID
                     lblConnect.Text = "No Reader Found\nClick here to connect";
                     btnRead.Visible = false;
                     btnWrite.Visible = false;
-                    btnFormat.Visible = false;
-                    chkAutoRead.Visible = false;
-                    chkAutoWrite.Visible = false;
                     btnColor.Visible = false;
+                    lblAdd.Visible = false;
                     materialWeight.Visible = false;
                     lblUid.Visible = false;
                     ActiveControl = lblConnect;
-                    lblAutoRead.Visible = false;
-                    lblAutoWrite.Visible = false;
 
                 }
             }
@@ -178,65 +351,16 @@ namespace CFS_RFID
                 lblConnect.Text = "NFC reader failed";
                 btnRead.Visible = false;
                 btnWrite.Visible = false;
-                chkAutoRead.Visible = false;
                 btnColor.Visible = false;
+                lblAdd.Visible = false;
                 materialWeight.Visible = false;
                 lblUid.Visible = false;
                 ActiveControl = lblConnect;
-                lblAutoRead.Visible = false;
                 Toast.Show(this, e.Message, Toast.LENGTH_LONG, true);
             }
         }
 
-        public MainForm()
-        {
-            InitializeComponent();
-        }
-
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-
-            BackColor = ColorTranslator.FromHtml("#F4F4F4");
-
-            btnRead.BackColor = ColorTranslator.FromHtml("#1976D2");
-            btnWrite.BackColor = ColorTranslator.FromHtml("#1976D2");
-
-            SetDBfile("k2.json", null);
-            SetDBfile("k1.json", null);
-            SetDBfile("hi.json", null);
-
-            materialName.Text = "PLA";
-            materialWeight.Text = "1 KG";
-            MaterialColor = "0000FF";
-            btnColor.BackColor = ColorTranslator.FromHtml("#" + MaterialColor);
-            btnUpload.ForeColor = BackColor;
-            btnEdit.ForeColor = BackColor;
-            btnDel.ForeColor = BackColor;
-            btnAdd.ForeColor = BackColor;
-
-            btnRead.FlatAppearance.BorderSize = 0;
-            btnWrite.FlatAppearance.BorderSize = 0;
-            btnColor.FlatAppearance.BorderSize = 0;
-            btnDel.FlatAppearance.BorderSize = 0;
-            btnEdit.FlatAppearance.BorderSize = 0;
-            btnAdd.FlatAppearance.BorderSize = 0;
-            btnFormat.FlatAppearance.BorderSize = 0;
-            btnUpdate.FlatAppearance.BorderSize = 0;
-            btnUpload.FlatAppearance.BorderSize = 0;
-
-            toolTip.SetToolTip(btnUpload, "Upload database to printer");
-            toolTip.SetToolTip(btnDel, "Delete selected filament");
-            toolTip.SetToolTip(btnEdit, "Edit selected filament");
-            toolTip.SetToolTip(btnAdd, "Add a new filament");
-            toolTip.SetToolTip(btnUpdate, "Download database from printer");
-            toolTip.SetToolTip(btnFormat, "Format tag");
-            balloonTip.IsBalloon = true;
-
-            printerModel.Items.AddRange(printerTypes);
-            printerModel.SelectedIndex = Settings.GetSetting("printerType", 0);
-
-            ConnectReader();
-        }
+ 
 
         public void ReadSpoolData()
         {
@@ -244,7 +368,7 @@ namespace CFS_RFID
             {
                 if (reader == null)
                 {
-                    Toast.Show(this, "Error reading tag", Toast.LENGTH_SHORT);
+                    Toast.Show(this, "Reader not connected", Toast.LENGTH_SHORT, true);
                 }
                 else
                 {
@@ -260,6 +384,12 @@ namespace CFS_RFID
                             try
                             {
                                 string materialId = tagData.Substring(12, 5);
+                                string printerType = tagData.Substring(48).Trim();
+                                if (printerModel.FindStringExact(printerType) != -1)
+                                {
+                                    printerModel.SelectedIndex = printerModel.FindStringExact(printerType);
+                                    Application.DoEvents();
+                                }
                                 string[] materialInfo = GetMaterialName(materialId);
                                 if (materialInfo != null && materialInfo.Length >= 2)
                                 {
@@ -279,7 +409,7 @@ namespace CFS_RFID
                             }
                             catch
                             {
-                                Toast.Show(this, "Error reading tag", Toast.LENGTH_SHORT);
+                                Toast.Show(this, "Error reading tag", Toast.LENGTH_SHORT, true);
                             }
                         }
                     }
@@ -291,40 +421,234 @@ namespace CFS_RFID
             }
         }
 
+
         void WriteSpoolData(string MaterialID, string Color, string Length)
         {
+            bool encrypted = false;
+            string filamentId = "1" + MaterialID;
+            string vendorId = "0276";
+            string color = "0" + Color;
+            string serialNum = "000001";
+            string reserve = "00000000000000";
+            string tagData = "AB124" + vendorId + "A2" + filamentId + color + Length + serialNum + reserve + printerModel.Text;
+            string paddedData = tagData.PadRight(96, ' ');
+            byte[] fullDataBytes = Encoding.UTF8.GetBytes(paddedData);
             try
             {
                 if (reader == null)
                 {
-                    Toast.Show(this, "Error writing tag", Toast.LENGTH_SHORT);
+                    Toast.Show(this, "Reader not connected", Toast.LENGTH_SHORT, true);
+                    return;
+                }
+
+                if (reader.Authentication6byte(4, 96, 1) || reader.Authentication10byte(4, 96, 1))
+                {
+                    encrypted = true;
+                }
+
+                int keyS1 = encrypted ? 1 : 0;
+                if (reader.Authentication6byte(4, 96, (byte)keyS1) || reader.Authentication10byte(4, 96, (byte)keyS1))
+                {
+                    byte[] s1Raw = new byte[48];
+                    Array.Copy(fullDataBytes, 0, s1Raw, 0, 48);
+                    byte[] s1ToDisk = CipherData(1, s1Raw);
+                    for (int i = 0; i < 3; i++)
+                    {
+                        byte[] blockData = new byte[16];
+                        Array.Copy(s1ToDisk, i * 16, blockData, 0, 16);
+                        reader.UpdateBinaryBlocks((byte)(4 + i), 16, blockData);
+                    }
+                    if (!encrypted)
+                    {
+                        byte[] trailer = reader.ReadBinaryBlocks(7, 16);
+                        if (trailer != null)
+                        {
+                            Array.Copy(encKey, 0, trailer, 0, 6);
+                            Array.Copy(encKey, 0, trailer, 10, 6);
+                            reader.UpdateBinaryBlocks(7, 16, trailer);
+                            encrypted = true;
+                            imgEnc.Visible = true;
+                            lblUid.Left = imgEnc.Right;
+                            balloonTip.SetToolTip(imgEnc, "Key: " + BitConverter.ToString(encKey).Replace("-", ""));
+                        }
+                    }
                 }
                 else
                 {
-                    string filamentId = "1" + MaterialID;
-                    string vendorId = "0276";
-                    string color = "0" + Color;
-                    string serialNum = "000001"; // RandomSerial();
-                    string reserve = "000000";
-                    string endblock = "00000000";
-                    WriteTag(reader, "AB124" + vendorId + "A2" + filamentId + color + Length + serialNum + reserve + endblock);
-                    if ((reader.Authentication10byte(7, 96, 0) || reader.Authentication6byte(7, 96, 0)))
-                    {
-                        byte[] data = reader.ReadBinaryBlocks(7, 16);
-                        Array.Copy(encKey, 0, data, 0, encKey.Length);
-                        Array.Copy(encKey, 0, data, 10, encKey.Length);
-                        reader.UpdateBinaryBlocks(7, 16, data.Take(16).ToArray());
-                        balloonTip.SetToolTip(imgEnc, "Key: " + BitConverter.ToString(encKey).Replace("-", ""));
-                        imgEnc.Visible = true;
-                        lblUid.Left = imgEnc.Right;
-                    }
-                    Toast.Show(this, "Data written to tag", Toast.LENGTH_SHORT);
+                    Toast.Show(this, "Failed to authenticate", Toast.LENGTH_SHORT, true);
+                    return;
                 }
+                if (reader.Authentication6byte(8, 96, 0) || reader.Authentication10byte(8, 96, 0))
+                {
+                    byte[] s2ToDisk = new byte[48];
+                    Array.Copy(fullDataBytes, 48, s2ToDisk, 0, 48);
+                    for (int i = 0; i < 3; i++)
+                    {
+                        byte[] blockData = new byte[16];
+                        Array.Copy(s2ToDisk, i * 16, blockData, 0, 16);
+                        reader.UpdateBinaryBlocks((byte)(8 + i), 16, blockData);
+                    }
+                }
+                Toast.Show(this, "Data written to tag", Toast.LENGTH_SHORT);
             }
             catch (Exception e)
             {
                 Toast.Show(this, e.Message, Toast.LENGTH_LONG, true);
             }
+        }
+
+
+        private void OpenSettings()
+        {
+            try
+            {
+                SettingsForm settingsForm = new SettingsForm
+                {
+                    StartPosition = FormStartPosition.CenterParent
+                };
+                DialogResult result = settingsForm.ShowDialog();
+                if (Settings.GetSetting("EnableSm", false))
+                {
+                    lblAdd.Visible = true;
+                }
+                else
+                {
+                    lblAdd.Visible = false;
+                }
+                settingsForm.Dispose();
+            }
+            catch { }
+        }
+
+
+        private void OpenManage()
+        {
+            try
+            {
+                ManageForm manageForm = new ManageForm
+                {
+                    StartPosition = FormStartPosition.CenterParent
+                };
+                DialogResult result = manageForm.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    printerModel.Items.Clear();
+                    printerModel.Items.AddRange(GetPrinterTypes());
+                    if (printerModel.Items.Count > 0)
+                    {
+                        printerModel.SelectedIndex = 0;
+                    }
+                    Toast.Show(this, "Printer added", Toast.LENGTH_SHORT);
+                }
+                else if (result == DialogResult.No)
+                {
+                    printerModel.Items.Clear();
+                    printerModel.Items.AddRange(GetPrinterTypes());
+                    if (printerModel.Items.Count > 0)
+                    {
+                        printerModel.SelectedIndex = 0;
+                    }
+                    Toast.Show(this, "Printer removed", Toast.LENGTH_SHORT);
+                }
+                manageForm.Dispose();
+            }
+            catch { }
+        }
+
+
+        private void OpenUpdate()
+        {
+            try
+            {
+                UpdateForm updateForm = new UpdateForm
+                {
+                    SelectedPrinter = PrinterType,
+                    StartPosition = FormStartPosition.CenterParent
+                };
+                DialogResult result = updateForm.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    vendorName.Items.Clear();
+                    materialName.Items.Clear();
+                    LoadMaterials(PrinterType);
+                    DbVersion = GetDatabaseVersion(PrinterType);
+                    vendorName.Items.AddRange(GetMaterialBrands());
+                    vendorName.SelectedIndex = 0;
+                }
+                else if (result == DialogResult.No)
+                {
+                    Toast.Show(this, "No printer selected", Toast.LENGTH_SHORT);
+                }
+                updateForm.Dispose();
+            }
+            catch { }
+        }
+
+        private void OpenUpload()
+        {
+            try
+            {
+                UploadForm uploadForm = new UploadForm
+                {
+                    SelectedPrinter = PrinterType,
+                    StartPosition = FormStartPosition.CenterParent
+                };
+                DialogResult result = uploadForm.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    vendorName.Items.Clear();
+                    materialName.Items.Clear();
+                    LoadMaterials(PrinterType);
+                    DbVersion = GetDatabaseVersion(PrinterType);
+                    vendorName.Items.AddRange(GetMaterialBrands());
+                    vendorName.SelectedIndex = 0;
+                }
+                else if (result == DialogResult.No)
+                {
+                    Toast.Show(this, "No printer selected", Toast.LENGTH_SHORT);
+                }
+                uploadForm.Dispose();
+            }
+            catch { }
+        }
+
+        private void OpenFormat()
+        {
+            try
+            {
+                DialogResult result = MessageBox.Show(this,
+                    "This will erase the tag and set the default MIFARE key",
+                    "Format tag",
+                    MessageBoxButtons.OKCancel,
+                    MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                if (result == DialogResult.OK)
+                {
+                    if (reader == null)
+                    {
+                        Toast.Show(this, "Error formatting tag", Toast.LENGTH_SHORT, true);
+                    }
+                    else
+                    {
+                        FormatTag(reader);
+                        imgEnc.Visible = false;
+                        lblUid.Left = lblTagId.Right;
+                        Toast.Show(this, "Tag formatted", Toast.LENGTH_SHORT);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Toast.Show(this, ex.Message, Toast.LENGTH_LONG, true);
+            }
+        }
+
+        private void OpenTagMemory()
+        {
+            tagMemoryForm = new TagMemoryForm(reader)
+            {
+                StartPosition = FormStartPosition.CenterParent
+            };
+            tagMemoryForm.ShowDialog();
         }
 
         private void BtnRead_Click(object sender, EventArgs e)
@@ -477,115 +801,6 @@ namespace CFS_RFID
             ConnectReader();
         }
 
-        private void BtnUpload_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                UploadForm uploadForm = new UploadForm
-                {
-                    SelectedPrinter = PrinterType,
-                    StartPosition = FormStartPosition.CenterParent
-                };
-                DialogResult result = uploadForm.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    vendorName.Items.Clear();
-                    materialName.Items.Clear();
-                    LoadMaterials(PrinterType);
-                    DbVersion = GetDatabaseVersion(PrinterType);
-                    vendorName.Items.AddRange(GetMaterialBrands());
-                    vendorName.SelectedIndex = 0;
-                }
-                uploadForm.Dispose();
-            }
-            catch { }
-        }
-
-        private void BtnUpdate_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                UpdateForm updateForm = new UpdateForm
-                {
-                    SelectedPrinter = PrinterType,
-                    StartPosition = FormStartPosition.CenterParent
-                };
-                DialogResult result = updateForm.ShowDialog();
-                if (result == DialogResult.OK)
-                {
-                    vendorName.Items.Clear();
-                    materialName.Items.Clear();
-                    LoadMaterials(PrinterType);
-                    DbVersion = GetDatabaseVersion(PrinterType);
-                    vendorName.Items.AddRange(GetMaterialBrands());
-                    vendorName.SelectedIndex = 0;
-                }
-                updateForm.Dispose();
-            }
-            catch { }
-        }
-
-        private void BtnFormat_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                DialogResult result = MessageBox.Show(this,
-                    "This will erase the tag and set the default MIFARE key",
-                    "Format tag",
-                    MessageBoxButtons.OKCancel,
-                    MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
-                if (result == DialogResult.OK)
-                {
-                    if (reader == null)
-                    {
-                        Toast.Show(this, "Error formatting tag", Toast.LENGTH_SHORT);
-                    }
-                    else
-                    {
-                        FormatTag(reader);
-                        imgEnc.Visible = false;
-                        lblUid.Left = lblTagId.Right;
-                        Toast.Show(this, "Tag formatted", Toast.LENGTH_SHORT);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Toast.Show(this, ex.Message, Toast.LENGTH_LONG, true);
-            }
-        }
-
-        private void BtnUpload_MouseLeave(object sender, EventArgs e)
-        {
-            toolTip.Hide(btnUpload);
-        }
-
-        private void ChkAutoRead_CheckedChanged(object sender, EventArgs e)
-        {
-            if (chkAutoRead.Checked)
-            {
-                chkAutoWrite.Checked = false;
-            }
-        }
-
-        private void ChkAutoWrite_CheckedChanged(object sender, EventArgs e)
-        {
-            if (chkAutoWrite.Checked)
-            {
-                chkAutoRead.Checked = false;
-            }
-        }
-
-        private void BtnFormat_MouseLeave(object sender, EventArgs e)
-        {
-            toolTip.Hide(btnFormat);
-        }
-
-        private void BtnUpdate_MouseLeave(object sender, EventArgs e)
-        {
-            toolTip.Hide(btnUpdate);
-        }
-
         private void BtnDel_MouseLeave(object sender, EventArgs e)
         {
             toolTip.Hide(btnDel);
@@ -609,15 +824,66 @@ namespace CFS_RFID
             }
         }
 
+        private void MainForm_Click(object sender, EventArgs e)
+        {
+            if (sidebarExpand) sidebarTimer.Start();
+        }
+
         private void ImgEnc_Click(object sender, EventArgs e)
         {
             try
             {
                 Clipboard.Clear();
-                Clipboard.SetText("UID: " + lblUid.Text + "\r\nKey: " + BitConverter.ToString(encKey).Replace("-", ""));
+                Clipboard.SetText("UID: " + lblUid.Text + "\r\nKey: " + BitConverter.ToString(encKey).Replace("-", String.Empty));
                 Toast.Show(this, "Key copied to clipboard", Toast.LENGTH_SHORT);
             }
             catch { }
+        }
+
+        private void BtnMenu_Click(object sender, EventArgs e)
+        {
+            if (sidebarTimer.Enabled) return;
+            if (!sidebarExpand)
+            {
+                sidebarPanel.Visible = true;
+            }
+            sidebarTimer.Start();
+        }
+
+        private void MainForm_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (sidebarExpand) sidebarTimer.Start();
+        }
+
+        private void BtnMenu_MouseLeave(object sender, EventArgs e)
+        {
+            toolTip.Hide(btnMenu);
+        }
+
+        private void LblAdd_Click(object sender, EventArgs e)
+        {
+            using (SmDialog dialog = new SmDialog(vendorName.Text, materialName.Text, MaterialColor, GetMaterialIntWeight(MaterialWeight)))
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    string pType = printerModel.Text;
+                    string colorName = dialog.ColorNameResult;
+                    if (colorName == String.Empty)
+                    {
+                        colorName = MaterialColor;
+                    }
+                    Toast.Show(this, "Adding spool", Toast.LENGTH_SHORT);
+                    Task.Run(() => {
+                        return SmAddSpool(Settings.GetSetting("SmHost", String.Empty), Settings.GetSetting("SmPort", 7912), MaterialID, MaterialColor, colorName, GetMaterialIntWeight(MaterialWeight), pType);
+                    }).ContinueWith(t => {
+                        this.Invoke((MethodInvoker)delegate {
+                            Toast.Show(this, t.Result, Toast.LENGTH_SHORT, t.Result.ToLower().StartsWith("error"));
+                        });
+                    });
+                }
+            }
+
+
         }
 
         private void BtnAdd_MouseLeave(object sender, EventArgs e)
@@ -650,9 +916,11 @@ namespace CFS_RFID
         {
             try
             {
-                MaterialID = GetMaterialID(materialName.Items[materialName.SelectedIndex].ToString());
+                MaterialID = GetMaterialID(vendorName.Text, materialName.Items[materialName.SelectedIndex].ToString());
             }
             catch { }
         }
+
     }
+
 }

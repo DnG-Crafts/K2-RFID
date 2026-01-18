@@ -27,13 +27,21 @@ namespace CFS_RFID
             btnUpload.FlatAppearance.BorderSize = 0;
             btnCancel.FlatAppearance.BorderSize = 0;
 
-            lblPrinter.Text = "Update " + SelectedPrinter.ToUpper() + " Database";
+            if (SelectedPrinter == null)
+            {
+                this.DialogResult = DialogResult.No;
+                this.Close();
+                return;
+            }
 
-            if (SelectedPrinter.Equals("hi",StringComparison.OrdinalIgnoreCase))
+
+            lblPrinter.Text = "Update " + SelectedPrinter + " Database";
+
+            if (SelectedPrinter.ToLower().Contains("hi"))
             {
                 sshDefault = Resources.hiPsw;
             }
-            else if (SelectedPrinter.Equals("k1", StringComparison.OrdinalIgnoreCase))
+            else if (SelectedPrinter.ToLower().Contains("k1"))
             {
                 sshDefault = Resources.k1Psw;
             }
@@ -46,16 +54,16 @@ namespace CFS_RFID
             txtPass.Text = Settings.GetSetting("psw_" + SelectedPrinter, sshDefault);
             chkPrevent.Checked = Settings.GetSetting("prevent_" + SelectedPrinter, true);
             chkReboot.Checked = Settings.GetSetting("reboot_" + SelectedPrinter, true);
-            SetDescMessage(string.Format(Resources.updateDesc, SelectedPrinter.ToUpper()));
+            SetDescMessage(string.Format(Resources.updateDesc, SelectedPrinter));
         }
 
         private void SetDescMessage(string msg)
         {
             rtbDesc.Text = msg;
             rtbDesc.BackColor = BackColor;
-            if (rtbDesc.Find(" " + SelectedPrinter.ToUpper() + " ") != -1)
+            if (rtbDesc.Find(" " + SelectedPrinter + " ") != -1)
             {
-                rtbDesc.Select(rtbDesc.Find(" " + SelectedPrinter.ToUpper() + " "), 4);
+                rtbDesc.Select(rtbDesc.Find(" " + SelectedPrinter + " "), SelectedPrinter.Length + 2);
                 rtbDesc.SelectionColor = ColorTranslator.FromHtml("#1976D2");
             }
             if (rtbDesc.Find(" Update ") != -1)
@@ -103,8 +111,8 @@ namespace CFS_RFID
                 chkReboot.Visible = false;
                 chkResetApp.Visible = true;
                 chkPrevent.Visible = false;
-                lblPrinter.Text = "Reset " + SelectedPrinter.ToUpper() + " Database";
-                SetDescMessage(string.Format(Resources.resetDesc, SelectedPrinter.ToUpper()));
+                lblPrinter.Text = "Reset " + SelectedPrinter + " Database";
+                SetDescMessage(string.Format(Resources.resetDesc, SelectedPrinter));
             }
             else
             {
@@ -113,8 +121,8 @@ namespace CFS_RFID
                 chkReboot.Visible = true;
                 chkResetApp.Visible = false;
                 chkPrevent.Visible = true;
-                lblPrinter.Text = "Update " + SelectedPrinter.ToUpper() + " Database";
-                SetDescMessage(string.Format(Resources.updateDesc, SelectedPrinter.ToUpper()));
+                lblPrinter.Text = "Update " + SelectedPrinter + " Database";
+                SetDescMessage(string.Format(Resources.updateDesc, SelectedPrinter));
             }
         }
 
