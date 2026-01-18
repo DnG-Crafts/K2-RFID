@@ -264,22 +264,30 @@ public class Utils {
     }
 
     public static String GetMaterialBrand(MatDB db, String materialId) {
-        Filament item = db.getFilamentById(materialId);
-        if (item == null) {
+        try {
+            Filament item = db.getFilamentById(materialId);
+            if (item == null) {
+                return " ";
+            }
+            return item.filamentVendor;
+        } catch (Exception e) {
             return " ";
         }
-        return item.filamentVendor;
     }
 
     public static String[] GetMaterialName(MatDB db, String materialId) {
-        String[] arrRet = new String[2];
-        Filament item = db.getFilamentById(materialId);
-        if (item == null) {
+        try {
+            String[] arrRet = new String[2];
+            Filament item = db.getFilamentById(materialId);
+            if (item == null) {
+                return null;
+            } else {
+                arrRet[0] = item.filamentName;
+                arrRet[1] = item.filamentVendor;
+                return arrRet;
+            }
+        } catch (Exception e) {
             return null;
-        } else {
-            arrRet[0] = item.filamentName;
-            arrRet[1] = item.filamentVendor;
-            return arrRet;
         }
     }
 
@@ -472,7 +480,7 @@ public class Utils {
         materials.put("result", result);
         setJsonDB(materials.toString(2), psw, host, pType, "material_database.json");
 
-        if (pType.equalsIgnoreCase("k1")) {
+        if (pType.toLowerCase().contains("k1")) {
             saveMatOption(psw, host, pType, materials, reboot);
         } else {
             if (reboot) {
@@ -550,7 +558,7 @@ public class Utils {
             ChannelExec channel = (ChannelExec) session.openChannel("exec");
             InputStream in = channel.getInputStream();
             OutputStream out = channel.getOutputStream();
-            if (pType.equalsIgnoreCase("k1")) {
+            if (pType.toLowerCase().contains("k1")) {
                 channel.setCommand("scp -f /usr/data/creality/userdata/box/" + fileName);
             } else {
                 channel.setCommand("scp -f /mnt/UDISK/creality/userdata/box/" + fileName);
@@ -616,7 +624,7 @@ public class Utils {
         ChannelExec channel = (ChannelExec) session.openChannel("exec");
         InputStream in = channel.getInputStream();
         OutputStream out = channel.getOutputStream();
-        if (pType.equalsIgnoreCase("k1")) {
+        if (pType.toLowerCase().contains("k1")) {
             channel.setCommand("scp -p -t /usr/data/creality/userdata/box/" + fileName);
         } else {
             channel.setCommand("scp -p -t /mnt/UDISK/creality/userdata/box/" + fileName);
@@ -1050,7 +1058,7 @@ public class Utils {
         }
     }
 
-    public static String smAddSpool(Context context, MatDB db, String host, int port, String MaterialID, String hexColor, String colorName, int weightGrams) {
+    public static String smAddSpool(Context context, MatDB db, String host, int port, String printerType, String MaterialID, String hexColor, String colorName, int weightGrams) {
         String baseUrl = "http://" + host + ":" + port + "/api/v1";
         try {
             Filament localData = db.getFilamentById(MaterialID);
@@ -1074,6 +1082,7 @@ public class Utils {
             if (vendorId == -1) {
                 JSONObject vBody = new JSONObject();
                 vBody.put("name", vendorName);
+                vBody.put("comment", "Created by: " + context.getString(R.string.app_name));
                 String newV = performSmRequest(context, baseUrl + "/vendor", "POST", vBody.toString());
                 if (newV != null) vendorId = new JSONObject(newV).getInt("id");
             }
@@ -1094,6 +1103,9 @@ public class Utils {
                 JSONObject fBody = new JSONObject();
                 fBody.put("name", fNameWithColor);
                 fBody.put("vendor_id", vendorId);
+                fBody.put("color_hex", hexColor.replace("#", ""));
+                fBody.put("comment", "Created by: " + context.getString(R.string.app_name));
+
                 if (localData.filamentParam != null && !localData.filamentParam.isEmpty()) {
                     JSONObject root = new JSONObject(localData.filamentParam);
                     JSONObject kvParam = root.optJSONObject("kvParam");
@@ -1117,9 +1129,9 @@ public class Utils {
             if (filamentId != -1) {
                 JSONObject sBody = new JSONObject();
                 sBody.put("filament_id", filamentId);
-                sBody.put("color", hexColor.replace("#", ""));
                 sBody.put("initial_weight", weightGrams);
                 sBody.put("remaining_weight", weightGrams);
+                sBody.put("comment", "RFID tagged for " + printerType);
                 String ret = performSmRequest(context, baseUrl + "/spool", "POST", sBody.toString());
                 if (ret != null) {
                     return "Spool created for\n" + fNameWithColor;

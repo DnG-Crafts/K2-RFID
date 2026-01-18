@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     private NfcAdapter nfcAdapter;
     Tag currentTag = null;
     int SelectedSize, SelectedBrand;
-    String MaterialName, MaterialID, MaterialWeight, MaterialColor, PrinterType, MaterialVendor;
+    String MaterialName, MaterialID, MaterialWeight, MaterialColor, PrinterType, MaterialVendor, SelectedPrinter;
     Dialog pickerDialog, customDialog, saveDialog, updateDialog, editDialog, addDialog, tagDialog, printerDialog, settingsDialog;
     AlertDialog inputDialog;
     tagAdapter tagAdapter;
@@ -238,7 +238,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
                 SaveSetting(context, "printer", Objects.requireNonNull(padapter.getItem(position)).toLowerCase());
-                PrinterType = Objects.requireNonNull(padapter.getItem(position)).toLowerCase();
+                SelectedPrinter = Objects.requireNonNull(padapter.getItem(position));
+                PrinterType = SelectedPrinter.toLowerCase();
                 setMatDb(PrinterType);
             }
 
@@ -269,6 +270,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                     main.lbltagid.setVisibility(View.INVISIBLE);
                     main.tagid.setVisibility(View.INVISIBLE);
                     main.txtmsg.setVisibility(View.VISIBLE);
+                    main.txtspman.setVisibility(View.INVISIBLE);
                     main.txtmsg.setText(R.string.rfid_functions_disabled);
                 }
             } else {
@@ -289,6 +291,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 main.txtmsg.setVisibility(View.VISIBLE);
                 main.txtmsg.setText(spannableString);
                 main.txtmsg.setGravity(Gravity.CENTER);
+                main.txtspman.setVisibility(View.INVISIBLE);
                 main.txtmsg.setOnClickListener(view -> {
                     startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS));
                     finish();
@@ -517,6 +520,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         }
         if (printerDialog != null && printerDialog.isShowing()) {
             printerDialog.dismiss();
+        }
+        if (settingsDialog != null && settingsDialog.isShowing()) {
+            settingsDialog.dismiss();
         }
         if (nfcAdapter != null && nfcAdapter.isEnabled()) {
             try {
@@ -787,17 +793,21 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                     } catch (Exception ignored) {
                     }
                     mainHandler.postDelayed(() -> {
-                        if (GetMaterialName(matDb, MaterialID) != null) {
-                            MaterialColor = tagData.substring(18, 24);
-                            String Length = tagData.substring(24, 28);
-                            main.colorview.setBackgroundColor(Color.parseColor("#" + MaterialColor));
-                            MaterialName = Objects.requireNonNull(GetMaterialName(matDb, MaterialID))[0];
-                            main.brand.setSelection(badapter.getPosition(Objects.requireNonNull(GetMaterialName(matDb, MaterialID))[1]));
-                            mainHandler.postDelayed(() -> main.material.setSelection(getMaterialPos(madapter, MaterialID)), 300);
-                            main.spoolsize.setSelection(sadapter.getPosition(GetMaterialWeight(Length)));
-                            showToast(R.string.data_read_from_tag, Toast.LENGTH_SHORT);
-                        } else {
-                            showToast(R.string.unknown_or_empty_tag, Toast.LENGTH_SHORT);
+                        try {
+                            if (GetMaterialName(matDb, MaterialID) != null) {
+                                MaterialColor = tagData.substring(18, 24);
+                                String Length = tagData.substring(24, 28);
+                                main.colorview.setBackgroundColor(Color.parseColor("#" + MaterialColor));
+                                MaterialName = Objects.requireNonNull(GetMaterialName(matDb, MaterialID))[0];
+                                main.brand.setSelection(badapter.getPosition(Objects.requireNonNull(GetMaterialName(matDb, MaterialID))[1]));
+                                mainHandler.postDelayed(() -> main.material.setSelection(getMaterialPos(madapter, MaterialID)), 300);
+                                main.spoolsize.setSelection(sadapter.getPosition(GetMaterialWeight(Length)));
+                                showToast(R.string.data_read_from_tag, Toast.LENGTH_SHORT);
+                            } else {
+                                showToast(R.string.unknown_or_empty_tag, Toast.LENGTH_SHORT);
+                            }
+                        } catch (Exception ignored) {
+                            showToast(R.string.error_reading_tag, Toast.LENGTH_SHORT);
                         }
                     }, 300);
                 });
@@ -2513,9 +2523,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 executorService.execute(() -> {
                     String ret;
                     if (colorName.isEmpty()) {
-                        ret = smAddSpool(this, matDb, smHost, smPort, MaterialID, MaterialColor, colorNameHint == null ? MaterialColor : colorNameHint, GetMaterialIntWeight(MaterialWeight));
+                        ret = smAddSpool(this, matDb, smHost, smPort, SelectedPrinter, MaterialID, MaterialColor, colorNameHint == null ? MaterialColor : colorNameHint, GetMaterialIntWeight(MaterialWeight));
                     } else {
-                        ret = smAddSpool(this, matDb, smHost, smPort, MaterialID, MaterialColor, colorName, GetMaterialIntWeight(MaterialWeight));
+                        ret = smAddSpool(this, matDb, smHost, smPort, SelectedPrinter, MaterialID, MaterialColor, colorName, GetMaterialIntWeight(MaterialWeight));
                     }
                     if (ret != null) showToast(ret, Toast.LENGTH_SHORT);
                 });
