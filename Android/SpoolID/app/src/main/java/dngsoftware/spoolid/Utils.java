@@ -22,6 +22,7 @@ import android.text.Spanned;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import androidx.annotation.ColorInt;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.jcraft.jsch.ChannelExec;
@@ -1178,6 +1179,14 @@ public class Utils {
             }
             return null;
         }
+    }
+
+    public static int getContrastColor(@ColorInt int backgroundColor) {
+        int red = Color.red(backgroundColor);
+        int green = Color.green(backgroundColor);
+        int blue = Color.blue(backgroundColor);
+        double luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255.0;
+        return (luminance > 0.5) ? Color.BLACK : Color.WHITE;
     }
 
     public static int[] presetColors() {

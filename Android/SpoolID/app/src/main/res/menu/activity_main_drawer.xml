@@ -53,7 +53,7 @@
                 android:title="Custom Tag Data Input" />
             <item
                 android:id="@+id/nav_memory"
-                android:icon="@drawable/twotone_database_24"
+                android:icon="@drawable/twotone_memory_24"
                 android:title="Read Tag Memory" />
         </menu>
     </item>

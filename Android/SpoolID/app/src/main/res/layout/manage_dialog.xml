@@ -6,11 +6,7 @@
     android:layout_height="match_parent"
     android:background="#F4F4F4"
     android:fillViewport="true"
-    android:fitsSystemWindows="true"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">
+    android:fitsSystemWindows="true">
 
 <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
@@ -42,7 +38,7 @@
     <Spinner
         android:id="@+id/type"
         android:layout_width="0dp"
-        android:layout_height="48dp"
+        android:layout_height="56dp"
         android:layout_marginTop="34dp"
         android:spinnerMode="dialog"
         app:backgroundTint="@color/text_color"
@@ -53,13 +49,29 @@
     <View
         android:id="@+id/typeborder"
         android:layout_width="0dp"
-        android:layout_height="48dp"
+        android:layout_height="56dp"
         android:layout_marginTop="34dp"
         android:background="@drawable/border"
         app:layout_constraintEnd_toEndOf="@+id/btnadd"
         app:layout_constraintStart_toStartOf="@+id/btncls"
         app:layout_constraintTop_toBottomOf="@+id/txtprinter" />
 
+
+    <TextView
+        android:id="@+id/lbltype"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:background="@drawable/hint_background"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:includeFontPadding="false"
+        android:text="@string/printer"
+        android:textColor="#1976D2"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/typeborder"
+        app:layout_constraintStart_toStartOf="@+id/typeborder"
+        app:layout_constraintTop_toTopOf="@+id/typeborder" />
 
     <TextView
         android:id="@+id/txtmsg"

@@ -4,6 +4,7 @@ import static dngsoftware.spoolid.Utils.filamentTypes;
 import static dngsoftware.spoolid.Utils.filamentVendors;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -12,13 +13,12 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
-import android.widget.Spinner;
-import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+import com.google.android.material.textfield.TextInputLayout;
 import java.security.SecureRandom;
 import java.util.Locale;
 
@@ -43,163 +43,107 @@ public class jsonAdapter extends RecyclerView.Adapter<jsonAdapter.ViewHolder> {
     public void onBindViewHolder(ViewHolder holder, @SuppressLint("RecyclerView") int position) {
         jsonItem currentItem = jsonItems[position];
 
-        holder.itemKey.setText(currentItem.jKey);
+        if (holder.itemValue.getTag() instanceof TextWatcher) {
+            holder.itemValue.removeTextChangedListener((TextWatcher) holder.itemValue.getTag());
+        }
 
-        if (currentItem.jValue.toString().equalsIgnoreCase("true") || currentItem.jValue.toString().equalsIgnoreCase("false"))
-        {
-            holder.itemValue.setVisibility(View.INVISIBLE);
-            holder.itemSpin.setVisibility(View.VISIBLE);
-            holder.spinBorder.setVisibility(View.VISIBLE);
-            if (currentItem.jValue.toString().equalsIgnoreCase("false")) {
-                holder.itemSpin.setSelection(0);
-            }
-            else {
-                holder.itemSpin.setSelection(1);
-            }
+        holder.itemKey.setHint(currentItem.jKey);
+        String val = currentItem.jValue != null ? currentItem.jValue.toString() : "";
 
-            holder.itemSpin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                    currentItem.jValue =  parentView.getItemAtPosition(position).toString().toLowerCase();
-                }
-                @Override
-                public void onNothingSelected(AdapterView<?> parentView) {
-                }
+        if (val.equalsIgnoreCase("true") || val.equalsIgnoreCase("false")) {
+            holder.itemValue.setInputType(InputType.TYPE_NULL);
+            holder.itemValue.setBackgroundColor(Color.TRANSPARENT);
+            holder.itemValue.setFocusable(false);
+            holder.itemValue.setCursorVisible(false);
+            String[] options = new String[]{"false", "true"};
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(context, R.layout.adapter_spinner_item, options);
+            holder.itemValue.setAdapter(adapter);
+            holder.itemValue.setText(val.toLowerCase(), false);
+            holder.itemValue.setOnItemClickListener((parent, view, position1, id) -> {
+                currentItem.jValue = parent.getItemAtPosition(position1).toString().toLowerCase();
             });
 
-        }else {
-
-            holder.itemValue.setVisibility(View.VISIBLE);
-            holder.itemSpin.setVisibility(View.INVISIBLE);
-            holder.spinBorder.setVisibility(View.INVISIBLE);
-
-            if (currentItem.jKey.equalsIgnoreCase("id")) {
-                SecureRandom random = new SecureRandom();
-                currentItem.jValue = String.format(Locale.getDefault(), "%05d", random.nextInt(99999));
-                holder.itemValue.setText(currentItem.jValue.toString());
-                InputFilter[] editFilters = holder.itemValue.getFilters();
-                InputFilter[] newFilters = new InputFilter[editFilters.length + 1];
-                System.arraycopy(editFilters, 0, newFilters, 0, editFilters.length);
-                newFilters[editFilters.length] = new InputFilter.LengthFilter(5);
-                holder.itemValue.setFilters(newFilters);
-
-            } else {
-                holder.itemValue.setText(currentItem.jValue.toString().trim());
-            }
+        } else {
+            holder.itemValue.setInputType(InputType.TYPE_CLASS_TEXT);
+            holder.itemKey.setEndIconMode(TextInputLayout.END_ICON_NONE);
 
             if (currentItem.jKey.equalsIgnoreCase("brand") || currentItem.jKey.equalsIgnoreCase("filament_vendor")) {
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, filamentVendors);
-                holder.itemValue.setAdapter(adapter);
+                holder.itemValue.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, filamentVendors));
+            } else if (currentItem.jKey.equalsIgnoreCase("meterialtype") || currentItem.jKey.equalsIgnoreCase("filament_type")) {
+                holder.itemValue.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, filamentTypes));
+            } else {
+                holder.itemValue.setAdapter(null);
             }
 
-            if (currentItem.jKey.equalsIgnoreCase("meterialtype") || currentItem.jKey.equalsIgnoreCase("filament_type")) {
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, filamentTypes);
-                holder.itemValue.setAdapter(adapter);
+            if (currentItem.jKey.equalsIgnoreCase("id") && (val.isEmpty() || val.equals("0"))) {
+                SecureRandom random = new SecureRandom();
+                currentItem.jValue = String.format(Locale.getDefault(), "%05d", random.nextInt(99999));
+                val = currentItem.jValue.toString();
+                holder.itemValue.setFilters(new InputFilter[]{new InputFilter.LengthFilter(5)});
             }
 
-            if (currentItem.jKey.equalsIgnoreCase("brand") && currentItem.jValue.equals(currentItem.hintValue)) {
-                holder.itemValue.setText("");
+            boolean isTarget = currentItem.jKey.equalsIgnoreCase("brand") ||
+                    currentItem.jKey.equalsIgnoreCase("meterialtype") ||
+                    currentItem.jKey.equalsIgnoreCase("name");
+
+            if (isTarget && val.equals(currentItem.hintValue) && holder.itemKey.getTag() == null) {
+                holder.itemValue.setText("", false);
                 holder.itemValue.setHint(currentItem.hintValue);
                 holder.itemValue.setHintTextColor(Color.parseColor("#D3D3D3"));
-                holder.itemKey.setTextColor(Color.parseColor("#ff0000"));
+                holder.itemKey.setHintTextColor(ColorStateList.valueOf(Color.RED));
+                holder.itemKey.setDefaultHintTextColor(ColorStateList.valueOf(Color.RED));
+            } else {
+                holder.itemValue.setText(val, false);
+                holder.itemValue.setHint("");
+                ColorStateList blue = ColorStateList.valueOf(Color.parseColor("#1976D2"));
+                holder.itemKey.setHintTextColor(blue);
+                holder.itemKey.setDefaultHintTextColor(blue);
             }
-
-            if (currentItem.jKey.equalsIgnoreCase("meterialtype") && currentItem.jValue.equals(currentItem.hintValue)) {
-                holder.itemValue.setText("");
-                holder.itemValue.setHint(currentItem.hintValue);
-                holder.itemValue.setHintTextColor(Color.parseColor("#D3D3D3"));
-                holder.itemKey.setTextColor(Color.parseColor("#ff0000"));
-            }
-
-            if (currentItem.jKey.equalsIgnoreCase("name") && currentItem.jValue.equals(currentItem.hintValue)) {
-                holder.itemValue.setText("");
-                holder.itemValue.setHint(currentItem.hintValue);
-                holder.itemValue.setHintTextColor(Color.parseColor("#D3D3D3"));
-                holder.itemKey.setTextColor(Color.parseColor("#ff0000"));
-            }
-
-            if (holder.itemValue.getTag() instanceof TextWatcher) {
-                holder.itemValue.removeTextChangedListener((TextWatcher) holder.itemValue.getTag());
-            }
-
 
             TextWatcher textWatcher = new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                }
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    String input = s.toString().trim();
+                    currentItem.jValue = input;
 
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    currentItem.jValue = s.toString().trim();
-
-                    if (currentItem.jKey.equalsIgnoreCase("id")) {
-
-                        if (currentItem.jValue.toString().isBlank() || currentItem.jValue.toString().isEmpty()) {
-                            holder.itemKey.setTextColor(Color.parseColor("#ff0000"));
-                        } else {
-                            holder.itemKey.setTextColor(Color.parseColor("#000000"));
-                        }
+                    if (!input.isEmpty()) {
+                        holder.itemKey.setTag("modified");
                     }
 
-                    if (currentItem.jKey.equalsIgnoreCase("brand")) {
-
-                        if (currentItem.jValue.toString().isBlank() || currentItem.jValue.toString().isEmpty()) {
-                            holder.itemKey.setTextColor(Color.parseColor("#ff0000"));
-                        } else {
-                            holder.itemKey.setTextColor(Color.parseColor("#000000"));
-                        }
-                    }
-
-                    if (currentItem.jKey.equalsIgnoreCase("meterialtype")) {
-                        if (currentItem.jValue.toString().isBlank() || currentItem.jValue.toString().isEmpty()) {
-                            holder.itemKey.setTextColor(Color.parseColor("#ff0000"));
-                        } else {
-                            holder.itemKey.setTextColor(Color.parseColor("#000000"));
-                        }
-                    }
-
-                    if (currentItem.jKey.equalsIgnoreCase("name")) {
-                        if (currentItem.jValue.toString().isBlank() || currentItem.jValue.toString().isEmpty()) {
-                            holder.itemKey.setTextColor(Color.parseColor("#ff0000"));
-                        } else {
-                            holder.itemKey.setTextColor(Color.parseColor("#000000"));
-                        }
+                    if (input.isEmpty() || (isTarget && input.equals(currentItem.hintValue) && holder.itemKey.getTag() == null)) {
+                        holder.itemKey.setHintTextColor(ColorStateList.valueOf(Color.RED));
+                        holder.itemKey.setDefaultHintTextColor(ColorStateList.valueOf(Color.RED));
+                    } else {
+                        holder.itemKey.setHintTextColor(ColorStateList.valueOf(Color.parseColor("#1976D2")));
+                        holder.itemKey.setDefaultHintTextColor(ColorStateList.valueOf(Color.parseColor("#1976D2")));
                     }
                 }
-
-                @Override
-                public void afterTextChanged(Editable s) {
-                }
+                @Override public void afterTextChanged(Editable s) {}
             };
+
             holder.itemValue.addTextChangedListener(textWatcher);
             holder.itemValue.setTag(textWatcher);
+
+            holder.itemValue.setOnItemClickListener((parent, view, pos, id) -> {
+                currentItem.jValue = parent.getItemAtPosition(pos).toString();
+                holder.itemKey.setTag("modified");
+                InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.hideSoftInputFromWindow(holder.itemValue.getWindowToken(), 0);
+                }
+                holder.itemValue.clearFocus();
+                holder.itemKey.requestFocus();
+                holder.itemValue.setHint("");
+                ColorStateList blue = ColorStateList.valueOf(Color.parseColor("#1976D2"));
+                holder.itemKey.setHintTextColor(blue);
+                holder.itemKey.setDefaultHintTextColor(blue);
+            });
 
             holder.itemValue.setOnFocusChangeListener((v, hasFocus) -> {
                 if (hasFocus) {
                     holder.itemValue.setHint("");
-                    try {
-                        Double.parseDouble(holder.itemValue.getText().toString());
-                        holder.itemValue.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                    } catch (Exception ignored) {
-                        try {
-                            Integer.parseInt(holder.itemValue.getText().toString());
-                            holder.itemValue.setInputType(InputType.TYPE_CLASS_NUMBER);
-                        } catch (Exception pass) {
-                            holder.itemValue.setInputType(InputType.TYPE_CLASS_TEXT);
-                        }
-                    }
                 } else {
-                    if (currentItem.jKey.equalsIgnoreCase("brand") && currentItem.jValue.toString().isEmpty() || currentItem.jValue.toString().isBlank()) {
-                        holder.itemValue.setHint(currentItem.hintValue);
-                        holder.itemValue.setHintTextColor(Color.parseColor("#D3D3D3"));
-                    }
-
-                    if (currentItem.jKey.equalsIgnoreCase("meterialtype") && currentItem.jValue.toString().isEmpty() || currentItem.jValue.toString().isBlank()) {
-                        holder.itemValue.setHint(currentItem.hintValue);
-                        holder.itemValue.setHintTextColor(Color.parseColor("#D3D3D3"));
-                    }
-
-                    if (currentItem.jKey.equalsIgnoreCase("name") && currentItem.jValue.toString().isEmpty() || currentItem.jValue.toString().isBlank()) {
+                    if (isTarget && currentItem.jValue.toString().isEmpty()) {
                         holder.itemValue.setHint(currentItem.hintValue);
                         holder.itemValue.setHintTextColor(Color.parseColor("#D3D3D3"));
                     }
@@ -208,35 +152,17 @@ public class jsonAdapter extends RecyclerView.Adapter<jsonAdapter.ViewHolder> {
         }
     }
 
-    @Override
-    public int getItemCount() {
-        return jsonItems.length;
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return position;
-    }
-
-    @Override
-    public int getItemViewType(int position) {
-        return position;
-    }
+    @Override public int getItemCount() { return jsonItems.length; }
+    @Override public long getItemId(int position) { return position; }
+    @Override public int getItemViewType(int position) { return position; }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView itemKey;
-        AutoCompleteTextView  itemValue;
-        Spinner itemSpin;
-        View spinBorder;
-
+        TextInputLayout itemKey;
+        MaterialAutoCompleteTextView itemValue;
         ViewHolder(View itemView) {
             super(itemView);
             itemKey = itemView.findViewById(R.id.itemKey);
             itemValue = itemView.findViewById(R.id.itemValue);
-            itemSpin = itemView.findViewById(R.id.itemSpin);
-            spinBorder = itemView.findViewById(R.id.spinBorder);
-            ArrayAdapter<String> adapter = new ArrayAdapter<>( itemView.getContext(), R.layout.adapter_spinner_item, new String[]{"false", "true"});
-            itemSpin.setAdapter(adapter);
         }
     }
 }

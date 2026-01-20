@@ -9,7 +9,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:fillViewport="true"
-    tools:openDrawer="start">
+    tools:openDrawer="end">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -32,7 +32,7 @@
                 android:layout_height="38dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="4dp"
-                android:layout_marginEnd="-6dp"
+                android:layout_marginEnd="-16dp"
                 android:importantForAccessibility="no"
                 app:layout_constraintEnd_toEndOf="@+id/type"
                 app:layout_constraintTop_toTopOf="parent"
@@ -70,209 +70,239 @@
                 android:layout_width="38dp"
                 android:layout_height="38dp"
                 android:layout_marginTop="10dp"
+                android:layout_marginStart="-16dp"
                 android:importantForAccessibility="no"
                 app:srcCompat="@drawable/twotone_menu_24"
                 app:tint="@color/text_color"
-                app:layout_constraintStart_toStartOf="@+id/lbltype"
+                app:layout_constraintStart_toStartOf="@+id/type"
                 app:layout_constraintTop_toTopOf="parent" />
 
 
             <Spinner
                 android:id="@+id/type"
-                android:layout_width="200dp"
-                android:layout_height="48dp"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="34dp"
                 android:layout_marginEnd="16dp"
                 android:spinnerMode="dialog"
                 app:backgroundTint="@color/text_color"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/lbltype"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/editbutton" />
 
             <View
                 android:id="@+id/typeborder"
-                android:layout_width="200dp"
-                android:layout_height="48dp"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="34dp"
                 android:layout_marginEnd="16dp"
                 android:background="@drawable/border"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/lbltype"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/editbutton" />
 
             <TextView
                 android:id="@+id/lbltype"
-                android:layout_width="60dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="46dp"
-                android:textStyle="bold"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/hint_background"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:includeFontPadding="false"
                 android:text="@string/printer"
-                android:textSize="18sp"
-                android:textColor="@color/text_color"
-                app:layout_constraintEnd_toStartOf="@+id/type"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/editbutton" />
+                android:textColor="#1976D2"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toTopOf="@+id/typeborder"
+                app:layout_constraintStart_toStartOf="@+id/typeborder"
+                app:layout_constraintTop_toTopOf="@+id/typeborder" />
 
             <Spinner
                 android:id="@+id/brand"
-                android:layout_width="200dp"
-                android:layout_height="48dp"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="32dp"
                 android:layout_marginEnd="16dp"
                 android:spinnerMode="dialog"
                 app:backgroundTint="@color/text_color"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/lblbrand"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/type" />
 
             <View
                 android:id="@+id/brandborder"
-                android:layout_width="200dp"
-                android:layout_height="48dp"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="32dp"
                 android:layout_marginEnd="16dp"
                 android:background="@drawable/border"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/lblbrand"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/type" />
 
             <TextView
                 android:id="@+id/lblbrand"
-                android:layout_width="60dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="56dp"
-                android:textStyle="bold"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/hint_background"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:includeFontPadding="false"
                 android:text="@string/brand"
-                android:textSize="18sp"
-                android:textColor="@color/text_color"
-                app:layout_constraintEnd_toStartOf="@+id/brand"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/lbltype" />
+                android:textColor="#1976D2"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toTopOf="@+id/brandborder"
+                app:layout_constraintStart_toStartOf="@+id/brandborder"
+                app:layout_constraintTop_toTopOf="@+id/brandborder" />
 
             <Spinner
                 android:id="@+id/material"
-                android:layout_width="200dp"
-                android:layout_height="48dp"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="32dp"
                 android:layout_marginEnd="16dp"
                 android:spinnerMode="dialog"
                 app:backgroundTint="@color/text_color"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/lblmaterial"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/brand" />
 
             <View
                 android:id="@+id/materialborder"
                 android:background="@drawable/border"
-                android:layout_width="200dp"
-                android:layout_height="48dp"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="32dp"
                 android:layout_marginEnd="16dp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/lblmaterial"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/brand" />
 
             <TextView
                 android:id="@+id/lblmaterial"
-                android:layout_width="57dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="55dp"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/hint_background"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:includeFontPadding="false"
                 android:text="@string/type"
-                android:textStyle="bold"
-                android:textSize="18sp"
-                android:textColor="@color/text_color"
-                app:layout_constraintEnd_toStartOf="@+id/material"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/lblbrand" />
+                android:textColor="#1976D2"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toTopOf="@+id/materialborder"
+                app:layout_constraintStart_toStartOf="@+id/materialborder"
+                app:layout_constraintTop_toTopOf="@+id/materialborder" />
 
             <Spinner
                 android:id="@+id/spoolsize"
-                android:layout_width="200dp"
-                android:layout_height="48dp"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="32dp"
                 android:layout_marginEnd="16dp"
                 android:spinnerMode="dialog"
                 app:backgroundTint="@color/text_color"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/lblsize"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/material" />
 
             <View
                 android:id="@+id/sizeborder"
                 android:background="@drawable/border"
-                android:layout_width="200dp"
-                android:layout_height="48dp"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="32dp"
                 android:layout_marginEnd="16dp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/lblsize"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/material" />
 
             <TextView
                 android:id="@+id/lblsize"
-                android:layout_width="55dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="56dp"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/hint_background"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:includeFontPadding="false"
                 android:text="@string/size"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_color"
-                app:layout_constraintEnd_toStartOf="@+id/spoolsize"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/lblmaterial" />
+                android:textColor="#1976D2"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toTopOf="@+id/sizeborder"
+                app:layout_constraintStart_toStartOf="@+id/sizeborder"
+                app:layout_constraintTop_toTopOf="@+id/sizeborder" />
 
             <Spinner
                 android:id="@+id/colorspin"
-                android:layout_width="200dp"
-                android:layout_height="48dp"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="28dp"
                 android:layout_marginEnd="16dp"
                 android:spinnerMode="dialog"
                 app:backgroundTint="@color/text_color"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/lblcolor"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/spoolsize" />
 
             <View
                 android:id="@+id/colorborder"
                 android:background="@drawable/border"
-                android:layout_width="202dp"
-                android:layout_height="48dp"
+                android:layout_width="280dp"
+                android:layout_height="56dp"
                 android:layout_marginTop="28dp"
                 android:layout_marginEnd="20dp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/lblcolor"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/spoolsize" />
 
             <View
                 android:id="@+id/colorview"
-                android:layout_width="140dp"
-                android:layout_height="34dp"
-                android:layout_marginStart="2dp"
-                android:layout_marginTop="35dp"
-                android:layout_marginEnd="60dp"
+                android:layout_width="225dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="40dp"
                 android:background="#0000FF"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/lblcolor"
-                app:layout_constraintTop_toBottomOf="@+id/spoolsize" />
+                app:layout_constraintEnd_toEndOf="@+id/colorborder"
+                app:layout_constraintStart_toStartOf="@+id/colorborder"
+                app:layout_constraintTop_toTopOf="@+id/colorborder" />
+
+            <TextView
+                android:id="@+id/txtcolor"
+                android:layout_width="225dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="40dp"
+                android:background="#00000000"
+                android:textSize="18sp"
+                android:paddingStart="10dp"
+                android:singleLine="true"
+                android:paddingEnd="1dp"
+                android:gravity="start|center"
+                android:text="#000000"
+                app:layout_constraintEnd_toEndOf="@+id/colorborder"
+                app:layout_constraintStart_toStartOf="@+id/colorborder"
+                app:layout_constraintTop_toTopOf="@+id/colorborder" />
+
 
             <TextView
                 android:id="@+id/lblcolor"
-                android:layout_width="62dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="52dp"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/hint_background"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:includeFontPadding="false"
                 android:text="@string/color"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_color"
-                app:layout_constraintEnd_toStartOf="@+id/colorspin"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/lblsize" />
+                android:textColor="#1976D2"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toTopOf="@+id/colorborder"
+                app:layout_constraintStart_toStartOf="@+id/colorborder"
+                app:layout_constraintTop_toTopOf="@+id/colorborder" />
 
             <TextView
                 android:id="@+id/tagid"
@@ -284,7 +314,6 @@
                 android:text="@string/_00_00_00_00"
                 android:textColor="@color/text_color"
                 android:textSize="18sp"
-
                 app:layout_constraintStart_toEndOf="@+id/lbltagid"
                 app:layout_constraintTop_toBottomOf="@+id/colorborder" />
 
@@ -292,6 +321,7 @@
                 android:id="@+id/lbltagid"
                 android:layout_width="60dp"
                 android:layout_height="wrap_content"
+                android:minWidth="60dp"
                 android:layout_marginTop="40dp"
                 android:text="@string/tag_id"
                 android:textColor="@color/text_color"
@@ -356,7 +386,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/lbltagid" />
-
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

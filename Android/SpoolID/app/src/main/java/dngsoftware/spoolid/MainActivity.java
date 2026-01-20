@@ -27,6 +27,7 @@ import static dngsoftware.spoolid.Utils.copyFileToUri;
 import static dngsoftware.spoolid.Utils.copyUriToFile;
 import static dngsoftware.spoolid.Utils.createKey;
 import static dngsoftware.spoolid.Utils.findPrinters;
+import static dngsoftware.spoolid.Utils.getContrastColor;
 import static dngsoftware.spoolid.Utils.getJsonDB;
 import static dngsoftware.spoolid.Utils.getMaterialBrands;
 import static dngsoftware.spoolid.Utils.getMaterialPos;
@@ -55,6 +56,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -88,6 +90,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -253,6 +256,10 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         main.colorview.setBackgroundColor(Color.argb(255, 0, 0, 255));
         MaterialColor = "0000FF";
 
+        main.txtcolor.setText(MaterialColor);
+        main.txtcolor.setTextColor(getContrastColor(Color.parseColor("#" + MaterialColor)));
+
+
         try {
             nfcAdapter = NfcAdapter.getDefaultAdapter(this);
             if (nfcAdapter != null && nfcAdapter.isEnabled()) {
@@ -267,6 +274,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                     main.spoolsize.setEnabled(false);
                     main.colorview.setEnabled(false);
                     main.colorview.setBackgroundColor(Color.parseColor("#D3D3D3"));
+                    main.txtcolor.setText(MaterialColor);
+                    main.txtcolor.setTextColor(getContrastColor(Color.parseColor("#" + MaterialColor)));
                     main.lbltagid.setVisibility(View.INVISIBLE);
                     main.tagid.setVisibility(View.INVISIBLE);
                     main.txtmsg.setVisibility(View.VISIBLE);
@@ -283,6 +292,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 main.spoolsize.setEnabled(false);
                 main.colorview.setEnabled(false);
                 main.colorview.setBackgroundColor(Color.parseColor("#D3D3D3"));
+                main.txtcolor.setText(MaterialColor);
+                main.txtcolor.setTextColor(getContrastColor(Color.parseColor("#" + MaterialColor)));
                 main.lbltagid.setVisibility(View.INVISIBLE);
                 main.tagid.setVisibility(View.INVISIBLE);
                 SpannableString spannableString = new SpannableString(getString(R.string.rfid_disabled_tap_here_to_enable_nfc));
@@ -798,6 +809,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                                 MaterialColor = tagData.substring(18, 24);
                                 String Length = tagData.substring(24, 28);
                                 main.colorview.setBackgroundColor(Color.parseColor("#" + MaterialColor));
+                                main.txtcolor.setText(MaterialColor);
+                                main.txtcolor.setTextColor(getContrastColor(Color.parseColor("#" + MaterialColor)));
                                 MaterialName = Objects.requireNonNull(GetMaterialName(matDb, MaterialID))[0];
                                 main.brand.setSelection(badapter.getPosition(Objects.requireNonNull(GetMaterialName(matDb, MaterialID))[1]));
                                 mainHandler.postDelayed(() -> main.material.setSelection(getMaterialPos(madapter, MaterialID)), 300);
@@ -851,6 +864,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                         try {
                             int color = Color.rgb(dl.redSlider.getProgress(), dl.greenSlider.getProgress(), dl.blueSlider.getProgress());
                             main.colorview.setBackgroundColor(color);
+                            main.txtcolor.setText(MaterialColor);
+                            main.txtcolor.setTextColor(getContrastColor(Color.parseColor("#" + MaterialColor)));
                         } catch (Exception ignored) {
                         }
                     }
@@ -977,8 +992,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             manual.txtserial.setText(GetSetting(this, "ser", getResources().getString(R.string.def_ser)));
             manual.txtreserve.setText(GetSetting(this, "res", getResources().getString(R.string.def_res)));
             manual.btncls.setOnClickListener(v -> customDialog.dismiss());
-            manual.btncol.setOnClickListener(view -> openPicker());
-            manual.btnrnd.setOnClickListener(v -> {
+            manual.layoutColor.setEndIconOnClickListener(view -> openPicker());
+            manual.layoutSerial.setEndIconOnClickListener(v -> {
                 SecureRandom random = new SecureRandom();
                 manual.txtserial.setText(format(Locale.getDefault(), "%06d", random.nextInt(900000)));
             });
@@ -1149,10 +1164,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             dl.chkprnt.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 SaveSetting(this, "fromprinter_" + PrinterType, isChecked);
                 if (isChecked) {
-                    dl.txtaddress.setVisibility(View.VISIBLE);
-                    dl.txtpsw.setVisibility(View.VISIBLE);
-                    dl.lblpip.setVisibility(View.VISIBLE);
-                    dl.lblpsw.setVisibility(View.VISIBLE);
+                    dl.layoutAddress.setVisibility(View.VISIBLE);
+                    dl.layoutPsw.setVisibility(View.VISIBLE);
                     dl.updatedesc.setVisibility(View.VISIBLE);
                     dl.updatedesc.setVisibility(View.VISIBLE);
                     dl.btnchk.setVisibility(View.VISIBLE);
@@ -1160,18 +1173,18 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                     dl.type.setVisibility(View.INVISIBLE);
                     dl.typeborder.setVisibility(View.INVISIBLE);
                     dl.btnupd.setVisibility(View.INVISIBLE);
+                    dl.lbltype.setVisibility(View.INVISIBLE);
                     dl.txtnewver.setText("");
                 } else {
-                    dl.txtaddress.setVisibility(View.INVISIBLE);
-                    dl.txtpsw.setVisibility(View.INVISIBLE);
-                    dl.lblpip.setVisibility(View.INVISIBLE);
-                    dl.lblpsw.setVisibility(View.INVISIBLE);
+                    dl.layoutAddress.setVisibility(View.INVISIBLE);
+                    dl.layoutPsw.setVisibility(View.INVISIBLE);
                     dl.updatedesc.setVisibility(View.INVISIBLE);
                     dl.updatedesc.setVisibility(View.INVISIBLE);
                     dl.btnchk.setVisibility(View.INVISIBLE);
                     dl.imgframe.setVisibility(View.VISIBLE);
                     dl.type.setVisibility(View.VISIBLE);
                     dl.typeborder.setVisibility(View.VISIBLE);
+                    dl.lbltype.setVisibility(View.VISIBLE);
                     dl.btnupd.setVisibility(View.VISIBLE);
                     dl.txtnewver.setText(format(Locale.getDefault(), getString(R.string.printer_version), jsonVersion));
                 }
@@ -1179,27 +1192,25 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             });
 
             if (dl.chkprnt.isChecked()) {
-                dl.txtaddress.setVisibility(View.VISIBLE);
-                dl.txtpsw.setVisibility(View.VISIBLE);
-                dl.lblpip.setVisibility(View.VISIBLE);
-                dl.lblpsw.setVisibility(View.VISIBLE);
+                dl.layoutAddress.setVisibility(View.VISIBLE);
+                dl.layoutPsw.setVisibility(View.VISIBLE);
                 dl.updatedesc.setVisibility(View.VISIBLE);
                 dl.btnchk.setVisibility(View.VISIBLE);
                 dl.imgframe.setVisibility(View.INVISIBLE);
                 dl.type.setVisibility(View.INVISIBLE);
                 dl.typeborder.setVisibility(View.INVISIBLE);
+                dl.lbltype.setVisibility(View.INVISIBLE);
                 dl.btnupd.setVisibility(View.INVISIBLE);
                 dl.txtnewver.setText("");
             } else {
-                dl.txtaddress.setVisibility(View.INVISIBLE);
-                dl.txtpsw.setVisibility(View.INVISIBLE);
-                dl.lblpip.setVisibility(View.INVISIBLE);
-                dl.lblpsw.setVisibility(View.INVISIBLE);
+                dl.layoutAddress.setVisibility(View.INVISIBLE);
+                dl.layoutPsw.setVisibility(View.INVISIBLE);
                 dl.btnchk.setVisibility(View.INVISIBLE);
                 dl.btnupd.setVisibility(View.VISIBLE);
                 dl.imgframe.setVisibility(View.VISIBLE);
                 dl.type.setVisibility(View.VISIBLE);
                 dl.typeborder.setVisibility(View.VISIBLE);
+                dl.lbltype.setVisibility(View.VISIBLE);
                 dl.txtnewver.setText(format(Locale.getDefault(), getString(R.string.printer_version), jsonVersion));
                 dl.updatedesc.setVisibility(View.INVISIBLE);
             }
@@ -1393,9 +1404,23 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             recycleAdapter = new jsonAdapter(getBaseContext(), jsonItems);
             recycleAdapter.setHasStableIds(true);
             mainHandler.post(() -> {
-                recyclerView.removeAllViewsInLayout();
-                recyclerView.setAdapter(null);
                 recyclerView.setAdapter(recycleAdapter);
+                recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                    @Override
+                    public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                        super.onScrolled(recyclerView, dx, dy);
+                        if (Math.abs(dy) > 10) {
+                            InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                            if (imm != null) {
+                                imm.hideSoftInputFromWindow(recyclerView.getWindowToken(), 0);
+                            }
+                            View focusedView = recyclerView.getFocusedChild();
+                            if (focusedView != null) {
+                                focusedView.clearFocus();
+                            }
+                        }
+                    }
+                });
             });
             editDialog.show();
         } catch (Exception ignored) {
@@ -1551,11 +1576,24 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             recycleAdapter.setHasStableIds(true);
 
             mainHandler.post(() -> {
-                recyclerView.removeAllViewsInLayout();
-                recyclerView.setAdapter(null);
                 recyclerView.setAdapter(recycleAdapter);
+                recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                    @Override
+                    public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                        super.onScrolled(recyclerView, dx, dy);
+                        if (Math.abs(dy) > 10) {
+                            InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                            if (imm != null) {
+                                imm.hideSoftInputFromWindow(recyclerView.getWindowToken(), 0);
+                            }
+                            View focusedView = recyclerView.getFocusedChild();
+                            if (focusedView != null) {
+                                focusedView.clearFocus();
+                            }
+                        }
+                    }
+                });
             });
-
             addDialog.show();
         } catch (Exception ignored) {
         }
@@ -1701,17 +1739,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         dl.colorDisplay.setBackgroundColor(color);
         String hexCode = rgbToHex(currentRed, currentGreen, currentBlue);
         dl.txtcolor.setText(hexCode);
-        double alphaNormalized = 255.0;
-        int blendedRed = (int) (currentRed * alphaNormalized + 244 * (1 - alphaNormalized));
-        int blendedGreen = (int) (currentGreen * alphaNormalized + 244 * (1 - alphaNormalized));
-        int blendedBlue = (int) (currentBlue * alphaNormalized + 244 * (1 - alphaNormalized));
-        double brightness = (0.299 * blendedRed + 0.587 * blendedGreen + 0.114 * blendedBlue) / 255;
-        if (brightness > 0.5) {
-            dl.txtcolor.setTextColor(Color.BLACK);
-        } else {
-            dl.txtcolor.setTextColor(Color.WHITE);
-        }
-
+        dl.txtcolor.setTextColor(getContrastColor(Color.parseColor("#" + hexCode)));
     }
 
     private void setupPresetColors(PickerDialogBinding dl) {
@@ -2496,6 +2524,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         lp.setMargins(0, (int) (12 * getResources().getDisplayMetrics().density), 0, 0);
         textInputLayout.setLayoutParams(lp);
         textInputLayout.setHint(R.string.enter_color_name);
+        textInputLayout.setHintTextColor(ColorStateList.valueOf(Color.parseColor("#1976D2")));
+        textInputLayout.setDefaultHintTextColor(ColorStateList.valueOf(Color.parseColor("#1976D2")));
         textInputLayout.setBoxBackgroundColor(Color.WHITE);
         textInputLayout.setHintEnabled(true);
         textInputLayout.setExpandedHintEnabled(false);
