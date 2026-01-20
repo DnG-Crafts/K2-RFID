@@ -83,7 +83,6 @@
                 android:layout_width="280dp"
                 android:layout_height="56dp"
                 android:layout_marginTop="34dp"
-                android:layout_marginEnd="16dp"
                 android:spinnerMode="dialog"
                 app:backgroundTint="@color/text_color"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -95,7 +94,6 @@
                 android:layout_width="280dp"
                 android:layout_height="56dp"
                 android:layout_marginTop="34dp"
-                android:layout_marginEnd="16dp"
                 android:background="@drawable/border"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -122,7 +120,6 @@
                 android:layout_width="280dp"
                 android:layout_height="56dp"
                 android:layout_marginTop="32dp"
-                android:layout_marginEnd="16dp"
                 android:spinnerMode="dialog"
                 app:backgroundTint="@color/text_color"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -134,7 +131,6 @@
                 android:layout_width="280dp"
                 android:layout_height="56dp"
                 android:layout_marginTop="32dp"
-                android:layout_marginEnd="16dp"
                 android:background="@drawable/border"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -161,7 +157,6 @@
                 android:layout_width="280dp"
                 android:layout_height="56dp"
                 android:layout_marginTop="32dp"
-                android:layout_marginEnd="16dp"
                 android:spinnerMode="dialog"
                 app:backgroundTint="@color/text_color"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -170,11 +165,10 @@
 
             <View
                 android:id="@+id/materialborder"
-                android:background="@drawable/border"
                 android:layout_width="280dp"
                 android:layout_height="56dp"
                 android:layout_marginTop="32dp"
-                android:layout_marginEnd="16dp"
+                android:background="@drawable/border"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/brand" />
@@ -200,7 +194,6 @@
                 android:layout_width="280dp"
                 android:layout_height="56dp"
                 android:layout_marginTop="32dp"
-                android:layout_marginEnd="16dp"
                 android:spinnerMode="dialog"
                 app:backgroundTint="@color/text_color"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -209,11 +202,10 @@
 
             <View
                 android:id="@+id/sizeborder"
-                android:background="@drawable/border"
                 android:layout_width="280dp"
                 android:layout_height="56dp"
                 android:layout_marginTop="32dp"
-                android:layout_marginEnd="16dp"
+                android:background="@drawable/border"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/material" />
@@ -239,7 +231,6 @@
                 android:layout_width="280dp"
                 android:layout_height="56dp"
                 android:layout_marginTop="28dp"
-                android:layout_marginEnd="16dp"
                 android:spinnerMode="dialog"
                 app:backgroundTint="@color/text_color"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -248,11 +239,10 @@
 
             <View
                 android:id="@+id/colorborder"
-                android:background="@drawable/border"
                 android:layout_width="280dp"
                 android:layout_height="56dp"
                 android:layout_marginTop="28dp"
-                android:layout_marginEnd="20dp"
+                android:background="@drawable/border"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/spoolsize" />
@@ -331,33 +321,39 @@
                 app:layout_constraintStart_toStartOf="@+id/lblcolor"
                 app:layout_constraintTop_toBottomOf="@+id/colorborder" />
 
-            <Button
-                android:id="@+id/readbutton"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:id="@+id/button_container"
+                style="?android:attr/buttonBarStyle"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="100dp"
-                android:layout_marginTop="40dp"
-                android:layout_marginEnd="90dp"
-                android:padding="14dp"
-                android:text="@string/read"
-                android:textSize="16sp"
-                app:layout_constraintEnd_toStartOf="@+id/writebutton"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/txtspman" />
-
-            <Button
-                android:id="@+id/writebutton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="40dp"
-                android:layout_marginEnd="100dp"
-                android:padding="14dp"
-                android:text="@string/write"
-                android:textSize="16sp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="32dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/readbutton"
-                app:layout_constraintTop_toBottomOf="@+id/txtspman" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/txtspman">
+
+                <Button
+                    android:id="@+id/readbutton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="40dp"
+                    android:padding="14dp"
+                    android:text="@string/read"
+                    android:textSize="16sp" />
+
+                <Button
+                    android:id="@+id/writebutton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="40dp"
+                    android:padding="14dp"
+                    android:text="@string/write"
+                    android:textSize="16sp" />
+
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/txtspman"
