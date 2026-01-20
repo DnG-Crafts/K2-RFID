@@ -49,8 +49,14 @@
             this.flowMenu = new System.Windows.Forms.FlowLayoutPanel();
             this.sidebarTimer = new System.Windows.Forms.Timer(this.components);
             this.lblAdd = new System.Windows.Forms.Label();
+            this.lblAutoWrite = new System.Windows.Forms.Label();
+            this.chkAutoWrite = new SwitchCheckBox();
+            this.lblAutoRead = new System.Windows.Forms.Label();
+            this.chkAutoRead = new SwitchCheckBox();
+            this.btnFrame = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.imgEnc)).BeginInit();
             this.sidebarPanel.SuspendLayout();
+            this.btnFrame.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnWrite
@@ -60,7 +66,7 @@
             this.btnWrite.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnWrite.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnWrite.ForeColor = System.Drawing.Color.White;
-            this.btnWrite.Location = new System.Drawing.Point(216, 582);
+            this.btnWrite.Location = new System.Drawing.Point(199, 121);
             this.btnWrite.Name = "btnWrite";
             this.btnWrite.Size = new System.Drawing.Size(140, 47);
             this.btnWrite.TabIndex = 23;
@@ -75,7 +81,7 @@
             this.btnRead.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRead.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnRead.ForeColor = System.Drawing.Color.White;
-            this.btnRead.Location = new System.Drawing.Point(33, 582);
+            this.btnRead.Location = new System.Drawing.Point(16, 121);
             this.btnRead.Name = "btnRead";
             this.btnRead.Size = new System.Drawing.Size(140, 47);
             this.btnRead.TabIndex = 22;
@@ -99,7 +105,7 @@
             // 
             this.lblTagId.AutoSize = true;
             this.lblTagId.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTagId.Location = new System.Drawing.Point(46, 509);
+            this.lblTagId.Location = new System.Drawing.Point(29, 61);
             this.lblTagId.Name = "lblTagId";
             this.lblTagId.Size = new System.Drawing.Size(68, 20);
             this.lblTagId.TabIndex = 28;
@@ -140,7 +146,7 @@
             // lblUid
             // 
             this.lblUid.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblUid.Location = new System.Drawing.Point(154, 510);
+            this.lblUid.Location = new System.Drawing.Point(137, 62);
             this.lblUid.Name = "lblUid";
             this.lblUid.Size = new System.Drawing.Size(154, 20);
             this.lblUid.TabIndex = 21;
@@ -246,7 +252,7 @@
             // 
             this.imgEnc.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
             this.imgEnc.Image = global::CFS_RFID.Properties.Resources._lock;
-            this.imgEnc.Location = new System.Drawing.Point(120, 505);
+            this.imgEnc.Location = new System.Drawing.Point(103, 57);
             this.imgEnc.Name = "imgEnc";
             this.imgEnc.Size = new System.Drawing.Size(24, 24);
             this.imgEnc.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -286,35 +292,103 @@
             this.lblAdd.Cursor = System.Windows.Forms.Cursors.Hand;
             this.lblAdd.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblAdd.ForeColor = System.Drawing.Color.RoyalBlue;
-            this.lblAdd.Location = new System.Drawing.Point(100, 457);
+            this.lblAdd.Location = new System.Drawing.Point(83, 9);
             this.lblAdd.Name = "lblAdd";
             this.lblAdd.Size = new System.Drawing.Size(178, 25);
             this.lblAdd.TabIndex = 50;
             this.lblAdd.Text = "Add to Spoolman";
             this.lblAdd.Click += new System.EventHandler(this.LblAdd_Click);
             // 
+            // lblAutoWrite
+            // 
+            this.lblAutoWrite.AutoSize = true;
+            this.lblAutoWrite.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblAutoWrite.Location = new System.Drawing.Point(49, 431);
+            this.lblAutoWrite.Name = "lblAutoWrite";
+            this.lblAutoWrite.Size = new System.Drawing.Size(199, 20);
+            this.lblAutoWrite.TabIndex = 54;
+            this.lblAutoWrite.Text = "Auto write tag on scan?";
+            this.lblAutoWrite.Visible = false;
+            // 
+            // chkAutoWrite
+            // 
+            this.chkAutoWrite.BorderThickness = 1;
+            this.chkAutoWrite.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.chkAutoWrite.Location = new System.Drawing.Point(281, 426);
+            this.chkAutoWrite.MaximumSize = new System.Drawing.Size(100, 50);
+            this.chkAutoWrite.MinimumSize = new System.Drawing.Size(30, 15);
+            this.chkAutoWrite.Name = "chkAutoWrite";
+            this.chkAutoWrite.Size = new System.Drawing.Size(60, 31);
+            this.chkAutoWrite.SwitchOffColor = System.Drawing.Color.LightGray;
+            this.chkAutoWrite.SwitchOnColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(118)))), ((int)(((byte)(210)))));
+            this.chkAutoWrite.TabIndex = 53;
+            this.chkAutoWrite.Text = "Auto read on tag scan?";
+            this.chkAutoWrite.ThumbColor = System.Drawing.Color.White;
+            this.chkAutoWrite.UseVisualStyleBackColor = true;
+            this.chkAutoWrite.Visible = false;
+            // 
+            // lblAutoRead
+            // 
+            this.lblAutoRead.AutoSize = true;
+            this.lblAutoRead.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblAutoRead.Location = new System.Drawing.Point(49, 380);
+            this.lblAutoRead.Name = "lblAutoRead";
+            this.lblAutoRead.Size = new System.Drawing.Size(197, 20);
+            this.lblAutoRead.TabIndex = 52;
+            this.lblAutoRead.Text = "Auto read tag on scan?";
+            this.lblAutoRead.Visible = false;
+            // 
+            // chkAutoRead
+            // 
+            this.chkAutoRead.BorderThickness = 1;
+            this.chkAutoRead.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.chkAutoRead.Location = new System.Drawing.Point(281, 375);
+            this.chkAutoRead.MaximumSize = new System.Drawing.Size(100, 50);
+            this.chkAutoRead.MinimumSize = new System.Drawing.Size(30, 15);
+            this.chkAutoRead.Name = "chkAutoRead";
+            this.chkAutoRead.Size = new System.Drawing.Size(60, 31);
+            this.chkAutoRead.SwitchOffColor = System.Drawing.Color.LightGray;
+            this.chkAutoRead.SwitchOnColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(118)))), ((int)(((byte)(210)))));
+            this.chkAutoRead.TabIndex = 51;
+            this.chkAutoRead.Text = "Auto read on tag scan?";
+            this.chkAutoRead.ThumbColor = System.Drawing.Color.White;
+            this.chkAutoRead.UseVisualStyleBackColor = true;
+            this.chkAutoRead.Visible = false;
+            // 
+            // btnFrame
+            // 
+            this.btnFrame.Controls.Add(this.btnWrite);
+            this.btnFrame.Controls.Add(this.lblUid);
+            this.btnFrame.Controls.Add(this.lblTagId);
+            this.btnFrame.Controls.Add(this.btnRead);
+            this.btnFrame.Controls.Add(this.imgEnc);
+            this.btnFrame.Controls.Add(this.lblAdd);
+            this.btnFrame.Location = new System.Drawing.Point(13, 469);
+            this.btnFrame.Name = "btnFrame";
+            this.btnFrame.Size = new System.Drawing.Size(352, 182);
+            this.btnFrame.TabIndex = 55;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(244)))), ((int)(((byte)(244)))));
-            this.ClientSize = new System.Drawing.Size(386, 657);
+            this.ClientSize = new System.Drawing.Size(383, 657);
             this.Controls.Add(this.sidebarPanel);
-            this.Controls.Add(this.lblAdd);
-            this.Controls.Add(this.imgEnc);
+            this.Controls.Add(this.btnFrame);
+            this.Controls.Add(this.lblAutoWrite);
+            this.Controls.Add(this.chkAutoWrite);
+            this.Controls.Add(this.lblAutoRead);
+            this.Controls.Add(this.chkAutoRead);
             this.Controls.Add(this.btnMenu);
             this.Controls.Add(this.vendorName);
             this.Controls.Add(this.printerModel);
-            this.Controls.Add(this.btnWrite);
-            this.Controls.Add(this.btnRead);
             this.Controls.Add(this.btnDel);
             this.Controls.Add(this.btnEdit);
             this.Controls.Add(this.btnAdd);
             this.Controls.Add(this.btnColor);
-            this.Controls.Add(this.lblTagId);
             this.Controls.Add(this.materialWeight);
             this.Controls.Add(this.materialName);
-            this.Controls.Add(this.lblUid);
             this.Controls.Add(this.lblConnect);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -329,6 +403,8 @@
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainForm_MouseMove);
             ((System.ComponentModel.ISupportInitialize)(this.imgEnc)).EndInit();
             this.sidebarPanel.ResumeLayout(false);
+            this.btnFrame.ResumeLayout(false);
+            this.btnFrame.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -354,6 +430,11 @@
         private System.Windows.Forms.FlowLayoutPanel flowMenu;
         private System.Windows.Forms.Timer sidebarTimer;
         private System.Windows.Forms.Label lblAdd;
+        private System.Windows.Forms.Label lblAutoWrite;
+        private SwitchCheckBox chkAutoWrite;
+        private System.Windows.Forms.Label lblAutoRead;
+        private SwitchCheckBox chkAutoRead;
+        private System.Windows.Forms.Panel btnFrame;
     }
 }
 

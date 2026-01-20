@@ -23,6 +23,7 @@ namespace CFS_RFID
         bool sidebarExpand = true;
         const int MaxWidth = 200;
         const int MinWidth = 0;
+        bool isSmall = false;
 
         public MainForm()
         {
@@ -42,6 +43,17 @@ namespace CFS_RFID
             btnRead.BackColor = ColorTranslator.FromHtml("#1976D2");
             btnWrite.BackColor = ColorTranslator.FromHtml("#1976D2");
             lblAdd.ForeColor = ColorTranslator.FromHtml("#1976D2");
+
+            chkAutoRead.Checked = Settings.GetSetting("AutoRead", false);
+            chkAutoWrite.Checked = Settings.GetSetting("AutoWrite", false);
+            chkAutoRead.CheckedChanged += ChkAutoRead_CheckedChanged;
+            chkAutoWrite.CheckedChanged += ChkAutoWrite_CheckedChanged;
+            if (!Settings.GetSetting("ShowMain", false))
+            {
+                Height -= 40;
+                btnFrame.Top -= 45;
+                isSmall = true;
+            }
 
             materialName.Text = "PLA";
             materialWeight.Text = "1 KG";
@@ -295,12 +307,14 @@ namespace CFS_RFID
             lblConnect.Visible = true;
             lblConnect.ForeColor = Color.MediumSeaGreen;
             lblConnect.Text = "Connecting...";
-            btnRead.Visible = false;
-            btnWrite.Visible = false;
+            btnFrame.Visible = false;
             btnColor.Visible = false;
             lblAdd.Visible = false;
+            chkAutoRead.Visible = false;
+            chkAutoWrite.Visible = false;
+            lblAutoRead.Visible = false;
+            lblAutoWrite.Visible = false;
             materialWeight.Visible = false;
-            lblUid.Visible = false;
             ActiveControl = lblConnect;
 
             try
@@ -320,12 +334,14 @@ namespace CFS_RFID
                     monitor.CardRemoved += CardRemoved;
                     lblConnect.Visible = false;
                     lblConnect.Text = string.Empty;
-                    btnRead.Visible = true;
-                    btnWrite.Visible = true;
+                    btnFrame.Visible = true;
                     btnColor.Visible = true;
                     materialWeight.Visible = true;
-                    lblUid.Visible = true;
-                    if (Settings.GetSetting("EnableSm", false)) lblAdd.Visible = true;
+                    lblAdd.Visible = Settings.GetSetting("EnableSm", false);
+                    chkAutoRead.Visible = Settings.GetSetting("ShowMain", false);
+                    chkAutoWrite.Visible = Settings.GetSetting("ShowMain", false);
+                    lblAutoRead.Visible = Settings.GetSetting("ShowMain", false);
+                    lblAutoWrite.Visible = Settings.GetSetting("ShowMain", false);
                 }
                 else
                 {
@@ -334,12 +350,14 @@ namespace CFS_RFID
                     lblConnect.Visible = true;
                     lblConnect.ForeColor = Color.IndianRed;
                     lblConnect.Text = "No Reader Found\nClick here to connect";
-                    btnRead.Visible = false;
-                    btnWrite.Visible = false;
+                    btnFrame.Visible = false;
                     btnColor.Visible = false;
                     lblAdd.Visible = false;
+                    chkAutoRead.Visible = false;
+                    chkAutoWrite.Visible = false;
+                    lblAutoRead.Visible = false;
+                    lblAutoWrite.Visible = false;
                     materialWeight.Visible = false;
-                    lblUid.Visible = false;
                     ActiveControl = lblConnect;
 
                 }
@@ -349,12 +367,14 @@ namespace CFS_RFID
                 lblConnect.Visible = true;
                 lblConnect.ForeColor = Color.IndianRed;
                 lblConnect.Text = "NFC reader failed";
-                btnRead.Visible = false;
-                btnWrite.Visible = false;
+                btnFrame.Visible = false;
                 btnColor.Visible = false;
                 lblAdd.Visible = false;
+                chkAutoRead.Visible = false;
+                chkAutoWrite.Visible = false;
+                lblAutoRead.Visible = false;
+                lblAutoWrite.Visible = false;
                 materialWeight.Visible = false;
-                lblUid.Visible = false;
                 ActiveControl = lblConnect;
                 Toast.Show(this, e.Message, Toast.LENGTH_LONG, true);
             }
@@ -507,13 +527,27 @@ namespace CFS_RFID
                     StartPosition = FormStartPosition.CenterParent
                 };
                 DialogResult result = settingsForm.ShowDialog();
-                if (Settings.GetSetting("EnableSm", false))
+                lblAdd.Visible = Settings.GetSetting("EnableSm", false);
+                chkAutoRead.Visible = Settings.GetSetting("ShowMain", false);
+                chkAutoWrite.Visible = Settings.GetSetting("ShowMain", false);
+                lblAutoRead.Visible = Settings.GetSetting("ShowMain", false);
+                lblAutoWrite.Visible = Settings.GetSetting("ShowMain", false);
+                if (!Settings.GetSetting("ShowMain", false))
                 {
-                    lblAdd.Visible = true;
+                    if (!isSmall)
+                    {
+                        Height -= 40;
+                        btnFrame.Top -= 45;
+                        isSmall = true;
+                    }
                 }
-                else
-                {
-                    lblAdd.Visible = false;
+                else {
+                    if (isSmall)
+                    {
+                        Height += 40;
+                        btnFrame.Top += 45;
+                        isSmall = false;
+                    }
                 }
                 settingsForm.Dispose();
             }
@@ -920,6 +954,25 @@ namespace CFS_RFID
             }
             catch { }
         }
+
+        private void ChkAutoRead_CheckedChanged(object sender, EventArgs e)
+        {
+            Settings.SaveSetting("AutoRead", chkAutoRead.Checked);
+            if (chkAutoRead.Checked)
+            {
+                chkAutoWrite.Checked = false;
+            }
+        }
+
+        private void ChkAutoWrite_CheckedChanged(object sender, EventArgs e)
+        {
+            Settings.SaveSetting("AutoWrite", chkAutoWrite.Checked);
+            if (chkAutoWrite.Checked)
+            {
+                chkAutoRead.Checked = false;
+            }
+        }
+
 
     }
 

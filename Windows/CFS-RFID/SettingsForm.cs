@@ -25,6 +25,7 @@ namespace CFS_RFID
             chkAutoRead.Checked = Settings.GetSetting("AutoRead", false);
             chkAutoWrite.Checked = Settings.GetSetting("AutoWrite", false);
             chkEnableSm.Checked = Settings.GetSetting("EnableSm", false);
+            chkShowOnMain.Checked = Settings.GetSetting("ShowMain", false);
             txtHost.Text = Settings.GetSetting("SmHost", String.Empty); ;
             txtPort.Text = Settings.GetSetting("SmPort", 7912).ToString();
             txtHost.Enabled = chkEnableSm.Checked;
@@ -32,6 +33,7 @@ namespace CFS_RFID
             chkAutoRead.CheckedChanged += ChkAutoRead_CheckedChanged;
             chkAutoWrite.CheckedChanged += ChkAutoWrite_CheckedChanged;
             chkEnableSm.CheckedChanged += ChkEnableSm_CheckedChanged;
+            chkShowOnMain.CheckedChanged += ChkShowOnMain_CheckedChanged;
         }
 
         private void ChkAutoRead_CheckedChanged(object sender, EventArgs e)
@@ -65,5 +67,9 @@ namespace CFS_RFID
             Settings.SaveSetting("SmPort", txtPort.Text);
         }
 
+        private void ChkShowOnMain_CheckedChanged(object sender, EventArgs e)
+        {
+            Settings.SaveSetting("ShowMain", chkShowOnMain.Checked);
+        }
     }
 }

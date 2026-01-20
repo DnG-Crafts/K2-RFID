@@ -40,13 +40,18 @@
             this.lblHost = new System.Windows.Forms.Label();
             this.lblPort = new System.Windows.Forms.Label();
             this.btnClose = new System.Windows.Forms.Button();
+            this.lblShowOnMain = new System.Windows.Forms.Label();
+            this.chkShowOnMain = new SwitchCheckBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lblAutoWrite
             // 
             this.lblAutoWrite.AutoSize = true;
             this.lblAutoWrite.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblAutoWrite.Location = new System.Drawing.Point(81, 88);
+            this.lblAutoWrite.Location = new System.Drawing.Point(85, 133);
             this.lblAutoWrite.Name = "lblAutoWrite";
             this.lblAutoWrite.Size = new System.Drawing.Size(199, 20);
             this.lblAutoWrite.TabIndex = 48;
@@ -56,7 +61,7 @@
             // 
             this.chkAutoWrite.BorderThickness = 1;
             this.chkAutoWrite.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.chkAutoWrite.Location = new System.Drawing.Point(313, 83);
+            this.chkAutoWrite.Location = new System.Drawing.Point(313, 128);
             this.chkAutoWrite.MaximumSize = new System.Drawing.Size(100, 50);
             this.chkAutoWrite.MinimumSize = new System.Drawing.Size(30, 15);
             this.chkAutoWrite.Name = "chkAutoWrite";
@@ -72,7 +77,7 @@
             // 
             this.lblAutoRead.AutoSize = true;
             this.lblAutoRead.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblAutoRead.Location = new System.Drawing.Point(81, 37);
+            this.lblAutoRead.Location = new System.Drawing.Point(87, 82);
             this.lblAutoRead.Name = "lblAutoRead";
             this.lblAutoRead.Size = new System.Drawing.Size(197, 20);
             this.lblAutoRead.TabIndex = 46;
@@ -82,7 +87,7 @@
             // 
             this.chkAutoRead.BorderThickness = 1;
             this.chkAutoRead.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.chkAutoRead.Location = new System.Drawing.Point(313, 32);
+            this.chkAutoRead.Location = new System.Drawing.Point(313, 77);
             this.chkAutoRead.MaximumSize = new System.Drawing.Size(100, 50);
             this.chkAutoRead.MinimumSize = new System.Drawing.Size(30, 15);
             this.chkAutoRead.Name = "chkAutoRead";
@@ -98,7 +103,7 @@
             // 
             this.chkEnableSm.BorderThickness = 1;
             this.chkEnableSm.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.chkEnableSm.Location = new System.Drawing.Point(313, 203);
+            this.chkEnableSm.Location = new System.Drawing.Point(313, 355);
             this.chkEnableSm.MaximumSize = new System.Drawing.Size(100, 50);
             this.chkEnableSm.MinimumSize = new System.Drawing.Size(30, 15);
             this.chkEnableSm.Name = "chkEnableSm";
@@ -114,20 +119,20 @@
             // 
             this.lblEnableSm.AutoSize = true;
             this.lblEnableSm.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblEnableSm.Location = new System.Drawing.Point(29, 208);
+            this.lblEnableSm.Location = new System.Drawing.Point(25, 360);
             this.lblEnableSm.Name = "lblEnableSm";
-            this.lblEnableSm.Size = new System.Drawing.Size(249, 20);
+            this.lblEnableSm.Size = new System.Drawing.Size(259, 20);
             this.lblEnableSm.TabIndex = 50;
-            this.lblEnableSm.Text = "Enable spoolman functionality";
+            this.lblEnableSm.Text = "Enable spoolman functionality?";
             // 
             // txtHost
             // 
             this.txtHost.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtHost.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtHost.Location = new System.Drawing.Point(189, 274);
+            this.txtHost.Location = new System.Drawing.Point(176, 426);
             this.txtHost.MaxLength = 255;
             this.txtHost.Name = "txtHost";
-            this.txtHost.Size = new System.Drawing.Size(184, 30);
+            this.txtHost.Size = new System.Drawing.Size(197, 30);
             this.txtHost.TabIndex = 51;
             this.txtHost.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.txtHost.WordWrap = false;
@@ -136,10 +141,10 @@
             // 
             this.txtPort.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtPort.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtPort.Location = new System.Drawing.Point(189, 320);
+            this.txtPort.Location = new System.Drawing.Point(176, 472);
             this.txtPort.MaxLength = 5;
             this.txtPort.Name = "txtPort";
-            this.txtPort.Size = new System.Drawing.Size(184, 30);
+            this.txtPort.Size = new System.Drawing.Size(197, 30);
             this.txtPort.TabIndex = 52;
             this.txtPort.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.txtPort.WordWrap = false;
@@ -148,7 +153,7 @@
             // 
             this.lblHost.AutoSize = true;
             this.lblHost.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblHost.Location = new System.Drawing.Point(29, 274);
+            this.lblHost.Location = new System.Drawing.Point(21, 428);
             this.lblHost.Name = "lblHost";
             this.lblHost.Size = new System.Drawing.Size(149, 25);
             this.lblHost.TabIndex = 53;
@@ -158,7 +163,7 @@
             // 
             this.lblPort.AutoSize = true;
             this.lblPort.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblPort.Location = new System.Drawing.Point(29, 322);
+            this.lblPort.Location = new System.Drawing.Point(21, 474);
             this.lblPort.Name = "lblPort";
             this.lblPort.Size = new System.Drawing.Size(58, 25);
             this.lblPort.TabIndex = 54;
@@ -171,7 +176,7 @@
             this.btnClose.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnClose.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnClose.ForeColor = System.Drawing.Color.White;
-            this.btnClose.Location = new System.Drawing.Point(247, 422);
+            this.btnClose.Location = new System.Drawing.Point(247, 535);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(126, 47);
             this.btnClose.TabIndex = 55;
@@ -179,11 +184,74 @@
             this.btnClose.UseVisualStyleBackColor = false;
             this.btnClose.Click += new System.EventHandler(this.BtnClose_Click);
             // 
+            // lblShowOnMain
+            // 
+            this.lblShowOnMain.AutoSize = true;
+            this.lblShowOnMain.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblShowOnMain.Location = new System.Drawing.Point(40, 185);
+            this.lblShowOnMain.Name = "lblShowOnMain";
+            this.lblShowOnMain.Size = new System.Drawing.Size(244, 20);
+            this.lblShowOnMain.TabIndex = 57;
+            this.lblShowOnMain.Text = "Show these on main window?";
+            // 
+            // chkShowOnMain
+            // 
+            this.chkShowOnMain.BorderThickness = 1;
+            this.chkShowOnMain.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.chkShowOnMain.Location = new System.Drawing.Point(313, 180);
+            this.chkShowOnMain.MaximumSize = new System.Drawing.Size(100, 50);
+            this.chkShowOnMain.MinimumSize = new System.Drawing.Size(30, 15);
+            this.chkShowOnMain.Name = "chkShowOnMain";
+            this.chkShowOnMain.Size = new System.Drawing.Size(60, 31);
+            this.chkShowOnMain.SwitchOffColor = System.Drawing.Color.LightGray;
+            this.chkShowOnMain.SwitchOnColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(118)))), ((int)(((byte)(210)))));
+            this.chkShowOnMain.TabIndex = 56;
+            this.chkShowOnMain.Text = "Auto read on tag scan?";
+            this.chkShowOnMain.ThumbColor = System.Drawing.Color.White;
+            this.chkShowOnMain.UseVisualStyleBackColor = true;
+            // 
+            // label1
+            // 
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+            this.label1.ForeColor = System.Drawing.Color.CornflowerBlue;
+            this.label1.Location = new System.Drawing.Point(2, 25);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(394, 25);
+            this.label1.TabIndex = 58;
+            this.label1.Text = "General Settings";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label2
+            // 
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+            this.label2.ForeColor = System.Drawing.Color.CornflowerBlue;
+            this.label2.Location = new System.Drawing.Point(2, 299);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(394, 25);
+            this.label2.TabIndex = 59;
+            this.label2.Text = "Spoolman Configuration";
+            this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label3
+            // 
+            this.label3.ForeColor = System.Drawing.SystemColors.ControlDark;
+            this.label3.Location = new System.Drawing.Point(2, 245);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(394, 20);
+            this.label3.TabIndex = 60;
+            this.label3.Text = "_________________________________________";
+            this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(409, 496);
+            this.ClientSize = new System.Drawing.Size(399, 603);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.lblShowOnMain);
+            this.Controls.Add(this.chkShowOnMain);
             this.Controls.Add(this.txtHost);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.lblPort);
@@ -222,5 +290,10 @@
         private System.Windows.Forms.Label lblHost;
         private System.Windows.Forms.Label lblPort;
         private System.Windows.Forms.Button btnClose;
+        private System.Windows.Forms.Label lblShowOnMain;
+        private SwitchCheckBox chkShowOnMain;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
     }
 }
