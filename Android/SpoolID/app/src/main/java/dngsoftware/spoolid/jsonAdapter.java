@@ -66,6 +66,7 @@ public class jsonAdapter extends RecyclerView.Adapter<jsonAdapter.ViewHolder> {
         } else {
             holder.itemValue.setInputType(InputType.TYPE_CLASS_TEXT);
             holder.itemKey.setEndIconMode(TextInputLayout.END_ICON_NONE);
+            holder.itemValue.setFilters(new InputFilter[0]);
 
             if (currentItem.jKey.equalsIgnoreCase("brand") || currentItem.jKey.equalsIgnoreCase("filament_vendor")) {
                 holder.itemValue.setAdapter(new ArrayAdapter<>(context, android.R.layout.simple_spinner_dropdown_item, filamentVendors));
@@ -75,11 +76,18 @@ public class jsonAdapter extends RecyclerView.Adapter<jsonAdapter.ViewHolder> {
                 holder.itemValue.setAdapter(null);
             }
 
-            if (currentItem.jKey.equalsIgnoreCase("id") && (val.isEmpty() || val.equals("0"))) {
-                SecureRandom random = new SecureRandom();
-                currentItem.jValue = String.format(Locale.getDefault(), "%05d", random.nextInt(99999));
-                val = currentItem.jValue.toString();
+            if (currentItem.jKey.equalsIgnoreCase("id")) {
+                if (holder.itemKey.getTag(R.id.itemKey) == null) {
+                    SecureRandom random = new SecureRandom();
+                    val = String.format(Locale.getDefault(), "%05d", random.nextInt(99999));
+                    currentItem.jValue = val;
+                    holder.itemKey.setTag(R.id.itemKey, "randomized");
+                } else {
+                    val = currentItem.jValue.toString();
+                }
                 holder.itemValue.setFilters(new InputFilter[]{new InputFilter.LengthFilter(5)});
+            } else {
+                holder.itemValue.setFilters(new InputFilter[0]);
             }
 
             boolean isTarget = currentItem.jKey.equalsIgnoreCase("brand") ||

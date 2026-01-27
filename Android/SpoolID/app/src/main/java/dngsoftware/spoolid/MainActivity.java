@@ -82,6 +82,7 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -258,7 +259,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
         main.txtcolor.setText(MaterialColor);
         main.txtcolor.setTextColor(getContrastColor(Color.parseColor("#" + MaterialColor)));
-
 
         try {
             nfcAdapter = NfcAdapter.getDefaultAdapter(this);
@@ -1471,9 +1471,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                                 kvParam.put("nozzle_temperature_range_low", String.valueOf(jsonItem.jValue));
                             }
                         } else if (jsonItem.jKey.equalsIgnoreCase("isSoluble")) {
-                            kvParam.put("filament_soluble", String.valueOf(Boolean.parseBoolean((String) jsonItem.jValue) ? 1 : 0));
+                            kvParam.put("filament_soluble",jsonItem.jValue);
                         } else if (jsonItem.jKey.equalsIgnoreCase("isSupport")) {
-                            kvParam.put("filament_is_support", String.valueOf(Boolean.parseBoolean((String) jsonItem.jValue) ? 1 : 0));
+                            kvParam.put("filament_is_support",  jsonItem.jValue);
                         }
 
                         if (jsonItem.jKey.equalsIgnoreCase("brand") || jsonItem.jKey.equalsIgnoreCase("name")
@@ -1547,8 +1547,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                     info.put("base", base);
                     addFilament(matDb, info);
                     setMatDb(PrinterType);
-                } catch (Exception ignored) {
-                }
+                } catch (Exception ignored) {}
                 addDialog.dismiss();
             });
 

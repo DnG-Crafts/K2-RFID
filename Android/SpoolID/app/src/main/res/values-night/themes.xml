@@ -1,5 +1,5 @@
 <resources>
-    <style name="Base.Theme.SpoolID" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.SpoolID" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">#1976D2</item>
         <item name="colorPrimaryVariant">#82B1FF</item>
         <item name="colorOnPrimary">#FFFFFF</item>
