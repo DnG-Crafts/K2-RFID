@@ -1122,111 +1122,408 @@ namespace CFS_RFID
 
 
 
-        public static string SmAddSpool(string host, int port, string materialID, string hexColor, string colorName, int weightGrams, string printerType)
+        
+        public class SmAddSpoolResult
         {
-            string baseUrl = string.Format("http://{0}:{1}/api/v1", host, port);
+            public bool Success { get; set; }
+            public int? SpoolId { get; set; }
+            public int? FilamentId { get; set; }
+            public int? VendorId { get; set; }
+            public string Message { get; set; }
+            public string RawResponse { get; set; }
+        }
+
+        /// <summary>
+        /// Returns the Spoolman API base URL (ending in /api/v1) from user settings.
+        /// Accepts either a host (e.g. 192.168.1.10) or a full URL (e.g. http://host:7912 or https://host/spoolman).
+        /// </summary>
+        private static string BuildSmApiBase(string host, int port)
+        {
+            if (string.IsNullOrWhiteSpace(host)) return null;
+
+            string h = host.Trim();
+
+            if (!h.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                !h.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                h = "http://" + h;
+            }
+
             try
             {
-                var localData = GetMaterialByID(materialID);
-                if (localData == null) return "MaterialID " + materialID + " not found";
-                string vendorName = localData.FilamentVendor.Trim();
-                string fNameWithColor = localData.FilamentName.Trim() + " (" + colorName + ")";
-                int vendorId = -1;
-                string vRes = PerformSmRequest(baseUrl + "/vendor", "GET");
-                if (vRes == null)
+                UriBuilder ub = new UriBuilder(h);
+
+                // If the user entered a full URL that already includes a port, respect it
+                // unless an explicit port was provided.
+                if (port > 0)
                 {
-                    return "Error adding spool";
+                    ub.Port = port;
                 }
-                else 
-                { 
-                    JArray vArray = JArray.Parse(vRes);
-                    foreach (JObject v in vArray)
+
+                string path = (ub.Path ?? string.Empty).TrimEnd('/');
+
+                // If the user already included /api/v1 somewhere, don't try to be clever.
+                if (path.IndexOf("/api/v1", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    ub.Path = path;
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(path) || path == "/")
+                        ub.Path = "/api/v1";
+                    else
+                        ub.Path = path + "/api/v1";
+                }
+
+                return ub.Uri.ToString().TrimEnd('/');
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static JArray PerformSmPagedGet(string baseUrl, string path, int limit = 200, int maxLoops = 1000)
+        {
+            try
+            {
+                int offset = 0;
+                int loops = 0;
+                JArray all = new JArray();
+
+                while (true)
+                {
+                    loops++;
+                    if (loops > maxLoops) break;
+
+                    string url = string.Format("{0}{1}?limit={2}&offset={3}", baseUrl, path, limit, offset);
+                    string res = PerformSmRequest(url, "GET");
+                    if (res == null) return null;
+
+                    JArray arr = JArray.Parse(res);
+                    foreach (var it in arr) all.Add(it);
+
+                    if (arr.Count < limit) break;
+                    offset += limit;
+                }
+
+                return all;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static double? TryReadDouble(JToken token)
+        {
+            try
+            {
+                if (token == null || token.Type == JTokenType.Null) return null;
+                if (token.Type == JTokenType.Float || token.Type == JTokenType.Integer) return (double)token;
+
+                double v;
+                if (double.TryParse(token.ToString(),
+                    System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture, out v))
+                {
+                    return v;
+                }
+                if (double.TryParse(token.ToString(), out v)) return v;
+            }
+            catch { }
+            return null;
+        }
+
+        private static int? TryReadInt(JToken token)
+        {
+            try
+            {
+                if (token == null || token.Type == JTokenType.Null) return null;
+                if (token.Type == JTokenType.Integer) return (int)token;
+
+                int v;
+                if (int.TryParse(token.ToString(), out v)) return v;
+            }
+            catch { }
+            return null;
+        }
+
+        private static string NormalizeColorHex(string hexColor)
+        {
+            if (string.IsNullOrWhiteSpace(hexColor)) return null;
+
+            string c = hexColor.Trim();
+
+            if (c.StartsWith("#")) c = c.Substring(1);
+            if (c.StartsWith("0x", StringComparison.OrdinalIgnoreCase)) c = c.Substring(2);
+
+            // Keep hex chars only
+            c = new string(c.Where(ch => Uri.IsHexDigit(ch)).ToArray());
+
+            if (c.Length < 6) return null;
+            if (c.Length > 8) c = c.Substring(0, 8);
+
+            return c.ToUpperInvariant();
+        }
+
+        public static SmAddSpoolResult SmAddSpoolWithId(string host, int port, string materialID, string hexColor, string colorName, int weightGrams, string printerType)
+        {
+            SmAddSpoolResult result = new SmAddSpoolResult { Success = false, Message = "Error adding spool" };
+
+            string baseUrl = BuildSmApiBase(host, port);
+            if (string.IsNullOrEmpty(baseUrl))
+            {
+                result.Message = "Error: Spoolman host not set/invalid";
+                return result;
+            }
+
+            try
+            {
+                Filament localData = GetMaterialByID(materialID);
+                if (localData == null)
+                {
+                    result.Message = "MaterialID " + materialID + " not found";
+                    return result;
+                }
+
+                string vendorName = (localData.FilamentVendor ?? string.Empty).Trim();
+                if (string.IsNullOrEmpty(vendorName)) vendorName = "Unknown";
+
+                string filamentName = (localData.FilamentName ?? string.Empty).Trim();
+                if (string.IsNullOrEmpty(filamentName)) filamentName = materialID;
+
+                string colorHex = NormalizeColorHex(hexColor) ?? "000000";
+                string colorLabel = string.IsNullOrEmpty(colorName) ? colorHex : colorName.Trim();
+
+                // To align with your Filament-Sync script: default article_number prefix "Creality:"
+                // Hidden setting: HKCU\CFS RFID\Settings\SmArticlePrefix (String)
+                string articlePrefix = Settings.GetSetting("SmArticlePrefix", "Creality:");
+                if (string.IsNullOrEmpty(articlePrefix)) articlePrefix = "Creality:";
+                string articleNumber = articlePrefix + materialID;
+
+                // ---------------------
+                // Vendor (by name)
+                // ---------------------
+                int vendorId = -1;
+                JArray vendors = PerformSmPagedGet(baseUrl, "/vendor");
+                if (vendors == null)
+                {
+                    result.Message = "Error: Unable to reach Spoolman";
+                    return result;
+                }
+
+                foreach (JObject v in vendors)
+                {
+                    if (v["name"] != null && string.Equals(v["name"].ToString(), vendorName, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (string.Equals(v["name"].ToString(), vendorName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            vendorId = (int)v["id"];
-                            break;
-                        }
+                        vendorId = (int)v["id"];
+                        break;
                     }
                 }
+
                 if (vendorId == -1)
                 {
-                    string vBody = JsonConvert.SerializeObject(new { 
-                        name = vendorName, 
-                        comment = "Created by: Cfs RFID"
+                    string vBody = JsonConvert.SerializeObject(new
+                    {
+                        name = vendorName,
+                        comment = "[CFS-RFID] Created by CFS RFID"
                     });
+
                     string newV = PerformSmRequest(baseUrl + "/vendor", "POST", vBody);
                     if (newV != null)
                         vendorId = (int)JObject.Parse(newV)["id"];
                 }
-                int filamentId = -1;
-                string fRes = PerformSmRequest(baseUrl + "/filament", "GET");
-                if (fRes != null)
-                {
-                    JArray fArray = JArray.Parse(fRes);
-                    foreach (JObject f in fArray)
-                    {
-                        int vIdCheck = (f["vendor"] != null && f["vendor"].Type != JTokenType.Null)
-                                       ? (int)f["vendor"]["id"] : -1;
 
-                        if (vIdCheck == vendorId && string.Equals(f["name"].ToString(), fNameWithColor, StringComparison.OrdinalIgnoreCase))
+                if (vendorId == -1)
+                {
+                    result.Message = "Error: Failed to create/find vendor";
+                    return result;
+                }
+
+                result.VendorId = vendorId;
+
+                // ---------------------
+                // Filament (prefer article_number match)
+                // ---------------------
+                int filamentId = -1;
+                JArray filaments = PerformSmPagedGet(baseUrl, "/filament");
+                if (filaments == null)
+                {
+                    result.Message = "Error: Unable to query filaments";
+                    return result;
+                }
+
+                foreach (JObject f in filaments)
+                {
+                    if (f["article_number"] != null && f["article_number"].Type != JTokenType.Null)
+                    {
+                        string an = f["article_number"].ToString();
+                        if (!string.IsNullOrEmpty(an) && string.Equals(an, articleNumber, StringComparison.OrdinalIgnoreCase))
                         {
                             filamentId = (int)f["id"];
                             break;
                         }
                     }
                 }
+
+                // Fallback match: vendor + name + color
                 if (filamentId == -1)
                 {
-                    var fBodyDict = new Dictionary<string, object>();
-                    fBodyDict.Add("name", fNameWithColor);
-                    fBodyDict.Add("vendor_id", vendorId);
-                    fBodyDict.Add("color_hex", hexColor.Replace("#", ""));
-                    fBodyDict.Add("comment", "Created by: Cfs RFID");
-                    if (!string.IsNullOrEmpty(localData.FilamentParam))
+                    foreach (JObject f in filaments)
                     {
-                        JObject root = JObject.Parse(localData.FilamentParam);
-                        if (root["base"] != null)
+                        int vIdCheck = (f["vendor"] != null && f["vendor"].Type != JTokenType.Null)
+                                       ? (int)f["vendor"]["id"] : -1;
+
+                        string n = f["name"] != null ? f["name"].ToString() : string.Empty;
+                        string c = f["color_hex"] != null ? f["color_hex"].ToString() : string.Empty;
+
+                        if (vIdCheck == vendorId &&
+                            string.Equals(n, filamentName, StringComparison.OrdinalIgnoreCase) &&
+                            string.Equals(NormalizeColorHex(c), colorHex, StringComparison.OrdinalIgnoreCase))
                         {
-                            fBodyDict.Add("material", root["base"]["meterialType"].ToString());
-                            fBodyDict.Add("diameter", (double)root["base"]["diameter"]);
-                        }
-                        if (root["kvParam"] != null)
-                        {
-                            JToken kvParam = root["kvParam"];
-                            if (kvParam["nozzle_temperature"] != null)
-                                fBodyDict.Add("settings_extruder_temp", int.Parse(kvParam["nozzle_temperature"].ToString()));
-                            if (kvParam["hot_plate_temp"] != null)
-                                fBodyDict.Add("settings_bed_temp", int.Parse(kvParam["hot_plate_temp"].ToString()));
-                            if (kvParam["filament_density"] != null)
-                                fBodyDict.Add("density", (double)kvParam["filament_density"]);
+                            filamentId = (int)f["id"];
+                            break;
                         }
                     }
+                }
+
+                if (filamentId == -1)
+                {
+                    Dictionary<string, object> fBodyDict = new Dictionary<string, object>();
+                    fBodyDict.Add("name", filamentName);
+                    fBodyDict.Add("vendor_id", vendorId);
+                    fBodyDict.Add("color_hex", colorHex);
+                    fBodyDict.Add("article_number", articleNumber);
+                    fBodyDict.Add("comment", "[CFS-RFID] Created by CFS RFID (color " + colorLabel + ")");
+
+                    // Pull additional properties from the local Creality material DB entry, when available
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(localData.FilamentParam))
+                        {
+                            JObject root = JObject.Parse(localData.FilamentParam);
+
+                            if (root["base"] != null)
+                            {
+                                if (root["base"]["meterialType"] != null)
+                                    fBodyDict["material"] = root["base"]["meterialType"].ToString();
+
+                                double? dia = TryReadDouble(root["base"]["diameter"]);
+                                if (dia.HasValue) fBodyDict["diameter"] = dia.Value;
+
+                                double? densBase = TryReadDouble(root["base"]["density"]);
+                                if (densBase.HasValue) fBodyDict["density"] = densBase.Value;
+                            }
+
+                            if (root["kvParam"] != null)
+                            {
+                                JToken kvParam = root["kvParam"];
+
+                                // Some DBs store these in kvParam instead of base
+                                if (!fBodyDict.ContainsKey("material") && kvParam["filament_type"] != null)
+                                    fBodyDict["material"] = kvParam["filament_type"].ToString();
+
+                                if (!fBodyDict.ContainsKey("diameter"))
+                                {
+                                    double? dia2 = TryReadDouble(kvParam["filament_diameter"]);
+                                    if (dia2.HasValue) fBodyDict["diameter"] = dia2.Value;
+                                }
+
+                                if (!fBodyDict.ContainsKey("density"))
+                                {
+                                    double? dens2 = TryReadDouble(kvParam["filament_density"]);
+                                    if (dens2.HasValue) fBodyDict["density"] = dens2.Value;
+                                }
+
+                                int? nozzle = TryReadInt(kvParam["nozzle_temperature"]);
+                                if (nozzle.HasValue) fBodyDict["settings_extruder_temp"] = nozzle.Value;
+
+                                int? bed = TryReadInt(kvParam["hot_plate_temp"]);
+                                if (!bed.HasValue) bed = TryReadInt(kvParam["cool_plate_temp"]);
+                                if (!bed.HasValue) bed = TryReadInt(kvParam["textured_plate_temp"]);
+                                if (bed.HasValue) fBodyDict["settings_bed_temp"] = bed.Value;
+                            }
+                        }
+                    }
+                    catch { }
+
+                    // Spoolman requires diameter + density for filament creation.
+                    // If the DB entry didn't provide them, use safe defaults so users don't get stuck.
+                    if (!fBodyDict.ContainsKey("diameter")) fBodyDict["diameter"] = 1.75;
+                    if (!fBodyDict.ContainsKey("density"))
+                    {
+                        fBodyDict["density"] = 1.24;
+                        fBodyDict["comment"] = fBodyDict["comment"] + " (density defaulted)";
+                    }
+
                     string newF = PerformSmRequest(baseUrl + "/filament", "POST", JsonConvert.SerializeObject(fBodyDict));
                     if (newF != null)
                         filamentId = (int)JObject.Parse(newF)["id"];
                 }
 
-                if (filamentId != -1)
+                if (filamentId == -1)
                 {
-                    var sBodyObj = new
-                    {
-                        filament_id = filamentId,
-                        initial_weight = weightGrams,
-                        remaining_weight = weightGrams,
-                        comment = "RFID tagged for " + printerType
-                    };
-                    string sBody = JsonConvert.SerializeObject(sBodyObj);
-                    string ret = PerformSmRequest(baseUrl + "/spool", "POST", sBody);
-                    return ret != null ? "Spool created for\n" + fNameWithColor : "Failed to create spool";
+                    result.Message = "Error: Failed to create/find filament";
+                    return result;
                 }
+
+                result.FilamentId = filamentId;
+
+                // ---------------------
+                // Spool
+                // ---------------------
+                var sBodyObj = new
+                {
+                    filament_id = filamentId,
+                    initial_weight = weightGrams,
+                    remaining_weight = weightGrams,
+                    comment = string.Format("[CFS-RFID] RFID tagged for {0}; creality_id={1}; color={2}; color_hex={3}",
+                        printerType, materialID, colorLabel, colorHex)
+                };
+
+                string sBody = JsonConvert.SerializeObject(sBodyObj);
+                string ret = PerformSmRequest(baseUrl + "/spool", "POST", sBody);
+
+                if (ret == null)
+                {
+                    result.Message = "Failed to create spool";
+                    return result;
+                }
+
+                result.RawResponse = ret;
+
+                try
+                {
+                    JObject created = JObject.Parse(ret);
+                    if (created["id"] != null)
+                        result.SpoolId = (int)created["id"];
+                }
+                catch { }
+
+                result.Success = true;
+
+                string label = filamentName + " (" + colorLabel + ")";
+                if (result.SpoolId.HasValue)
+                    result.Message = "Spool created (ID " + result.SpoolId.Value + ") for\n" + label;
+                else
+                    result.Message = "Spool created for\n" + label;
+
+                return result;
             }
             catch (Exception e)
             {
-                return "Error " + e.Message;
+                result.Message = "Error " + e.Message;
+                return result;
             }
-            return null;
         }
+
+        public static string SmAddSpool(string host, int port, string materialID, string hexColor, string colorName, int weightGrams, string printerType)
+        {
+            SmAddSpoolResult res = SmAddSpoolWithId(host, port, materialID, hexColor, colorName, weightGrams, printerType);
+            return res != null ? res.Message : "Error adding spool";
+        }
+
 
         private static string PerformSmRequest(string url, string method, string jsonBody = null)
         {

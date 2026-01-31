@@ -442,17 +442,32 @@ namespace CFS_RFID
         }
 
 
-        void WriteSpoolData(string MaterialID, string Color, string Length)
+        
+        void WriteSpoolData(string MaterialID, string Color, string Length, string reserve6Override = null, string successToast = "Data written to tag")
         {
-            bool encrypted = false;
             string filamentId = "1" + MaterialID;
             string vendorId = "0276";
             string color = "0" + Color;
             string serialNum = "000001";
-            string reserve = "00000000000000";
-            string tagData = "AB124" + vendorId + "A2" + filamentId + color + Length + serialNum + reserve + printerModel.Text;
-            string paddedData = tagData.PadRight(96, ' ');
+
+            // Creality's "reserve" field is typically 6 chars; this writer keeps a 14-char slot on-tag
+            // (reserve6 + reserved8). We place the Spoolman spool.id into reserve6.
+            string reserve6 = string.IsNullOrEmpty(reserve6Override) ? "000000" : reserve6Override.Trim();
+            if (reserve6.Length < 6) reserve6 = reserve6.PadLeft(6, '0');
+            if (reserve6.Length > 6) reserve6 = reserve6.Substring(reserve6.Length - 6, 6);
+
+            string reserve14 = reserve6 + "00000000";
+
+            string tagData = "AB124" + vendorId + "A2" + filamentId + color + Length + serialNum + reserve14 + printerModel.Text;
+            WriteTagString(tagData, successToast);
+        }
+
+        private void WriteTagString(string tagData, string successToast = "Data written to tag")
+        {
+            bool encrypted = false;
+            string paddedData = (tagData ?? string.Empty).PadRight(96, ' ');
             byte[] fullDataBytes = Encoding.UTF8.GetBytes(paddedData);
+
             try
             {
                 if (reader == null)
@@ -472,12 +487,14 @@ namespace CFS_RFID
                     byte[] s1Raw = new byte[48];
                     Array.Copy(fullDataBytes, 0, s1Raw, 0, 48);
                     byte[] s1ToDisk = CipherData(1, s1Raw);
+
                     for (int i = 0; i < 3; i++)
                     {
                         byte[] blockData = new byte[16];
                         Array.Copy(s1ToDisk, i * 16, blockData, 0, 16);
                         reader.UpdateBinaryBlocks((byte)(4 + i), 16, blockData);
                     }
+
                     if (!encrypted)
                     {
                         byte[] trailer = reader.ReadBinaryBlocks(7, 16);
@@ -486,6 +503,7 @@ namespace CFS_RFID
                             Array.Copy(encKey, 0, trailer, 0, 6);
                             Array.Copy(encKey, 0, trailer, 10, 6);
                             reader.UpdateBinaryBlocks(7, 16, trailer);
+
                             encrypted = true;
                             imgEnc.Visible = true;
                             lblUid.Left = imgEnc.Right;
@@ -498,10 +516,12 @@ namespace CFS_RFID
                     Toast.Show(this, "Failed to authenticate", Toast.LENGTH_SHORT, true);
                     return;
                 }
+
                 if (reader.Authentication6byte(8, 96, 0) || reader.Authentication10byte(8, 96, 0))
                 {
                     byte[] s2ToDisk = new byte[48];
                     Array.Copy(fullDataBytes, 48, s2ToDisk, 0, 48);
+
                     for (int i = 0; i < 3; i++)
                     {
                         byte[] blockData = new byte[16];
@@ -509,13 +529,91 @@ namespace CFS_RFID
                         reader.UpdateBinaryBlocks((byte)(8 + i), 16, blockData);
                     }
                 }
-                Toast.Show(this, "Data written to tag", Toast.LENGTH_SHORT);
+
+                if (!string.IsNullOrEmpty(successToast))
+                {
+                    Toast.Show(this, successToast, Toast.LENGTH_SHORT);
+                }
             }
             catch (Exception e)
             {
                 Toast.Show(this, e.Message, Toast.LENGTH_LONG, true);
             }
         }
+
+        private string EncodeSpoolmanIdForReserve(int spoolId)
+        {
+            // Hidden setting:
+            //   HKCU\CFS RFID\Settings\SmReserveHex (DWORD 0/1)
+            // If enabled, encode as 6 hex chars (range 0..0xFFFFFF). Otherwise, 6 decimal digits (0..999999).
+            bool useHex = Settings.GetSetting("SmReserveHex", false);
+
+            if (spoolId < 0) spoolId = 0;
+
+            if (useHex)
+            {
+                if (spoolId > 0xFFFFFF) return null;
+                return spoolId.ToString("X6");
+            }
+
+            if (spoolId > 999999) return null;
+            return spoolId.ToString("D6");
+        }
+
+        private string WriteReserveToTag(string reserve6)
+        {
+            if (string.IsNullOrWhiteSpace(reserve6)) return "Error: reserve is empty";
+            reserve6 = reserve6.Trim();
+            if (reserve6.Length != 6) return "Error: reserve must be exactly 6 characters";
+
+            if (reader == null) return "Error: reader not connected";
+
+            // Try patching an already-programmed (encrypted) tag by rewriting ONLY sector 1 data.
+            try
+            {
+                bool canAuthEnc = reader.Authentication6byte(4, 96, 1) || reader.Authentication10byte(4, 96, 1);
+                if (canAuthEnc)
+                {
+                    byte[] s1Disk = new byte[48];
+                    Array.Copy(reader.ReadBinaryBlocks(4, 16), 0, s1Disk, 0, 16);
+                    Array.Copy(reader.ReadBinaryBlocks(5, 16), 0, s1Disk, 16, 16);
+                    Array.Copy(reader.ReadBinaryBlocks(6, 16), 0, s1Disk, 32, 16);
+
+                    byte[] s1Plain = CipherData(0, s1Disk);
+                    if (s1Plain == null || s1Plain.Length != 48)
+                        return "Error: unable to decrypt tag data";
+
+                    byte[] reserveBytes = Encoding.UTF8.GetBytes(reserve6);
+                    Array.Copy(reserveBytes, 0, s1Plain, 34, 6);
+
+                    byte[] s1NewDisk = CipherData(1, s1Plain);
+                    for (int i = 0; i < 3; i++)
+                    {
+                        byte[] blockData = new byte[16];
+                        Array.Copy(s1NewDisk, i * 16, blockData, 0, 16);
+                        reader.UpdateBinaryBlocks((byte)(4 + i), 16, blockData);
+                    }
+
+                    return "Wrote reserve to tag: " + reserve6;
+                }
+            }
+            catch
+            {
+                // Fall through to full write
+            }
+
+            // Tag likely empty/unencrypted: write full data with reserve override.
+            try
+            {
+                WriteSpoolData(MaterialID, MaterialColor, GetMaterialLength(MaterialWeight), reserve6, null);
+                return "Wrote reserve to tag: " + reserve6;
+            }
+            catch
+            {
+                return "Error writing reserve to tag";
+            }
+        }
+
 
 
         private void OpenSettings()
@@ -894,6 +992,7 @@ namespace CFS_RFID
             toolTip.Hide(btnMenu);
         }
 
+        
         private void LblAdd_Click(object sender, EventArgs e)
         {
             using (SmDialog dialog = new SmDialog(vendorName.Text, materialName.Text, MaterialColor, GetMaterialIntWeight(MaterialWeight)))
@@ -906,19 +1005,57 @@ namespace CFS_RFID
                     {
                         colorName = MaterialColor;
                     }
+
                     Toast.Show(this, "Adding spool", Toast.LENGTH_SHORT);
-                    Task.Run(() => {
-                        return SmAddSpool(Settings.GetSetting("SmHost", String.Empty), Settings.GetSetting("SmPort", 7912), MaterialID, MaterialColor, colorName, GetMaterialIntWeight(MaterialWeight), pType);
-                    }).ContinueWith(t => {
-                        this.Invoke((MethodInvoker)delegate {
-                            Toast.Show(this, t.Result, Toast.LENGTH_SHORT, t.Result.ToLower().StartsWith("error"));
+
+                    Task.Run(() =>
+                    {
+                        return SmAddSpoolWithId(
+                            Settings.GetSetting("SmHost", String.Empty),
+                            Settings.GetSetting("SmPort", 7912),
+                            MaterialID,
+                            MaterialColor,
+                            colorName,
+                            GetMaterialIntWeight(MaterialWeight),
+                            pType
+                        );
+                    }).ContinueWith(t =>
+                    {
+                        this.Invoke((MethodInvoker)delegate
+                        {
+                            var res = t.Result;
+                            string msg = (res != null && !string.IsNullOrEmpty(res.Message)) ? res.Message : "Error adding spool";
+                            Toast.Show(this, msg, Toast.LENGTH_SHORT, msg.ToLower().StartsWith("error"));
+
+                            // Hidden setting:
+                            //   HKCU\CFS RFID\Settings\SmWriteReserve (DWORD 0/1)
+                            // Default: enabled
+                            bool writeReserve = Settings.GetSetting("SmWriteReserve", true);
+                            if (!writeReserve) return;
+
+                            if (res == null || !res.Success || !res.SpoolId.HasValue) return;
+
+                            if (reader == null)
+                            {
+                                Toast.Show(this, "Spool created, but no tag present to write reserve", Toast.LENGTH_SHORT, true);
+                                return;
+                            }
+
+                            string reserve6 = EncodeSpoolmanIdForReserve(res.SpoolId.Value);
+                            if (string.IsNullOrEmpty(reserve6))
+                            {
+                                Toast.Show(this, "Error: Spool ID too large to encode into reserve (adjust encoding settings)", Toast.LENGTH_SHORT, true);
+                                return;
+                            }
+
+                            string wr = WriteReserveToTag(reserve6);
+                            Toast.Show(this, wr, Toast.LENGTH_SHORT, wr.ToLower().StartsWith("error"));
                         });
                     });
                 }
             }
-
-
         }
+
 
         private void BtnAdd_MouseLeave(object sender, EventArgs e)
         {
