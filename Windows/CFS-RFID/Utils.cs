@@ -1267,6 +1267,62 @@ namespace CFS_RFID
             return c.ToUpperInvariant();
         }
 
+
+
+        // Spoolman filament names have a max length (OpenAPI schema currently 64),
+        // and Spoolman recommends including color in the filament name.
+        // We build "Base Name (Color)" and clamp to maxLen while preserving the color suffix as much as possible.
+        private static string BuildSpoolmanFilamentNameWithColor(string baseName, string colorLabel, int maxLen = 64)
+        {
+            string bn = (baseName ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(bn)) bn = "Filament";
+
+            string cl = (colorLabel ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(cl))
+            {
+                return bn.Length <= maxLen ? bn : bn.Substring(0, maxLen).TrimEnd();
+            }
+
+            string suffix = " (" + cl + ")";
+            if (suffix.Length >= maxLen)
+            {
+                // Color label is too long; truncate it to fit.
+                int availColor = Math.Max(1, maxLen - 3); // " (" + ")" = 3 chars
+                if (cl.Length > availColor) cl = cl.Substring(0, availColor);
+                suffix = " (" + cl + ")";
+            }
+
+            int availBase = Math.Max(1, maxLen - suffix.Length);
+            if (bn.Length > availBase) bn = bn.Substring(0, availBase).TrimEnd();
+
+            return bn + suffix;
+        }
+
+        // Normalize to an uppercase 6-char RRGGBB hex string (no leading '#').
+        // If 8 chars are provided (e.g., AARRGGBB), the alpha is dropped.
+        private static string NormalizeColorHex6(string hexColor)
+        {
+            string c = NormalizeColorHex(hexColor);
+            if (string.IsNullOrEmpty(c)) return null;
+
+            if (c.Length == 8)
+            {
+                // Assume AARRGGBB
+                c = c.Substring(2, 6);
+            }
+            else if (c.Length > 6)
+            {
+                // Unexpected, but keep the last 6 chars
+                c = c.Substring(c.Length - 6, 6);
+            }
+            else if (c.Length < 6)
+            {
+                return null;
+            }
+
+            return c.ToUpperInvariant();
+        }
+
         public static SmAddSpoolResult SmAddSpoolWithId(string host, int port, string materialID, string hexColor, string colorName, int weightGrams, string printerType)
         {
             SmAddSpoolResult result = new SmAddSpoolResult { Success = false, Message = "Error adding spool" };
@@ -1293,14 +1349,19 @@ namespace CFS_RFID
                 string filamentName = (localData.FilamentName ?? string.Empty).Trim();
                 if (string.IsNullOrEmpty(filamentName)) filamentName = materialID;
 
-                string colorHex = NormalizeColorHex(hexColor) ?? "000000";
+                string colorHex = NormalizeColorHex6(hexColor) ?? "000000";
                 string colorLabel = string.IsNullOrEmpty(colorName) ? colorHex : colorName.Trim();
+
+                // Spoolman recommends including color in the filament name; also enforce its name length limit.
+                string filamentNameWithColor = BuildSpoolmanFilamentNameWithColor(filamentName, colorLabel, 64);
 
                 // To align with your Filament-Sync script: default article_number prefix "Creality:"
                 // Hidden setting: HKCU\CFS RFID\Settings\SmArticlePrefix (String)
                 string articlePrefix = Settings.GetSetting("SmArticlePrefix", "Creality:");
                 if (string.IsNullOrEmpty(articlePrefix)) articlePrefix = "Creality:";
-                string articleNumber = articlePrefix + materialID;
+
+                string masterArticleNumber = articlePrefix + materialID;
+                string variantArticleNumber = masterArticleNumber + "|color:" + colorHex;
 
                 // ---------------------
                 // Vendor (by name)
@@ -1354,12 +1415,34 @@ namespace CFS_RFID
                     return result;
                 }
 
+                // Prefer an exact match on the color-variant article number.
                 foreach (JObject f in filaments)
                 {
                     if (f["article_number"] != null && f["article_number"].Type != JTokenType.Null)
                     {
                         string an = f["article_number"].ToString();
-                        if (!string.IsNullOrEmpty(an) && string.Equals(an, articleNumber, StringComparison.OrdinalIgnoreCase))
+                        if (!string.IsNullOrEmpty(an) && string.Equals(an, variantArticleNumber, StringComparison.OrdinalIgnoreCase))
+                        {
+                            filamentId = (int)f["id"];
+                            break;
+                        }
+                    }
+                }
+
+                // Legacy/compat fallback: older versions may have created a filament with the *master* article_number but the right color_hex.
+                if (filamentId == -1)
+                {
+                    foreach (JObject f in filaments)
+                    {
+                        string an = (f["article_number"] != null && f["article_number"].Type != JTokenType.Null) ? f["article_number"].ToString() : string.Empty;
+                        if (string.IsNullOrEmpty(an) || !string.Equals(an, masterArticleNumber, StringComparison.OrdinalIgnoreCase)) continue;
+
+                        int vIdCheck = (f["vendor"] != null && f["vendor"].Type != JTokenType.Null)
+                                       ? (int)f["vendor"]["id"] : -1;
+                        if (vIdCheck != vendorId) continue;
+
+                        string c = f["color_hex"] != null ? f["color_hex"].ToString() : string.Empty;
+                        if (string.Equals(NormalizeColorHex6(c), colorHex, StringComparison.OrdinalIgnoreCase))
                         {
                             filamentId = (int)f["id"];
                             break;
@@ -1379,8 +1462,9 @@ namespace CFS_RFID
                         string c = f["color_hex"] != null ? f["color_hex"].ToString() : string.Empty;
 
                         if (vIdCheck == vendorId &&
-                            string.Equals(n, filamentName, StringComparison.OrdinalIgnoreCase) &&
-                            string.Equals(NormalizeColorHex(c), colorHex, StringComparison.OrdinalIgnoreCase))
+                            (string.Equals(n, filamentNameWithColor, StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(n, filamentName, StringComparison.OrdinalIgnoreCase)) &&
+                            string.Equals(NormalizeColorHex6(c), colorHex, StringComparison.OrdinalIgnoreCase))
                         {
                             filamentId = (int)f["id"];
                             break;
@@ -1391,10 +1475,10 @@ namespace CFS_RFID
                 if (filamentId == -1)
                 {
                     Dictionary<string, object> fBodyDict = new Dictionary<string, object>();
-                    fBodyDict.Add("name", filamentName);
+                    fBodyDict.Add("name", filamentNameWithColor);
                     fBodyDict.Add("vendor_id", vendorId);
                     fBodyDict.Add("color_hex", colorHex);
-                    fBodyDict.Add("article_number", articleNumber);
+                    fBodyDict.Add("article_number", variantArticleNumber);
                     fBodyDict.Add("comment", "[CFS-RFID] Created by CFS RFID (color " + colorLabel + ")");
 
                     // Pull additional properties from the local Creality material DB entry, when available
@@ -1458,6 +1542,12 @@ namespace CFS_RFID
                     }
 
                     string newF = PerformSmRequest(baseUrl + "/filament", "POST", JsonConvert.SerializeObject(fBodyDict));
+                    if (newF == null && fBodyDict.ContainsKey("external_id"))
+                    {
+                        // Older Spoolman versions may reject unknown fields; retry without external_id.
+                        fBodyDict.Remove("external_id");
+                        newF = PerformSmRequest(baseUrl + "/filament", "POST", JsonConvert.SerializeObject(fBodyDict));
+                    }
                     if (newF != null)
                         filamentId = (int)JObject.Parse(newF)["id"];
                 }
@@ -1478,8 +1568,8 @@ namespace CFS_RFID
                     filament_id = filamentId,
                     initial_weight = weightGrams,
                     remaining_weight = weightGrams,
-                    comment = string.Format("[CFS-RFID] RFID tagged for {0}; creality_id={1}; color={2}; color_hex={3}",
-                        printerType, materialID, colorLabel, colorHex)
+                    comment = string.Format("[CFS-RFID] RFID tagged for {0}; creality_id={1}; color={2}; color_hex={3}; filament_article={4}",
+                        printerType, materialID, colorLabel, colorHex, variantArticleNumber)
                 };
 
                 string sBody = JsonConvert.SerializeObject(sBodyObj);
@@ -1503,7 +1593,7 @@ namespace CFS_RFID
 
                 result.Success = true;
 
-                string label = filamentName + " (" + colorLabel + ")";
+                string label = filamentNameWithColor;
                 if (result.SpoolId.HasValue)
                     result.Message = "Spool created (ID " + result.SpoolId.Value + ") for\n" + label;
                 else
@@ -1522,6 +1612,91 @@ namespace CFS_RFID
         {
             SmAddSpoolResult res = SmAddSpoolWithId(host, port, materialID, hexColor, colorName, weightGrams, printerType);
             return res != null ? res.Message : "Error adding spool";
+        }
+
+
+        /// <summary>
+        /// After successfully writing an RFID tag, record that tag's UID back into the Spoolman spool comment.
+        /// This gives you a two-way cross reference: RFID tag -> Spoolman spool.id (stored in reserve),
+        /// and Spoolman spool -> RFID tag UID(s) (stored in comment).
+        ///
+        /// Uses Spoolman REST API: GET /api/v1/spool/{id} then PATCH /api/v1/spool/{id} with {"comment": "..."}.
+        /// </summary>
+        public static string SmWriteTagUidBackToSpool(string host, int port, int spoolId, string tagUidCompact)
+        {
+            if (spoolId <= 0) return "Error: Invalid Spoolman spool ID";
+            if (string.IsNullOrWhiteSpace(tagUidCompact)) return "Error: Tag UID not available";
+
+            string baseUrl = BuildSmApiBase(host, port);
+            if (string.IsNullOrEmpty(baseUrl)) return "Error: Spoolman host not set/invalid";
+
+            try
+            {
+                string uid = tagUidCompact.Trim().ToUpperInvariant();
+
+                // 1) Read existing spool (to preserve comment)
+                string spoolJson = PerformSmRequest(baseUrl + "/spool/" + spoolId, "GET");
+                if (spoolJson == null) return "Error: Unable to read spool from Spoolman";
+
+                string existingComment = string.Empty;
+                try
+                {
+                    JObject spoolObj = JObject.Parse(spoolJson);
+                    if (spoolObj["comment"] != null && spoolObj["comment"].Type != JTokenType.Null)
+                        existingComment = spoolObj["comment"].ToString();
+                }
+                catch { existingComment = string.Empty; }
+
+                // No-op if already recorded
+                if (!string.IsNullOrEmpty(existingComment) &&
+                    existingComment.IndexOf(uid, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return "OK (already recorded)";
+                }
+
+                // 2) Append the UID
+                string line = "[CFS-RFID] tag_uid=" + uid;
+
+                string newComment = string.IsNullOrWhiteSpace(existingComment)
+                    ? line
+                    : existingComment.TrimEnd() + "\n" + line;
+
+                // API schema maxLength is 1024 for comment. Trim from the start if needed, keeping newest info.
+                if (newComment.Length > 1024)
+                {
+                    int keep = 1024;
+
+                    if (line.Length + 1 > keep)
+                    {
+                        // Extremely unlikely; just keep the last 1024 chars.
+                        newComment = line.Substring(Math.Max(0, line.Length - keep));
+                    }
+                    else
+                    {
+                        int maxPrefix = keep - (line.Length + 1);
+                        string prefix = (existingComment ?? string.Empty).Trim();
+                        if (prefix.Length > maxPrefix)
+                        {
+                            prefix = prefix.Substring(prefix.Length - maxPrefix);
+                        }
+                        newComment = prefix + "\n" + line;
+
+                        if (newComment.Length > keep)
+                            newComment = newComment.Substring(newComment.Length - keep);
+                    }
+                }
+
+                // 3) PATCH update
+                string patchBody = JsonConvert.SerializeObject(new { comment = newComment });
+                string patchRes = PerformSmRequest(baseUrl + "/spool/" + spoolId, "PATCH", patchBody);
+                if (patchRes == null) return "Error: Unable to update spool comment in Spoolman";
+
+                return "OK";
+            }
+            catch (Exception e)
+            {
+                return "Error: " + e.Message;
+            }
         }
 
 
