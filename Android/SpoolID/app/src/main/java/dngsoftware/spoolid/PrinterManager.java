@@ -1,7 +1,6 @@
 package dngsoftware.spoolid;
 
-import static dngsoftware.spoolid.Utils.GetSetting;
-import static dngsoftware.spoolid.Utils.SaveSetting;
+import static dngsoftware.spoolid.Utils.*;
 import android.content.Context;
 import org.json.JSONArray;
 import org.json.JSONException;

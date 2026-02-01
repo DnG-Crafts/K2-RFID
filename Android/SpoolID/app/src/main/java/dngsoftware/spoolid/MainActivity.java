@@ -3,66 +3,25 @@ package dngsoftware.spoolid;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import static android.view.View.TEXT_ALIGNMENT_CENTER;
 import static java.lang.String.format;
-import static dngsoftware.spoolid.Utils.GetMaterialBrand;
-import static dngsoftware.spoolid.Utils.GetMaterialInfo;
-import static dngsoftware.spoolid.Utils.GetMaterialIntWeight;
-import static dngsoftware.spoolid.Utils.GetMaterialLength;
-import static dngsoftware.spoolid.Utils.GetMaterialName;
-import static dngsoftware.spoolid.Utils.GetMaterialWeight;
-import static dngsoftware.spoolid.Utils.GetSetting;
-import static dngsoftware.spoolid.Utils.SaveSetting;
-import static dngsoftware.spoolid.Utils.SetPermissions;
-import static dngsoftware.spoolid.Utils.addFilament;
-import static dngsoftware.spoolid.Utils.bytesToHex;
-import static dngsoftware.spoolid.Utils.canMfc;
-import static dngsoftware.spoolid.Utils.cipherData;
-import static dngsoftware.spoolid.Utils.copyFile;
-import static dngsoftware.spoolid.Utils.copyFileToUri;
-import static dngsoftware.spoolid.Utils.copyUriToFile;
-import static dngsoftware.spoolid.Utils.createKey;
-import static dngsoftware.spoolid.Utils.findPrinters;
-import static dngsoftware.spoolid.Utils.getContrastColor;
-import static dngsoftware.spoolid.Utils.getJsonDB;
-import static dngsoftware.spoolid.Utils.getMaterialBrands;
-import static dngsoftware.spoolid.Utils.getMaterialPos;
-import static dngsoftware.spoolid.Utils.getMaterials;
-import static dngsoftware.spoolid.Utils.getMifareBlockDefinition;
-import static dngsoftware.spoolid.Utils.getPositionByValue;
-import static dngsoftware.spoolid.Utils.getTypeName;
-import static dngsoftware.spoolid.Utils.isValidHexCode;
-import static dngsoftware.spoolid.Utils.loadImage;
-import static dngsoftware.spoolid.Utils.materialWeights;
-import static dngsoftware.spoolid.Utils.playBeep;
-import static dngsoftware.spoolid.Utils.populateDatabase;
-import static dngsoftware.spoolid.Utils.presetColors;
-import static dngsoftware.spoolid.Utils.printerTypes;
-import static dngsoftware.spoolid.Utils.removeFilament;
-import static dngsoftware.spoolid.Utils.restartApp;
-import static dngsoftware.spoolid.Utils.restorePrinterDB;
-import static dngsoftware.spoolid.Utils.rgbToHex;
-import static dngsoftware.spoolid.Utils.saveDBToPrinter;
-import static dngsoftware.spoolid.Utils.setMaterialInfo;
-import static dngsoftware.spoolid.Utils.setNfcLaunchMode;
-import static dngsoftware.spoolid.Utils.smAddSpool;
+import static dngsoftware.spoolid.Utils.*;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -75,14 +34,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.Settings;
 import android.text.InputFilter;
 import android.text.InputType;
-import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -99,9 +55,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
-import android.widget.TableLayout;
-import android.widget.TableRow;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -109,7 +62,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
-import androidx.appcompat.view.ContextThemeWrapper;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.GravityCompat;
@@ -118,7 +70,10 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.flexbox.FlexboxLayout;
+import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.textfield.TextInputEditText;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -127,6 +82,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import dngsoftware.spoolid.databinding.ActivityMainBinding;
@@ -137,6 +93,7 @@ import dngsoftware.spoolid.databinding.PickerDialogBinding;
 import dngsoftware.spoolid.databinding.ManageDialogBinding;
 import dngsoftware.spoolid.databinding.SaveDialogBinding;
 import dngsoftware.spoolid.databinding.SettingsDialogBinding;
+import dngsoftware.spoolid.databinding.SpoolDialogBinding;
 import dngsoftware.spoolid.databinding.TagDialogBinding;
 import dngsoftware.spoolid.databinding.UpdateDialogBinding;
 
@@ -152,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     Tag currentTag = null;
     int SelectedSize, SelectedBrand;
     String MaterialName, MaterialID, MaterialWeight, MaterialColor, PrinterType, MaterialVendor, SelectedPrinter;
-    Dialog pickerDialog, customDialog, saveDialog, updateDialog, editDialog, addDialog, tagDialog, printerDialog, settingsDialog;
+    Dialog pickerDialog, customDialog, saveDialog, updateDialog, editDialog, addDialog, tagDialog, printerDialog, settingsDialog, spoolDialog;
     AlertDialog inputDialog;
     tagAdapter tagAdapter;
     spinnerAdapter manageAdapter;
@@ -190,7 +147,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         setContentView(rv);
         SetPermissions(this);
 
-
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
         setupActivityResultLaunchers();
@@ -216,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         {
             if (GetSetting(this, "enablesm", false))
             {
-                AddSpoolManSpool();
+                openSpoolAdd();
             }
         });
 
@@ -266,50 +222,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 Bundle options = new Bundle();
                 options.putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 250);
                 nfcAdapter.enableReaderMode(this, this, NfcAdapter.FLAG_READER_NFC_A, options);
-                if (!canMfc(this)) {
-                    showToast(R.string.this_device_does_not_support_mifare_classic_tags, Toast.LENGTH_SHORT);
-                    main.readbutton.setEnabled(false);
-                    main.writebutton.setEnabled(false);
-                    main.colorspin.setEnabled(false);
-                    main.spoolsize.setEnabled(false);
-                    main.colorview.setEnabled(false);
-                    main.colorview.setBackgroundColor(Color.parseColor("#D3D3D3"));
-                    main.txtcolor.setText(MaterialColor);
-                    main.txtcolor.setTextColor(getContrastColor(Color.parseColor("#" + MaterialColor)));
-                    main.lbltagid.setVisibility(View.INVISIBLE);
-                    main.tagid.setVisibility(View.INVISIBLE);
-                    main.txtmsg.setVisibility(View.VISIBLE);
-                    main.txtspman.setVisibility(View.INVISIBLE);
-                    main.txtmsg.setText(R.string.rfid_functions_disabled);
-                }
-            } else {
-                showToast(R.string.please_activate_nfc, Toast.LENGTH_LONG);
-                main.readbutton.setEnabled(false);
-                main.writebutton.setEnabled(false);
-                main.readbutton.setVisibility(View.INVISIBLE);
-                main.writebutton.setVisibility(View.INVISIBLE);
-                main.colorspin.setEnabled(false);
-                main.spoolsize.setEnabled(false);
-                main.colorview.setEnabled(false);
-                main.colorview.setBackgroundColor(Color.parseColor("#D3D3D3"));
-                main.txtcolor.setText(MaterialColor);
-                main.txtcolor.setTextColor(getContrastColor(Color.parseColor("#" + MaterialColor)));
-                main.lbltagid.setVisibility(View.INVISIBLE);
-                main.tagid.setVisibility(View.INVISIBLE);
-                SpannableString spannableString = new SpannableString(getString(R.string.rfid_disabled_tap_here_to_enable_nfc));
-                spannableString.setSpan(new ForegroundColorSpan(Color.parseColor("#1976D2")), getString(R.string.rfid_disabled_tap_here_to_enable_nfc).indexOf("Tap"),
-                        getString(R.string.rfid_disabled_tap_here_to_enable_nfc).indexOf("Tap") + 22, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                main.txtmsg.setVisibility(View.VISIBLE);
-                main.txtmsg.setText(spannableString);
-                main.txtmsg.setGravity(Gravity.CENTER);
-                main.txtspman.setVisibility(View.INVISIBLE);
-                main.txtmsg.setOnClickListener(view -> {
-                    startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS));
-                    finish();
-                });
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
+
 
         main.colorview.setOnClickListener(view -> openPicker());
         main.readbutton.setOnClickListener(view -> ReadSpoolData());
@@ -534,6 +449,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         }
         if (settingsDialog != null && settingsDialog.isShowing()) {
             settingsDialog.dismiss();
+        }
+        if (spoolDialog != null && spoolDialog.isShowing()) {
+            spoolDialog.dismiss();
         }
         if (nfcAdapter != null && nfcAdapter.isEnabled()) {
             try {
@@ -1022,10 +940,10 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 }
             }));
             manual.btnwrite.setOnClickListener(v -> {
-                if (manual.txtmonth.getText().length() == 1 && manual.txtday.getText().length() == 2 && manual.txtyear.getText().length() == 2
-                        && manual.txtvendor.getText().length() == 4 && manual.txtbatch.getText().length() == 2 && manual.txtmaterial.getText().length() == 6
-                        && manual.txtcolor.getText().length() == 7 && manual.txtlength.getText().length() == 4
-                        && manual.txtserial.getText().length() == 6 && manual.txtreserve.getText().length() == 6) {
+                if (Objects.requireNonNull(manual.txtmonth.getText()).length() == 1 && Objects.requireNonNull(manual.txtday.getText()).length() == 2 && Objects.requireNonNull(manual.txtyear.getText()).length() == 2
+                        && Objects.requireNonNull(manual.txtvendor.getText()).length() == 4 && Objects.requireNonNull(manual.txtbatch.getText()).length() == 2 && Objects.requireNonNull(manual.txtmaterial.getText()).length() == 6
+                        && Objects.requireNonNull(manual.txtcolor.getText()).length() == 7 && Objects.requireNonNull(manual.txtlength.getText()).length() == 4
+                        && Objects.requireNonNull(manual.txtserial.getText()).length() == 6 && Objects.requireNonNull(manual.txtreserve.getText()).length() == 6) {
                     WriteTag(manual.txtmonth.getText().toString() + manual.txtday.getText().toString() + manual.txtyear.getText().toString()
                             + manual.txtvendor.getText().toString() + manual.txtbatch.getText().toString() + manual.txtmaterial.getText().toString() + manual.txtcolor.getText().toString()
                             + manual.txtlength.getText().toString() + manual.txtserial.getText().toString() + manual.txtreserve.getText().toString());
@@ -1055,16 +973,16 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 manual.txtlength.setText(R.string.def_len);
                 manual.txtserial.setText(R.string.def_ser);
                 manual.txtreserve.setText(R.string.def_res);
-                SaveSetting(this, "mon", manual.txtmonth.getText().toString().toUpperCase());
-                SaveSetting(this, "day", manual.txtday.getText().toString().toUpperCase());
-                SaveSetting(this, "yr", manual.txtyear.getText().toString().toUpperCase());
-                SaveSetting(this, "ven", manual.txtvendor.getText().toString().toUpperCase());
-                SaveSetting(this, "bat", manual.txtbatch.getText().toString().toUpperCase());
-                SaveSetting(this, "mat", manual.txtmaterial.getText().toString().toUpperCase());
-                SaveSetting(this, "col", manual.txtcolor.getText().toString().toUpperCase());
-                SaveSetting(this, "len", manual.txtlength.getText().toString().toUpperCase());
-                SaveSetting(this, "ser", manual.txtserial.getText().toString().toUpperCase());
-                SaveSetting(this, "res", manual.txtreserve.getText().toString().toUpperCase());
+                SaveSetting(this, "mon", Objects.requireNonNull(manual.txtmonth.getText()).toString().toUpperCase());
+                SaveSetting(this, "day", Objects.requireNonNull(manual.txtday.getText()).toString().toUpperCase());
+                SaveSetting(this, "yr", Objects.requireNonNull(manual.txtyear.getText()).toString().toUpperCase());
+                SaveSetting(this, "ven", Objects.requireNonNull(manual.txtvendor.getText()).toString().toUpperCase());
+                SaveSetting(this, "bat", Objects.requireNonNull(manual.txtbatch.getText()).toString().toUpperCase());
+                SaveSetting(this, "mat", Objects.requireNonNull(manual.txtmaterial.getText()).toString().toUpperCase());
+                SaveSetting(this, "col", Objects.requireNonNull(manual.txtcolor.getText()).toString().toUpperCase());
+                SaveSetting(this, "len", Objects.requireNonNull(manual.txtlength.getText()).toString().toUpperCase());
+                SaveSetting(this, "ser", Objects.requireNonNull(manual.txtserial.getText()).toString().toUpperCase());
+                SaveSetting(this, "res", Objects.requireNonNull(manual.txtreserve.getText()).toString().toUpperCase());
                 showToast(R.string.values_reset, Toast.LENGTH_SHORT);
             });
             customDialog.show();
@@ -1231,8 +1149,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             dl.txtprinter.setText(format(getString(R.string.creality_type), PrinterType.toUpperCase().replace("CREALITY", "")));
 
             dl.btnchk.setOnClickListener(v -> {
-                String host = dl.txtaddress.getText().toString();
-                String psw = dl.txtpsw.getText().toString();
+                String host = Objects.requireNonNull(dl.txtaddress.getText()).toString();
+                String psw = Objects.requireNonNull(dl.txtpsw.getText()).toString();
                 dl.txtmsg.setTextColor(getResources().getColor(R.color.text_color));
                 dl.txtmsg.setText(R.string.checking_for_updates);
                 long version = GetSetting(this, "version_" + PrinterType, -1L);
@@ -1645,8 +1563,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             sdl.btncls.setOnClickListener(v -> saveDialog.dismiss());
 
             sdl.btnupload.setOnClickListener(v -> {
-                String host = sdl.txtaddress.getText().toString();
-                String psw = sdl.txtpsw.getText().toString();
+                String host = Objects.requireNonNull(sdl.txtaddress.getText()).toString();
+                String psw = Objects.requireNonNull(sdl.txtpsw.getText()).toString();
                 SaveSetting(this, "host_" + PrinterType, host);
                 SaveSetting(this, "psw_" + PrinterType, psw);
                 boolean reboot = sdl.chkreboot.isChecked();
@@ -1893,65 +1811,75 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             exportDirectoryChooser = registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
                     result -> {
-                        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                            Uri treeUri = result.getData().getData();
-                            if (treeUri != null) {
-                                getContentResolver().takePersistableUriPermission(
-                                        treeUri,
-                                        Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                                );
-                                performSAFExport(treeUri);
+                        try {
+                            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                                Uri treeUri = result.getData().getData();
+                                if (treeUri != null) {
+                                    getContentResolver().takePersistableUriPermission(
+                                            treeUri,
+                                            Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                                    );
+                                    performSAFExport(treeUri);
+                                } else {
+                                    showToast(R.string.failed_to_get_export_directory, Toast.LENGTH_SHORT);
+                                }
                             } else {
-                                showToast(R.string.failed_to_get_export_directory, Toast.LENGTH_SHORT);
+                                showToast(R.string.export_cancelled, Toast.LENGTH_SHORT);
                             }
-                        } else {
-                            showToast(R.string.export_cancelled, Toast.LENGTH_SHORT);
-                        }
+                        } catch (Exception ignored) {}
                     }
             );
 
             importFileChooser = registerForActivityResult(
                     new ActivityResultContracts.StartActivityForResult(),
                     result -> {
-                        if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                            Uri fileUri = result.getData().getData();
-                            if (fileUri != null) {
-                                performSAFImport(fileUri);
+                        try {
+                            if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                                Uri fileUri = result.getData().getData();
+                                if (fileUri != null) {
+                                    performSAFImport(fileUri);
+                                } else {
+                                    showToast(R.string.failed_to_select_import_file, Toast.LENGTH_SHORT);
+                                }
                             } else {
-                                showToast(R.string.failed_to_select_import_file, Toast.LENGTH_SHORT);
+                                showToast(R.string.import_cancelled, Toast.LENGTH_SHORT);
                             }
-                        } else {
-                            showToast(R.string.import_cancelled, Toast.LENGTH_SHORT);
-                        }
+
+                        } catch (Exception ignored) {}
                     }
             );
 
             requestPermissionLauncher = registerForActivityResult(
                     new ActivityResultContracts.RequestPermission(),
                     isGranted -> {
-                        if (isGranted) {
-                            if (pendingAction == ACTION_EXPORT) {
-                                performLegacyExport();
-                            } else if (pendingAction == ACTION_IMPORT) {
-                                performLegacyImport();
+                        try {
+                            if (isGranted) {
+                                if (pendingAction == ACTION_EXPORT) {
+                                    performLegacyExport();
+                                } else if (pendingAction == ACTION_IMPORT) {
+                                    performLegacyImport();
+                                }
+                            } else {
+                                showToast(R.string.storage_permission_denied_cannot_perform_action, Toast.LENGTH_LONG);
                             }
-                        } else {
-                            showToast(R.string.storage_permission_denied_cannot_perform_action, Toast.LENGTH_LONG);
-                        }
-                        pendingAction = -1;
+                            pendingAction = -1;
+
+                        } catch (Exception ignored) {}
                     }
             );
 
             cameraLauncher = registerForActivityResult(
                     new ActivityResultContracts.TakePicturePreview(),
                     bitmap -> {
-                        if (bitmap != null) {
-                            colorDialog.photoImage.setImageBitmap(bitmap);
-                            setupPhotoPicker(colorDialog.photoImage);
-                        } else {
-                            // Handle failure or cancellation
-                            showToast(R.string.photo_capture_cancelled_or_failed, Toast.LENGTH_SHORT);
-                        }
+                        try {
+                            if (bitmap != null) {
+                                colorDialog.photoImage.setImageBitmap(bitmap);
+                                setupPhotoPicker(colorDialog.photoImage);
+                            } else {
+                                showToast(R.string.photo_capture_cancelled_or_failed, Toast.LENGTH_SHORT);
+                            }
+
+                        } catch (Exception ignored) {}
                     }
             );
         } catch (Exception ignored) {}
@@ -2487,89 +2415,223 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     }
 
 
-    void AddSpoolManSpool() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AlertDialogTheme);
-        SpannableString titleText = new SpannableString(getString(R.string.add_spool_to_spoolman));
-        titleText.setSpan(new ForegroundColorSpan(Color.parseColor("#1976D2")), 0, titleText.length(), 0);
-        builder.setTitle(titleText);
-        LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
-        int padding = (int) (24 * getResources().getDisplayMetrics().density);
-        container.setPadding(padding, padding, padding, 0);
-        TableLayout table = new TableLayout(this);
-        table.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
-        String[] headers = {"Vendor:", "Type:", "Color:", "Weight:"};
-        String[] values = {MaterialVendor, MaterialName, MaterialColor, Utils.GetMaterialIntWeight(MaterialWeight) + "g"};
-        for (int i = 0; i < headers.length; i++) {
-            TableRow row = new TableRow(this);
-            row.setPadding(0, 0, 0, 12);
-            TextView tvHeader = new TextView(this);
-            tvHeader.setText(headers[i]);
-            tvHeader.setTypeface(null, Typeface.BOLD);
-            tvHeader.setTextColor(Color.DKGRAY);
-            tvHeader.setPadding(0, 0, 32, 0);
-            TextView tvValue = new TextView(this);
-            tvValue.setText(values[i]);
-            tvValue.setTextColor(Color.DKGRAY);
-            row.addView(tvHeader);
-            row.addView(tvValue);
-            table.addView(row);
+    void openSpoolAdd() {
+        spoolDialog = new Dialog(this, R.style.Theme_SpoolID);
+        spoolDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        spoolDialog.setCanceledOnTouchOutside(false);
+        spoolDialog.setTitle(R.string.add_spool_to_spoolman);
+        SpoolDialogBinding sdl = SpoolDialogBinding.inflate(getLayoutInflater());
+        View rv = sdl.getRoot();
+        spoolDialog.setContentView(rv);
+        sdl.btncls.setOnClickListener(v -> spoolDialog.dismiss());
+
+        sdl.containerVendor.setVisibility(View.VISIBLE);
+        sdl.containerFilament.setVisibility(View.GONE);
+        sdl.containerSpool.setVisibility(View.GONE);
+
+        sdl.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                sdl.containerVendor.setVisibility(View.GONE);
+                sdl.containerFilament.setVisibility(View.GONE);
+                sdl.containerSpool.setVisibility(View.GONE);
+                switch (tab.getPosition()) {
+                    case 0:
+                        sdl.containerVendor.setVisibility(View.VISIBLE);
+                        break;
+                    case 1:
+                        sdl.containerFilament.setVisibility(View.VISIBLE);
+                        break;
+                    case 2:
+                        sdl.containerSpool.setVisibility(View.VISIBLE);
+                        break;
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {}
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {}
+        });
+
+        View.OnClickListener dateListener = v -> {
+            TextInputEditText target = (TextInputEditText) v;
+            MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
+                    .setTitleText("Select Date")
+                    .build();
+            picker.addOnPositiveButtonClickListener(selection -> {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                target.setText(sdf.format(new Date(selection)));
+            });
+            picker.show(getSupportFragmentManager(), "DATE_PICKER");
+        };
+
+        sdl.sFirstUsed.setOnClickListener(dateListener);
+        sdl.sLastUsed.setOnClickListener(dateListener);
+
+        sdl.vComment.setText(String.format("Created by %s", context.getString(R.string.app_name)));
+        sdl.fComment.setText(String.format("Created by %s", context.getString(R.string.app_name)));
+        sdl.sComment.setText(String.format("RFID tagged for %s", SelectedPrinter));
+
+        Filament localData = matDb.getFilamentById(MaterialID);
+
+        if (localData.filamentParam != null && !localData.filamentParam.isEmpty()) {
+            try {
+                JSONObject root = new JSONObject(localData.filamentParam);
+                JSONObject kvParam = root.optJSONObject("kvParam");
+                JSONObject base = root.optJSONObject("base");
+                if (base != null) {
+                    sdl.fMaterial.setText(base.optString("meterialType"));
+                    sdl.fDiameter.setText(String.format("%s", base.optDouble("diameter")));
+                }
+                if (kvParam != null) {
+                    if (kvParam.has("nozzle_temperature"))
+                        sdl.fTempExtruder.setText(String.format(Locale.getDefault(), "%d", Integer.parseInt(kvParam.getString("nozzle_temperature"))));
+                    if (kvParam.has("hot_plate_temp"))
+                        sdl.fTempBed.setText(String.format(Locale.getDefault(), "%d", Integer.parseInt(kvParam.getString("hot_plate_temp"))));
+                    if (kvParam.has("filament_density"))
+                        sdl.fDensity.setText(String.format("%s", kvParam.optDouble("filament_density")));
+                }
+            } catch (Exception ignored) {
+            }
         }
-        container.addView(table);
-        com.google.android.material.textfield.TextInputLayout textInputLayout =
-                new com.google.android.material.textfield.TextInputLayout(new ContextThemeWrapper(this,
-                        com.google.android.material.R.style.Widget_MaterialComponents_TextInputLayout_OutlinedBox));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(0, (int) (12 * getResources().getDisplayMetrics().density), 0, 0);
-        textInputLayout.setLayoutParams(lp);
-        textInputLayout.setHint(R.string.enter_color_name);
-        textInputLayout.setHintTextColor(ColorStateList.valueOf(Color.parseColor("#1976D2")));
-        textInputLayout.setDefaultHintTextColor(ColorStateList.valueOf(Color.parseColor("#1976D2")));
-        textInputLayout.setBoxBackgroundColor(Color.WHITE);
-        textInputLayout.setHintEnabled(true);
-        textInputLayout.setExpandedHintEnabled(false);
-        com.google.android.material.textfield.TextInputEditText input =
-                new com.google.android.material.textfield.TextInputEditText(textInputLayout.getContext());
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-        input.setTextColor(Color.BLACK);
-        input.setText("");
-        input.setHintTextColor(Color.LTGRAY);
-        String colorNameHint = matcher.findNearestColor(MaterialColor);
-        input.setHint(colorNameHint == null ? "Blue" : colorNameHint);
-        InputFilter[] filters = new InputFilter[2];
-        filters[0] = new Utils.TextInputFilter();
-        filters[1] = new InputFilter.LengthFilter(32);
-        input.setFilters(filters);
-        textInputLayout.addView(input);
-        container.addView(textInputLayout);
-        builder.setView(container);
-        builder.setCancelable(false);
-        builder.setPositiveButton(R.string.submit, (dialog, which) -> {
-            String colorName = Objects.requireNonNull(input.getText()).toString().trim();
+
+        sdl.vName.setText(MaterialVendor);
+        sdl.fMaterial.setText(MaterialName);
+        sdl.sRemainingWeight.setText(String.format(Locale.getDefault(), "%d", Utils.GetMaterialIntWeight(MaterialWeight)));
+        sdl.sInitialWeight.setText(String.format(Locale.getDefault(), "%d", Utils.GetMaterialIntWeight(MaterialWeight)));
+        sdl.fColorHex.setText(MaterialColor);
+        String colorName = matcher.findNearestColor(MaterialColor);
+        if (colorName == null || colorName.isEmpty())
+        {
+            colorName = MaterialColor;
+        }
+        sdl.fName.setText(String.format("%s (%s)", MaterialName, colorName));
+        String[] directions = new String[] {"coaxial", "longitudinal"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, directions);
+        sdl.fMultiColorDirection.setAdapter(adapter);
+
+
+        sdl.btnadd.setOnClickListener(v -> {
+
             String smHost = GetSetting(this, "smhost", "");
             int smPort = GetSetting(this, "smport", 7912);
+
             if (!smHost.isEmpty()) {
+                String baseUrl = "http://" + smHost + ":" + smPort + "/api/v1";
+
                 executorService.execute(() -> {
-                    String ret;
-                    if (colorName.isEmpty()) {
-                        ret = smAddSpool(this, matDb, smHost, smPort, SelectedPrinter, MaterialID, MaterialColor, colorNameHint == null ? MaterialColor : colorNameHint, GetMaterialIntWeight(MaterialWeight));
-                    } else {
-                        ret = smAddSpool(this, matDb, smHost, smPort, SelectedPrinter, MaterialID, MaterialColor, colorName, GetMaterialIntWeight(MaterialWeight));
+                    try {
+                        String vendorName = Objects.requireNonNull(sdl.vName.getText()).toString().trim();
+                        int vendorId = -1;
+                        String vRes = performSmRequest(context, baseUrl + "/vendor", "GET", null);
+
+                        if (vRes != null) {
+                            JSONArray vArray = new JSONArray(vRes);
+                            for (int i = 0; i < vArray.length(); i++) {
+                                JSONObject vo = vArray.getJSONObject(i);
+                                if (vo.getString("name").equalsIgnoreCase(vendorName)) {
+                                    vendorId = vo.getInt("id");
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (vendorId == -1) {
+                            JSONObject vBody = new JSONObject();
+                            vBody.put("name", vendorName);
+                            vBody.put("comment", Objects.requireNonNull(sdl.vComment.getText()).toString());
+                            vBody.put("empty_spool_weight", getDoubleOrNull(sdl.vEmptySpoolWeight));
+                            vBody.put("external_id", Objects.requireNonNull(sdl.vExternalId.getText()).toString());
+                            String newV = performSmRequest(context, baseUrl + "/vendor", "POST", vBody.toString());
+                            if (newV != null) vendorId = new JSONObject(newV).getInt("id");
+                        }
+
+                        String filamentName = Objects.requireNonNull(sdl.fName.getText()).toString().trim();
+                        int filamentId = -1;
+                        String fRes = performSmRequest(context, baseUrl + "/filament", "GET", null);
+                        if (fRes != null) {
+                            JSONArray fArray = new JSONArray(fRes);
+                            for (int i = 0; i < fArray.length(); i++) {
+                                JSONObject f = fArray.getJSONObject(i);
+                                int vIdCheck = f.has("vendor") && !f.isNull("vendor") ? f.getJSONObject("vendor").getInt("id") : -1;
+                                if (vIdCheck == vendorId && f.getString("name").equalsIgnoreCase(filamentName)) {
+                                    filamentId = f.getInt("id");
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (filamentId == -1) {
+                            JSONObject fBody = new JSONObject();
+                            fBody.put("name", filamentName);
+                            fBody.put("vendor_id", vendorId);
+                            fBody.put("material", Objects.requireNonNull(sdl.fMaterial.getText()).toString());
+                            fBody.put("price", getDoubleOrNull(sdl.fPrice));
+                            fBody.put("density", getDoubleOrNull(sdl.fDensity));
+                            fBody.put("diameter", getDoubleOrNull(sdl.fDiameter));
+                            fBody.put("weight", getDoubleOrNull(sdl.fWeight));
+                            fBody.put("spool_weight", getDoubleOrNull(sdl.fSpoolWeight));
+                            fBody.put("article_number", Objects.requireNonNull(sdl.fArticleNumber.getText()).toString());
+                            fBody.put("comment", Objects.requireNonNull(sdl.fComment.getText()).toString());
+                            fBody.put("settings_extruder_temp", getIntOrNull(sdl.fTempExtruder));
+                            fBody.put("settings_bed_temp", getIntOrNull(sdl.fTempBed));
+                            if (!Objects.requireNonNull(sdl.fMultiColorHexes.getText()).toString().isEmpty()) {
+                                fBody.put("multi_color_hexes", sdl.fMultiColorHexes.getText().toString());
+                                fBody.put("multi_color_direction", sdl.fMultiColorDirection.getText().toString());
+                            }else {
+                                fBody.put("color_hex", Objects.requireNonNull(sdl.fColorHex.getText()).toString().replace("#", ""));
+                            }
+                            fBody.put("external_id", Objects.requireNonNull(sdl.fExternalId.getText()).toString());
+                            String newF = performSmRequest(context, baseUrl + "/filament", "POST", fBody.toString());
+                            if (newF != null) filamentId = new JSONObject(newF).getInt("id");
+                        }
+
+                        if (filamentId != -1) {
+                            JSONObject sBody = new JSONObject();
+                            sBody.put("filament_id", filamentId);
+                            sBody.put("price", getDoubleOrNull(sdl.sPrice));
+                            if (!Objects.requireNonNull(sdl.sFirstUsed.getText()).toString().isEmpty())
+                            {
+                                sBody.put("first_used", Objects.requireNonNull(sdl.sFirstUsed.getText()).toString());
+                            }
+                            if (!Objects.requireNonNull(sdl.sLastUsed.getText()).toString().isEmpty())
+                            {
+                                sBody.put("last_used", Objects.requireNonNull(sdl.sLastUsed.getText()).toString());
+                            }
+                            sBody.put("initial_weight", getDoubleOrNull(sdl.sInitialWeight));
+                            if (getDoubleOrNull(sdl.sRemainingWeight) != JSONObject.NULL)
+                            {
+                                sBody.put("remaining_weight", getDoubleOrNull(sdl.sRemainingWeight));
+
+                            }else if (getDoubleOrNull(sdl.sUsedWeight) != JSONObject.NULL)
+                            {
+                                sBody.put("used_weight", getDoubleOrNull(sdl.sUsedWeight));
+                            }
+                            sBody.put("location", Objects.requireNonNull(sdl.sLocation.getText()).toString());
+                            sBody.put("lot_nr", Objects.requireNonNull(sdl.sLotNr.getText()).toString());
+                            sBody.put("comment", Objects.requireNonNull(sdl.sComment.getText()).toString());
+                            sBody.put("archived", sdl.sArchived.isChecked());
+                            String ret = performSmRequest(context, baseUrl + "/spool", "POST", sBody.toString());
+
+                            if (ret != null) {
+                                showToast("Spool created successfully!", Toast.LENGTH_SHORT);
+                            } else {
+                                showToast("Failed to create spool", Toast.LENGTH_SHORT);
+                            }
+                        }
+
+                    } catch (Exception e) {
+                        showToast("Error creating spool", Toast.LENGTH_SHORT);
                     }
-                    if (ret != null) showToast(ret, Toast.LENGTH_SHORT);
                 });
             } else {
                 showToast(getString(R.string.spoolman_host_is_not_set), Toast.LENGTH_SHORT);
             }
         });
-        builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.cancel());
-        AlertDialog alert = builder.create();
-        alert.show();
-        if (alert.getWindow() != null) {
-            alert.getWindow().setBackgroundDrawableResource(android.R.color.white);
-            alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#1976D2"));
-            alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#1976D2"));
-        }
+        spoolDialog.show();
     }
 
 
@@ -2627,7 +2689,5 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         });
         settingsDialog.show();
     }
-
-
 
 }

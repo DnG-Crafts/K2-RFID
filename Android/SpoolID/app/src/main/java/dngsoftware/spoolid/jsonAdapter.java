@@ -1,7 +1,6 @@
 package dngsoftware.spoolid;
 
-import static dngsoftware.spoolid.Utils.filamentTypes;
-import static dngsoftware.spoolid.Utils.filamentVendors;
+import static dngsoftware.spoolid.Utils.*;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;

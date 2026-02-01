@@ -20,6 +20,7 @@ import android.nfc.tech.MifareClassic;
 import android.text.InputFilter;
 import android.text.Spanned;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import androidx.annotation.ColorInt;
@@ -1059,94 +1060,27 @@ public class Utils {
         }
     }
 
-    public static String smAddSpool(Context context, MatDB db, String host, int port, String printerType, String MaterialID, String hexColor, String colorName, int weightGrams) {
-        String baseUrl = "http://" + host + ":" + port + "/api/v1";
+    public static Object getDoubleOrNull(EditText editText) {
+        String val = editText.getText().toString().trim();
+        if (val.isEmpty()) return JSONObject.NULL;
         try {
-            Filament localData = db.getFilamentById(MaterialID);
-            if (localData == null) {
-                return "MaterialID " + MaterialID + " not found";
-            }
-            String vendorName = localData.filamentVendor.trim();
-            String fNameWithColor = localData.filamentName.trim() + " (" + colorName + ")";
-            int vendorId = -1;
-            String vRes = performSmRequest(context, baseUrl + "/vendor", "GET", null);
-            if (vRes != null) {
-                JSONArray vArray = new JSONArray(vRes);
-                for (int i = 0; i < vArray.length(); i++) {
-                    JSONObject v = vArray.getJSONObject(i);
-                    if (v.getString("name").equalsIgnoreCase(vendorName)) {
-                        vendorId = v.getInt("id");
-                        break;
-                    }
-                }
-            }
-            if (vendorId == -1) {
-                JSONObject vBody = new JSONObject();
-                vBody.put("name", vendorName);
-                vBody.put("comment", "Created by: " + context.getString(R.string.app_name));
-                String newV = performSmRequest(context, baseUrl + "/vendor", "POST", vBody.toString());
-                if (newV != null) vendorId = new JSONObject(newV).getInt("id");
-            }
-            int filamentId = -1;
-            String fRes = performSmRequest(context, baseUrl + "/filament", "GET", null);
-            if (fRes != null) {
-                JSONArray fArray = new JSONArray(fRes);
-                for (int i = 0; i < fArray.length(); i++) {
-                    JSONObject f = fArray.getJSONObject(i);
-                    int vIdCheck = f.has("vendor") && !f.isNull("vendor") ? f.getJSONObject("vendor").getInt("id") : -1;
-                    if (vIdCheck == vendorId && f.getString("name").equalsIgnoreCase(fNameWithColor)) {
-                        filamentId = f.getInt("id");
-                        break;
-                    }
-                }
-            }
-            if (filamentId == -1) {
-                JSONObject fBody = new JSONObject();
-                fBody.put("name", fNameWithColor);
-                fBody.put("vendor_id", vendorId);
-                fBody.put("color_hex", hexColor.replace("#", ""));
-                fBody.put("comment", "Created by: " + context.getString(R.string.app_name));
-
-                if (localData.filamentParam != null && !localData.filamentParam.isEmpty()) {
-                    JSONObject root = new JSONObject(localData.filamentParam);
-                    JSONObject kvParam = root.optJSONObject("kvParam");
-                    JSONObject base = root.optJSONObject("base");
-                    if (base != null) {
-                        fBody.put("material", base.optString("meterialType"));
-                        fBody.put("diameter", base.optDouble("diameter"));
-                    }
-                    if (kvParam != null) {
-                        if (kvParam.has("nozzle_temperature"))
-                            fBody.put("settings_extruder_temp", Integer.parseInt(kvParam.getString("nozzle_temperature")));
-                        if (kvParam.has("hot_plate_temp"))
-                            fBody.put("settings_bed_temp", Integer.parseInt(kvParam.getString("hot_plate_temp")));
-                        if (kvParam.has("filament_density"))
-                            fBody.put("density", kvParam.optDouble("filament_density"));
-                    }
-                }
-                String newF = performSmRequest(context, baseUrl + "/filament", "POST", fBody.toString());
-                if (newF != null) filamentId = new JSONObject(newF).getInt("id");
-            }
-            if (filamentId != -1) {
-                JSONObject sBody = new JSONObject();
-                sBody.put("filament_id", filamentId);
-                sBody.put("initial_weight", weightGrams);
-                sBody.put("remaining_weight", weightGrams);
-                sBody.put("comment", "RFID tagged for " + printerType);
-                String ret = performSmRequest(context, baseUrl + "/spool", "POST", sBody.toString());
-                if (ret != null) {
-                    return "Spool created for\n" + fNameWithColor;
-                } else {
-                    return "Failed to create spool";
-                }
-            }
-        } catch (Exception e) {
-            return "Error " + e.getMessage();
+            return Double.parseDouble(val);
+        } catch (NumberFormatException e) {
+            return JSONObject.NULL;
         }
-        return null;
     }
 
-    private static String performSmRequest(Context context, String urlString, String method, String jsonBody) throws Exception {
+    public static Object getIntOrNull(EditText editText) {
+        String val = editText.getText().toString().trim();
+        if (val.isEmpty()) return JSONObject.NULL;
+        try {
+            return Integer.parseInt(val);
+        } catch (NumberFormatException e) {
+            return JSONObject.NULL;
+        }
+    }
+
+    public static String performSmRequest(Context context, String urlString, String method, String jsonBody) throws Exception {
         URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod(method);
