@@ -13,6 +13,7 @@ import static java.lang.String.format;
 import static dngsoftware.spoolid.Utils.*;
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -39,6 +40,7 @@ import android.text.InputType;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.DisplayMetrics;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -122,6 +124,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     private ActivityMainBinding main;
     private ManualDialogBinding manual;
     private Context context;
+    private Activity activity;
     Bitmap gradientBitmap;
     private ExecutorService executorService;
     private Handler mainHandler;
@@ -142,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         context = this;
+        activity = this;
         main = ActivityMainBinding.inflate(getLayoutInflater());
         View rv = main.getRoot();
         setContentView(rv);
@@ -2423,7 +2427,10 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         SpoolDialogBinding sdl = SpoolDialogBinding.inflate(getLayoutInflater());
         View rv = sdl.getRoot();
         spoolDialog.setContentView(rv);
-        sdl.btncls.setOnClickListener(v -> spoolDialog.dismiss());
+        sdl.btncls.setOnClickListener(v -> {
+            hideKeyboard(v);
+            spoolDialog.dismiss();
+        });
 
         sdl.containerVendor.setVisibility(View.VISIBLE);
         sdl.containerFilament.setVisibility(View.GONE);
@@ -2432,6 +2439,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         sdl.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
+                hideKeyboard(sdl.tabLayout);
                 sdl.containerVendor.setVisibility(View.GONE);
                 sdl.containerFilament.setVisibility(View.GONE);
                 sdl.containerSpool.setVisibility(View.GONE);
@@ -2471,6 +2479,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         sdl.sFirstUsed.setOnClickListener(dateListener);
         sdl.sLastUsed.setOnClickListener(dateListener);
 
+        sdl.containerMain.setOnClickListener(v -> hideKeyboard(sdl.containerMain));
+        sdl.containerButton.setOnClickListener(v -> hideKeyboard(sdl.containerButton));
+
         sdl.vComment.setText(String.format("Created by %s", context.getString(R.string.app_name)));
         sdl.fComment.setText(String.format("Created by %s", context.getString(R.string.app_name)));
         sdl.sComment.setText(String.format("RFID tagged for %s", SelectedPrinter));
@@ -2503,6 +2514,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         sdl.sRemainingWeight.setText(String.format(Locale.getDefault(), "%d", Utils.GetMaterialIntWeight(MaterialWeight)));
         sdl.sInitialWeight.setText(String.format(Locale.getDefault(), "%d", Utils.GetMaterialIntWeight(MaterialWeight)));
         sdl.fColorHex.setText(MaterialColor);
+        sdl.fExternalId.setText(MaterialID);
         String colorName = matcher.findNearestColor(MaterialColor);
         if (colorName == null || colorName.isEmpty())
         {
@@ -2513,9 +2525,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, directions);
         sdl.fMultiColorDirection.setAdapter(adapter);
 
-
         sdl.btnadd.setOnClickListener(v -> {
-
+            hideKeyboard(v);
             String smHost = GetSetting(this, "smhost", "");
             int smPort = GetSetting(this, "smport", 7912);
 
@@ -2618,6 +2629,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
                             if (ret != null) {
                                 showToast("Spool created successfully!", Toast.LENGTH_SHORT);
+                                mainHandler.post(() -> spoolDialog.dismiss());
                             } else {
                                 showToast("Failed to create spool", Toast.LENGTH_SHORT);
                             }

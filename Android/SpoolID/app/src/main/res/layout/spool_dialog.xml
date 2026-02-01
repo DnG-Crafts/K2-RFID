@@ -53,6 +53,7 @@
         android:layout_weight="1"
         android:fillViewport="true">
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/container_main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal">
@@ -685,6 +686,7 @@
     </ScrollView>
 
     <LinearLayout
+        android:id="@+id/container_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"

@@ -19,6 +19,8 @@ import android.net.Uri;
 import android.nfc.tech.MifareClassic;
 import android.text.InputFilter;
 import android.text.Spanned;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -1077,6 +1079,15 @@ public class Utils {
             return Integer.parseInt(val);
         } catch (NumberFormatException e) {
             return JSONObject.NULL;
+        }
+    }
+
+    public static void hideKeyboard(View view) {
+        if (view == null) return;
+        InputMethodManager imm = (InputMethodManager) view.getContext()
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
 
