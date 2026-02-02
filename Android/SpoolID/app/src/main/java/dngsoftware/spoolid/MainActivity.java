@@ -237,9 +237,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         main.addbutton.setOnClickListener(view -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             SpannableString titleText = new SpannableString("Create Filament?");
-            titleText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.primary_brand)), 0, titleText.length(), 0);
+            titleText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.primary_brand)), 0, titleText.length(), 0);
             SpannableString messageText = new SpannableString("Using " + MaterialName + " as a template");
-            messageText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.text_main)), 0, messageText.length(), 0);
+            messageText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.text_main)), 0, messageText.length(), 0);
             builder.setTitle(titleText);
             builder.setMessage(messageText);
             builder.setPositiveButton("Create", (dialog, which) -> {
@@ -251,8 +251,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             alert.show();
             if (alert.getWindow() != null) {
                 alert.getWindow().setBackgroundDrawableResource(R.color.background_alt);
-                alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.primary_brand));
-                alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.primary_brand));
+                alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
+                alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
             }
         });
 
@@ -261,9 +261,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         main.deletebutton.setOnClickListener(view -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             SpannableString titleText = new SpannableString("Delete Filament?");
-            titleText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.primary_brand)), 0, titleText.length(), 0);
+            titleText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.primary_brand)), 0, titleText.length(), 0);
             SpannableString messageText = new SpannableString("Brand:  " + GetMaterialBrand(matDb, MaterialID) + "\nType:    " + MaterialName);
-            messageText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.text_main)), 0, messageText.length(), 0);
+            messageText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.text_main)), 0, messageText.length(), 0);
             builder.setTitle(titleText);
             builder.setMessage(messageText);
             builder.setPositiveButton("Delete", (dialog, which) -> {
@@ -276,8 +276,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             alert.show();
             if (alert.getWindow() != null) {
                 alert.getWindow().setBackgroundDrawableResource(R.color.background_alt);
-                alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.primary_brand));
-                alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.primary_brand));
+                alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
+                alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
             }
         });
 
@@ -485,10 +485,12 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             mainHandler.post(() -> {
                 if (currentTag.getId().length > 4) {
                     showToast(R.string.tag_not_compatible, Toast.LENGTH_SHORT);
+                    main.tagid.setTextColor(ContextCompat.getColor(context,R.color.primary_error));
                     main.tagid.setText(R.string.error);
                     return;
                 }
                 showToast(getString(R.string.tag_found) + bytesToHex(currentTag.getId()), Toast.LENGTH_SHORT);
+                main.tagid.setTextColor(ContextCompat.getColor(context,R.color.text_main));
                 main.tagid.setText(bytesToHex(currentTag.getId()));
                 encKey = createKey(currentTag.getId());
                 CheckTag();
@@ -511,10 +513,12 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                     assert currentTag != null;
                     if (currentTag.getId().length > 4) {
                         showToast(R.string.tag_not_compatible, Toast.LENGTH_SHORT);
+                        main.tagid.setTextColor(ContextCompat.getColor(context,R.color.primary_error));
                         main.tagid.setText(R.string.error);
                         return;
                     }
                     showToast(getString(R.string.tag_found) + bytesToHex(currentTag.getId()), Toast.LENGTH_SHORT);
+                    main.tagid.setTextColor(ContextCompat.getColor(context, R.color.text_main));
                     main.tagid.setText(bytesToHex(currentTag.getId()));
                     encKey = createKey(currentTag.getId());
                     CheckTag();
@@ -651,9 +655,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         if (currentTag != null) {
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
             SpannableString titleText = new SpannableString(getString(R.string.format_tag_q));
-            titleText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.primary_brand)), 0, titleText.length(), 0);
+            titleText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.primary_brand)), 0, titleText.length(), 0);
             SpannableString messageText = new SpannableString(getString(R.string.erase_message));
-            messageText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.text_main)), 0, messageText.length(), 0);
+            messageText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.text_main)), 0, messageText.length(), 0);
             builder.setTitle(titleText);
             builder.setMessage(messageText);
             builder.setPositiveButton(R.string.format, (dialog, which) -> {
@@ -706,8 +710,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             alert.show();
             if (alert.getWindow() != null) {
                 alert.getWindow().setBackgroundDrawableResource(R.color.background_alt);
-                alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.primary_brand));
-                alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.primary_brand));
+                alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
+                alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
             }
         } else {
             showToast(R.string.no_tag_found, Toast.LENGTH_SHORT);
@@ -1063,13 +1067,13 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 try {
                     AlertDialog.Builder builder = new AlertDialog.Builder(context);
                     SpannableString titleText = new SpannableString("Update Information");
-                    titleText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.primary_brand)), 0, titleText.length(), 0);
+                    titleText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.primary_brand)), 0, titleText.length(), 0);
                     Date updDate = new Date(jsonVersion * 1000L);
                     DateFormat df = android.text.format.DateFormat.getMediumDateFormat(context);
                     SpannableString messageText = new SpannableString(selected.data.getString("name") + " (" +
                             selected.data.getString("printerIntName") + ")\n" + df.format(updDate) + "\n" + jsonVersion + " (" + selected.data.getString("showVersion") + ")\n\n" +
                             selected.data.getString("descriptionI18n") + "\n\n");
-                    messageText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.text_main)), 0, messageText.length(), 0);
+                    messageText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.text_main)), 0, messageText.length(), 0);
                     builder.setTitle(titleText);
                     builder.setMessage(messageText);
                     builder.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.dismiss());
@@ -1077,7 +1081,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                     alert.show();
                     if (alert.getWindow() != null) {
                         alert.getWindow().setBackgroundDrawableResource(R.color.background_alt);
-                        alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.primary_brand));
+                        alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
                     }
                 } catch (Exception ignored) {
                 }
@@ -1156,7 +1160,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             dl.btnchk.setOnClickListener(v -> {
                 String host = Objects.requireNonNull(dl.txtaddress.getText()).toString();
                 String psw = Objects.requireNonNull(dl.txtpsw.getText()).toString();
-                dl.txtmsg.setTextColor(getResources().getColor(R.color.text_main));
+                dl.txtmsg.setTextColor(ContextCompat.getColor(context, R.color.text_main));
                 dl.txtmsg.setText(R.string.checking_for_updates);
                 long version = GetSetting(context, "version_" + PrinterType, -1L);
                 dl.txtcurver.setText(format(Locale.getDefault(), getString(R.string.current_version), version));
@@ -1219,7 +1223,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             dl.btnupd.setOnClickListener(v -> {
                 String host = GetSetting(context, "host_" + PrinterType, "");
                 String psw = GetSetting(context, "psw_" + PrinterType, sshDefault);
-                dl.txtmsg.setTextColor(getResources().getColor(R.color.text_main));
+                dl.txtmsg.setTextColor(ContextCompat.getColor(context, R.color.text_main));
                 dl.txtmsg.setText(R.string.downloading_update);
                 dl.btnupd.setEnabled(false);
                 executorService.execute(() -> {
@@ -1573,14 +1577,14 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 SaveSetting(context, "host_" + PrinterType, host);
                 SaveSetting(context, "psw_" + PrinterType, psw);
                 boolean reboot = sdl.chkreboot.isChecked();
-                sdl.txtmsg.setTextColor(getResources().getColor(R.color.text_main));
+                sdl.txtmsg.setTextColor(ContextCompat.getColor(context, R.color.text_main));
                 if (sdl.chkreset.isChecked()) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(context);
                     SpannableString titleText = new SpannableString("Warning!");
-                    titleText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.primary_brand)), 0, titleText.length(), 0);
+                    titleText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.primary_brand)), 0, titleText.length(), 0);
                     SpannableString messageText;
                     messageText = new SpannableString("context will restore the default printer database");
-                    messageText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.text_main)), 0, messageText.length(), 0);
+                    messageText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.text_main)), 0, messageText.length(), 0);
                     builder.setTitle(titleText);
                     builder.setMessage(messageText);
                     builder.setPositiveButton("Reset", (dialog, which) -> {
@@ -1606,8 +1610,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                     alert.show();
                     if (alert.getWindow() != null) {
                         alert.getWindow().setBackgroundDrawableResource(R.color.background_alt);
-                        alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.primary_brand));
-                        alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.primary_brand));
+                        alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
+                        alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
                     }
                     return;
                 }
@@ -2049,9 +2053,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     private void showImportDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         SpannableString titleText = new SpannableString(getString(R.string.import_database));
-        titleText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.primary_brand)), 0, titleText.length(), 0);
+        titleText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.primary_brand)), 0, titleText.length(), 0);
         SpannableString messageText = new SpannableString(format(getString(R.string.restore_s_database), PrinterType.toUpperCase()));
-        messageText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.text_main)), 0, messageText.length(), 0);
+        messageText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.text_main)), 0, messageText.length(), 0);
         builder.setTitle(titleText);
         builder.setMessage(messageText);
         builder.setPositiveButton(R.string.simport, (dialog, which) -> checkPermissionAndStartAction(ACTION_IMPORT));
@@ -2060,8 +2064,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         alert.show();
         if (alert.getWindow() != null) {
             alert.getWindow().setBackgroundDrawableResource(R.color.background_alt);
-            alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.primary_brand));
-            alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.primary_brand));
+            alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
+            alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
         }
     }
 
@@ -2069,9 +2073,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     private void showExportDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         SpannableString titleText = new SpannableString(getString(R.string.export_database));
-        titleText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.primary_brand)), 0, titleText.length(), 0);
+        titleText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.primary_brand)), 0, titleText.length(), 0);
         SpannableString messageText = new SpannableString(format(getString(R.string.backup_s_database_material_database_s_db), PrinterType.toUpperCase(), PrinterType.toLowerCase()));
-        messageText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.text_main)), 0, messageText.length(), 0);
+        messageText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.text_main)), 0, messageText.length(), 0);
         builder.setTitle(titleText);
         builder.setMessage(messageText);
         builder.setPositiveButton(R.string.export, (dialog, which) -> checkPermissionAndStartAction(ACTION_EXPORT));
@@ -2080,8 +2084,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         alert.show();
         if (alert.getWindow() != null) {
             alert.getWindow().setBackgroundDrawableResource(R.color.background_alt);
-            alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.primary_brand));
-            alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.primary_brand));
+            alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
+            alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
         }
     }
 
@@ -2338,9 +2342,9 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             mdl.btnrem.setOnClickListener(v -> {
                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
                 SpannableString titleText = new SpannableString(getString(R.string.remove_printer));
-                titleText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.primary_brand)), 0, titleText.length(), 0);
+                titleText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.primary_brand)), 0, titleText.length(), 0);
                 SpannableString messageText = new SpannableString(format(getString(R.string.do_you_want_to_remove_s), PrinterType.toUpperCase()));
-                messageText.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.text_main)), 0, messageText.length(), 0);
+                messageText.setSpan(new ForegroundColorSpan(ContextCompat.getColor(context, R.color.text_main)), 0, messageText.length(), 0);
                 builder.setTitle(titleText);
                 builder.setMessage(messageText);
                 builder.setPositiveButton(R.string.remove, (dialog, which) -> {
@@ -2367,8 +2371,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 alert.show();
                 if (alert.getWindow() != null) {
                     alert.getWindow().setBackgroundDrawableResource(R.color.background_alt);
-                    alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.primary_brand));
-                    alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.primary_brand));
+                    alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
+                    alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(context, R.color.primary_brand));
                 }
             });
 
@@ -2677,8 +2681,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             sdl.smhost.setEnabled(isChecked);
             sdl.smport.setEnabled(isChecked);
             if (isChecked) {
-                sdl.smhost.setTextColor(getResources().getColor(R.color.text_main));
-                sdl.smport.setTextColor(getResources().getColor(R.color.text_main));
+                sdl.smhost.setTextColor(ContextCompat.getColor(context, R.color.text_main));
+                sdl.smport.setTextColor(ContextCompat.getColor(context, R.color.text_main));
                 main.txtspman.setVisibility(View.VISIBLE);
                 if (matcher == null)
                 {
@@ -2693,8 +2697,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             SaveSetting(context, "enablesm", isChecked);
         });
         if (sdl.spoolswitch.isChecked()) {
-            sdl.smhost.setTextColor(getResources().getColor(R.color.text_main));
-            sdl.smport.setTextColor(getResources().getColor(R.color.text_main));
+            sdl.smhost.setTextColor(ContextCompat.getColor(context, R.color.text_main));
+            sdl.smport.setTextColor(ContextCompat.getColor(context, R.color.text_main));
         }
         else {
             sdl.smhost.setTextColor(Color.GRAY);

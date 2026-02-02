@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 import com.google.android.material.textfield.TextInputLayout;
@@ -96,13 +97,13 @@ public class jsonAdapter extends RecyclerView.Adapter<jsonAdapter.ViewHolder> {
             if (isTarget && val.equals(currentItem.hintValue) && holder.itemKey.getTag() == null) {
                 holder.itemValue.setText("", false);
                 holder.itemValue.setHint(currentItem.hintValue);
-                holder.itemValue.setHintTextColor(Color.parseColor("#D3D3D3"));
-                holder.itemKey.setHintTextColor(ColorStateList.valueOf(Color.RED));
-                holder.itemKey.setDefaultHintTextColor(ColorStateList.valueOf(Color.RED));
+                holder.itemValue.setHintTextColor(ContextCompat.getColor(context, R.color.text_hint));
+                holder.itemKey.setHintTextColor(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.primary_error)));
+                holder.itemKey.setDefaultHintTextColor(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.primary_error)));
             } else {
                 holder.itemValue.setText(val, false);
                 holder.itemValue.setHint("");
-                ColorStateList blue = ColorStateList.valueOf(Color.parseColor("#1976D2"));
+                ColorStateList blue = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.primary_brand));
                 holder.itemKey.setHintTextColor(blue);
                 holder.itemKey.setDefaultHintTextColor(blue);
             }
@@ -118,11 +119,11 @@ public class jsonAdapter extends RecyclerView.Adapter<jsonAdapter.ViewHolder> {
                     }
 
                     if (input.isEmpty() || (isTarget && input.equals(currentItem.hintValue) && holder.itemKey.getTag() == null)) {
-                        holder.itemKey.setHintTextColor(ColorStateList.valueOf(Color.RED));
-                        holder.itemKey.setDefaultHintTextColor(ColorStateList.valueOf(Color.RED));
+                        holder.itemKey.setHintTextColor(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.primary_error)));
+                        holder.itemKey.setDefaultHintTextColor(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.primary_error)));
                     } else {
-                        holder.itemKey.setHintTextColor(ColorStateList.valueOf(Color.parseColor("#1976D2")));
-                        holder.itemKey.setDefaultHintTextColor(ColorStateList.valueOf(Color.parseColor("#1976D2")));
+                        holder.itemKey.setHintTextColor(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.primary_brand)));
+                        holder.itemKey.setDefaultHintTextColor(ColorStateList.valueOf(ContextCompat.getColor(context, R.color.primary_brand)));
                     }
                 }
                 @Override public void afterTextChanged(Editable s) {}
@@ -141,7 +142,7 @@ public class jsonAdapter extends RecyclerView.Adapter<jsonAdapter.ViewHolder> {
                 holder.itemValue.clearFocus();
                 holder.itemKey.requestFocus();
                 holder.itemValue.setHint("");
-                ColorStateList blue = ColorStateList.valueOf(Color.parseColor("#1976D2"));
+                ColorStateList blue = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.primary_brand));
                 holder.itemKey.setHintTextColor(blue);
                 holder.itemKey.setDefaultHintTextColor(blue);
             });
@@ -152,7 +153,7 @@ public class jsonAdapter extends RecyclerView.Adapter<jsonAdapter.ViewHolder> {
                 } else {
                     if (isTarget && currentItem.jValue.toString().isEmpty()) {
                         holder.itemValue.setHint(currentItem.hintValue);
-                        holder.itemValue.setHintTextColor(Color.parseColor("#D3D3D3"));
+                        holder.itemValue.setHintTextColor(ContextCompat.getColor(context, R.color.text_hint));
                     }
                 }
             });
