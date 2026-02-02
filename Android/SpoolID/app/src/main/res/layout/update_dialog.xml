@@ -5,14 +5,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4F4F4"
+    android:background="@color/background_main"
     android:fillViewport="true"
     android:fitsSystemWindows="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#F4F4F4"
+        android:background="@color/background_main"
         android:layout_gravity="center|fill_vertical"
         android:maxWidth="500dp"
         android:layout_marginStart="0dp"
@@ -28,7 +28,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="5dp"
             android:layout_marginEnd="16dp"
-            android:textColor="#1976D2"
+            android:textColor="@color/primary_brand"
             android:textSize="22sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
@@ -42,7 +42,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="22dp"
             android:layout_marginEnd="16dp"
-            android:textColor="@color/text_color"
+            android:textColor="@color/text_main"
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
@@ -56,7 +56,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="22dp"
             android:layout_marginEnd="16dp"
-            android:textColor="@color/text_color"
+            android:textColor="@color/text_main"
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
@@ -70,7 +70,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="21dp"
             android:layout_marginEnd="16dp"
-            android:textColor="@color/text_color"
+            android:textColor="@color/text_main"
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
@@ -84,7 +84,7 @@
             android:layout_marginTop="34dp"
             android:layout_marginEnd="16dp"
             android:spinnerMode="dialog"
-            app:backgroundTint="@color/text_color"
+            app:backgroundTint="@color/text_main"
             app:layout_constraintEnd_toEndOf="@+id/btnupd"
             app:layout_constraintStart_toStartOf="@+id/btncls"
             app:layout_constraintTop_toBottomOf="@+id/txtnewver"  />
@@ -110,7 +110,7 @@
             android:paddingEnd="4dp"
             android:includeFontPadding="false"
             android:text="@string/printer"
-            android:textColor="#1976D2"
+            android:textColor="@color/primary_brand"
             android:textSize="12sp"
             app:layout_constraintBottom_toTopOf="@+id/typeborder"
             app:layout_constraintStart_toStartOf="@+id/typeborder"
@@ -140,7 +140,7 @@
                 android:ems="8"
                 android:inputType="textNoSuggestions"
                 android:singleLine="true"
-                android:textColor="@color/text_color" />
+                android:textColor="@color/text_main" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -167,7 +167,7 @@
                 android:inputType="textNoSuggestions"
                 android:singleLine="true"
                 android:ems="8"
-                android:textColor="@color/text_color" />
+                android:textColor="@color/text_main" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button
@@ -194,7 +194,6 @@
             android:padding="14dp"
             android:text="@string/update"
             android:textSize="16sp"
-            android:backgroundTint="@color/button_selector"
             app:layout_constraintStart_toStartOf="@+id/btnchk"
             app:layout_constraintTop_toTopOf="@+id/btnchk"
             app:layout_constraintBottom_toBottomOf="@+id/btnchk"
@@ -222,7 +221,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="@string/preserve_custom_filaments"
-            android:textColor="@color/text_color"
+            android:textColor="@color/text_main"
+            app:thumbTint="@color/switch_tint_selector"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/chkprnt"
@@ -236,7 +236,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/get_update_from_printer"
-            android:textColor="@color/text_color"
+            android:textColor="@color/text_main"
+            app:thumbTint="@color/switch_tint_selector"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/btnchk"
@@ -269,7 +270,7 @@
                 android:background="#00FFFFFF"
                 android:padding="8dp"
                 android:text="@string/update_information"
-                android:textColor="#1976D2"
+                android:textColor="@color/primary_brand"
                 android:gravity="center"
                 android:textSize="16sp" />
         </FrameLayout>
@@ -283,7 +284,7 @@
             android:layout_marginEnd="16dp"
             android:layout_marginBottom="40dp"
             android:text="@string/update_desc_printer"
-            android:textColor="@color/text_color"
+            android:textColor="@color/text_main"
             android:textSize="18sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/chkpres"

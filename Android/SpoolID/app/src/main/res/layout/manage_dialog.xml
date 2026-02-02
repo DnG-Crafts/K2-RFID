@@ -4,14 +4,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4F4F4"
+    android:background="@color/background_main"
     android:fillViewport="true"
     android:fitsSystemWindows="true">
 
 <androidx.constraintlayout.widget.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#F4F4F4"
+    android:background="@color/background_main"
     android:layout_gravity="center|fill_vertical"
     android:maxWidth="500dp">
 
@@ -22,7 +22,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="5dp"
         android:layout_marginEnd="16dp"
-        android:textColor="#1976D2"
+        android:textColor="@color/primary_brand"
         android:text="@string/manage_printer"
         android:textSize="22sp"
         android:textStyle="bold"
@@ -36,7 +36,7 @@
         android:layout_height="56dp"
         android:layout_marginTop="34dp"
         android:spinnerMode="dialog"
-        app:backgroundTint="@color/text_color"
+        app:backgroundTint="@color/text_main"
         app:layout_constraintEnd_toEndOf="@+id/btnadd"
         app:layout_constraintStart_toStartOf="@+id/btncls"
         app:layout_constraintTop_toBottomOf="@+id/txtprinter" />
@@ -62,7 +62,7 @@
         android:paddingEnd="4dp"
         android:includeFontPadding="false"
         android:text="@string/printer"
-        android:textColor="#1976D2"
+        android:textColor="@color/primary_brand"
         android:textSize="12sp"
         app:layout_constraintBottom_toTopOf="@+id/typeborder"
         app:layout_constraintStart_toStartOf="@+id/typeborder"
@@ -75,7 +75,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="16dp"
-        android:textColor="#000000"
+        android:textColor="@color/text_main"
         android:textAlignment="center"
         android:text=""
         android:textStyle="bold"
@@ -121,7 +121,6 @@
         android:padding="14dp"
         android:text="@string/remove"
         android:textSize="16sp"
-        android:backgroundTint="@color/button_selector"
         app:layout_constraintStart_toStartOf="@+id/btnadd"
         app:layout_constraintTop_toTopOf="@+id/btnadd"
         app:layout_constraintBottom_toBottomOf="@+id/btnadd"

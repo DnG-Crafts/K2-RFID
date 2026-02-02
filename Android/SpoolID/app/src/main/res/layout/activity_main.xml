@@ -14,7 +14,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#F4F4F4"
+        android:background="@color/background_main"
         android:fitsSystemWindows="true"
         android:fillViewport="true">
 
@@ -37,7 +37,7 @@
                 app:layout_constraintEnd_toEndOf="@+id/type"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/twotone_add_24"
-                app:tint="#1976D2" />
+                app:tint="@color/primary_brand" />
 
             <ImageView
                 android:id="@+id/editbutton"
@@ -50,7 +50,7 @@
                 app:layout_constraintEnd_toStartOf="@+id/addbutton"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/twotone_edit_24"
-                app:tint="#1976D2" />
+                app:tint="@color/primary_brand" />
 
             <ImageView
                 android:id="@+id/deletebutton"
@@ -61,7 +61,7 @@
                 android:layout_marginEnd="44dp"
                 android:importantForAccessibility="no"
                 app:srcCompat="@drawable/twotone_delete_24"
-                app:tint="#1976D2"
+                app:tint="@color/primary_brand"
                 app:layout_constraintEnd_toStartOf="@+id/editbutton"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -73,7 +73,7 @@
                 android:layout_marginStart="-16dp"
                 android:importantForAccessibility="no"
                 app:srcCompat="@drawable/twotone_menu_24"
-                app:tint="@color/text_color"
+                app:tint="@color/text_main"
                 app:layout_constraintStart_toStartOf="@+id/type"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -84,7 +84,7 @@
                 android:layout_height="56dp"
                 android:layout_marginTop="34dp"
                 android:spinnerMode="dialog"
-                app:backgroundTint="@color/text_color"
+                app:backgroundTint="@color/text_main"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/editbutton" />
@@ -109,7 +109,7 @@
                 android:paddingEnd="4dp"
                 android:includeFontPadding="false"
                 android:text="@string/printer"
-                android:textColor="#1976D2"
+                android:textColor="@color/primary_brand"
                 android:textSize="12sp"
                 app:layout_constraintBottom_toTopOf="@+id/typeborder"
                 app:layout_constraintStart_toStartOf="@+id/typeborder"
@@ -121,7 +121,7 @@
                 android:layout_height="56dp"
                 android:layout_marginTop="32dp"
                 android:spinnerMode="dialog"
-                app:backgroundTint="@color/text_color"
+                app:backgroundTint="@color/text_main"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/type" />
@@ -146,7 +146,7 @@
                 android:paddingEnd="4dp"
                 android:includeFontPadding="false"
                 android:text="@string/brand"
-                android:textColor="#1976D2"
+                android:textColor="@color/primary_brand"
                 android:textSize="12sp"
                 app:layout_constraintBottom_toTopOf="@+id/brandborder"
                 app:layout_constraintStart_toStartOf="@+id/brandborder"
@@ -158,7 +158,7 @@
                 android:layout_height="56dp"
                 android:layout_marginTop="32dp"
                 android:spinnerMode="dialog"
-                app:backgroundTint="@color/text_color"
+                app:backgroundTint="@color/text_main"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/brand" />
@@ -183,7 +183,7 @@
                 android:paddingEnd="4dp"
                 android:includeFontPadding="false"
                 android:text="@string/type"
-                android:textColor="#1976D2"
+                android:textColor="@color/primary_brand"
                 android:textSize="12sp"
                 app:layout_constraintBottom_toTopOf="@+id/materialborder"
                 app:layout_constraintStart_toStartOf="@+id/materialborder"
@@ -195,7 +195,7 @@
                 android:layout_height="56dp"
                 android:layout_marginTop="32dp"
                 android:spinnerMode="dialog"
-                app:backgroundTint="@color/text_color"
+                app:backgroundTint="@color/text_main"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/material" />
@@ -220,7 +220,7 @@
                 android:paddingEnd="4dp"
                 android:includeFontPadding="false"
                 android:text="@string/size"
-                android:textColor="#1976D2"
+                android:textColor="@color/primary_brand"
                 android:textSize="12sp"
                 app:layout_constraintBottom_toTopOf="@+id/sizeborder"
                 app:layout_constraintStart_toStartOf="@+id/sizeborder"
@@ -232,7 +232,7 @@
                 android:layout_height="56dp"
                 android:layout_marginTop="28dp"
                 android:spinnerMode="dialog"
-                app:backgroundTint="@color/text_color"
+                app:backgroundTint="@color/text_main"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/spoolsize" />
@@ -288,7 +288,7 @@
                 android:paddingEnd="4dp"
                 android:includeFontPadding="false"
                 android:text="@string/color"
-                android:textColor="#1976D2"
+                android:textColor="@color/primary_brand"
                 android:textSize="12sp"
                 app:layout_constraintBottom_toTopOf="@+id/colorborder"
                 app:layout_constraintStart_toStartOf="@+id/colorborder"
@@ -302,7 +302,7 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginStart="2dp"
                 android:text="@string/_00_00_00_00"
-                android:textColor="@color/text_color"
+                android:textColor="@color/text_main"
                 android:textSize="18sp"
                 app:layout_constraintStart_toEndOf="@+id/lbltagid"
                 app:layout_constraintTop_toBottomOf="@+id/colorborder" />
@@ -314,7 +314,7 @@
                 android:minWidth="60dp"
                 android:layout_marginTop="40dp"
                 android:text="@string/tag_id"
-                android:textColor="@color/text_color"
+                android:textColor="@color/text_main"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toStartOf="@+id/tagid"
@@ -365,7 +365,7 @@
                 android:gravity="center"
                 android:visibility="invisible"
                 android:text="@string/add_to_spoolman"
-                android:textColor="#1976D2"
+                android:textColor="@color/primary_brand"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/lbltagid"  />
@@ -392,7 +392,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:fitsSystemWindows="false"
-        android:theme="@style/Theme.MaterialComponents.Light"
+        android:theme="@style/Theme.MaterialComponents.DayNight"
         app:itemTextAppearance="@style/NavigationDrawerText"
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/activity_main_drawer" />

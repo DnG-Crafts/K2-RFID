@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-<item android:color="?attr/colorPrimary" android:state_focused="true" />
+<item android:color="@color/primary_brand" android:state_focused="true" />
 <item android:alpha="0.38" android:color="#CCCCCC" android:state_enabled="false" />
 <item android:color="#AAAAAA" />
 </selector>

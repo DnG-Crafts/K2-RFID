@@ -4,12 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4F4F4">
+    android:background="@color/background_main">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#F4F4F4"
+        android:background="@color/background_main"
         android:maxWidth="500dp"
         android:layout_gravity="center_horizontal"
         android:fitsSystemWindows="true">
@@ -26,7 +26,7 @@
             android:gravity="center"
             android:text=""
             android:textSize="22sp"
-            android:textColor="@color/text_color"
+            android:textColor="@color/text_main"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />

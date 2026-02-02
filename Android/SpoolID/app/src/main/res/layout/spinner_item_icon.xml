@@ -17,7 +17,7 @@
         android:layout_weight="1"
         android:singleLine="true"
         android:gravity="start|center"
-        android:textColor="@color/text_color" />
+        android:textColor="@color/text_main" />
 
     <ImageView
         android:importantForAccessibility="no"
@@ -25,7 +25,7 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginEnd="10dp"
-        app:tint="#1976D2"
+        app:tint="@color/primary_brand"
         android:src="@drawable/twotone_done_outline_24"
         android:visibility="gone" /> 
 </LinearLayout>

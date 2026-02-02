@@ -26,6 +26,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import androidx.annotation.ColorInt;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.jcraft.jsch.ChannelExec;
@@ -321,17 +322,6 @@ public class Utils {
             uniqueBrandsSet.add(item.filamentVendor);
         }
         return uniqueBrandsSet.toArray(new String[0]);
-    }
-
-    public static boolean canMfc(Context context) {
-        FeatureInfo[] info = context.getPackageManager().getSystemAvailableFeatures();
-        for (FeatureInfo i : info) {
-            String name = i.name;
-            if (name != null && name.equals("com.nxp.mifare")) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public static String bytesToHex(byte[] data) {
@@ -955,6 +945,16 @@ public class Utils {
         editor.apply();
     }
 
+    public static void setThemeMode(boolean enabled)
+    {
+        if (enabled) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        }else{
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
+    }
+
+
     public static void copyFileToUri(Context context, File sourceFile, Uri destinationUri) throws IOException {
         try (InputStream in = new FileInputStream(sourceFile);
              OutputStream out = context.getContentResolver().openOutputStream(destinationUri)) {
@@ -1008,19 +1008,6 @@ public class Utils {
         }
     }
 
-    public static class TextInputFilter implements InputFilter {
-        @Override
-        public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
-            StringBuilder filtered = new StringBuilder();
-            for (int i = start; i < end; i++) {
-                char character = source.charAt(i);
-                if ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z')) {
-                    filtered.append(character);
-                }
-            }
-            return filtered.toString();
-        }
-    }
 
     public static String rgbToHex(int r, int g, int b) {
         return format("%02X%02X%02X", r, g, b);

@@ -10,4 +10,4 @@
     android:paddingEnd="1dp"
     android:gravity="start|center"
     android:background="@drawable/divider"
-    android:textColor="@color/text_color" />
+    android:textColor="@color/text_main" />

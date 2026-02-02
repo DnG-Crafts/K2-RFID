@@ -1,45 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardview"
-    android:clickable="true"
-    android:focusable="true"
-    android:focusableInTouchMode="false"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="4dp"
-    card_view:cardCornerRadius="7dp">
+    android:clickable="true"
+    android:focusable="true"
+    app:cardCornerRadius="7dp"
+    app:cardBackgroundColor="@color/background_alt">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/itemKey"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            app:materialThemeOverlay="@style/ThemeOverlay.MaterialComponents.AutoCompleteTextView.OutlinedBox"
-            android:theme="@style/Theme.SpoolID"
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/itemKey"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/Theme.SpoolID"
+        app:boxStrokeColor="@color/input_border_color"
+        app:boxBackgroundColor="@android:color/transparent"
+        app:boxStrokeWidth="1dp"
+        app:boxStrokeWidthFocused="2dp"
+        android:paddingBottom="4dp"
+        android:paddingEnd="4dp"
+        android:paddingStart="4dp"
+        app:expandedHintEnabled="false"
+        app:hintAnimationEnabled="false"
+        app:hintTextColor="@color/primary_brand"
+        android:textColorHint="@color/primary_brand">
+
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/itemValue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:boxStrokeColor="@color/input_border_color"
-            app:expandedHintEnabled="false"
-            android:textColorHint="#1976D2"
-            app:hintAnimationEnabled="false"
-            app:hintTextColor="#1976D2"
-            android:layout_marginBottom="4dp"
-            android:padding="4dp">
+            android:padding="12dp"
+            android:background="@null"
+            android:inputType="textNoSuggestions"
+            android:textColor="@color/text_main"
+            android:popupBackground="@color/background_alt" />
 
-            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                android:id="@+id/itemValue"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="12dp"
-                android:background="@null"
-                android:focusable="true"
-                android:autofillHints=""
-                android:imeOptions="actionDone"
-                android:popupBackground="@color/background_color"
-                android:focusableInTouchMode="true"
-                android:inputType="textNoSuggestions"
-                android:textColor="@color/text_color" />
-
-        </com.google.android.material.textfield.TextInputLayout>
+    </com.google.android.material.textfield.TextInputLayout>
 </androidx.cardview.widget.CardView>

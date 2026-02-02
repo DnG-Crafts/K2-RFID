@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_brand">#90CAF9</color>
+    <color name="primary_variant">#448AFF</color>
+    <color name="text_main">#FFFFFF</color>
+    <color name="text_alt">#757575</color>
+    <color name="switch_thumb">#ffffff</color>
+    <color name="background_main">#333333</color>
+    <color name="background_alt">#444444</color>
+</resources>

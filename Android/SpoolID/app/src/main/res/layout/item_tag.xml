@@ -14,7 +14,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#F8F8FF"
+        android:background="@color/background_alt"
         android:focusable="true">
 
         <TextView
@@ -24,7 +24,7 @@
             android:gravity="start"
             android:singleLine="true"
             android:text=""
-            android:textColor="@color/text_color"
+            android:textColor="@color/text_main"
             android:textSize="16sp"
             android:padding="6dp"
             android:textStyle="bold"
@@ -39,7 +39,7 @@
             android:gravity="start"
             android:singleLine="true"
             android:text=""
-            android:textColor="@color/text_color"
+            android:textColor="@color/text_main"
             android:textSize="14sp"
             android:paddingStart="8dp"
             android:paddingEnd="2dp"

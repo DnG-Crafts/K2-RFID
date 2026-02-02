@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background_color">#FAFAFA</color>
-    <color name="text_color">#000000</color>
+    <color name="primary_brand">#1976D2</color>
+    <color name="primary_variant">#82B1FF</color>
+    <color name="text_main">#000000</color>
+    <color name="text_alt">#757575</color>
+    <color name="switch_thumb">#ffffff</color>
+    <color name="background_main">#FAFAFA</color>
+    <color name="background_alt">#FFFFFF</color>
 </resources>

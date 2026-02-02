@@ -5,11 +5,11 @@
     android:fillViewport="true"
     android:fitsSystemWindows="true"
     android:maxWidth="500dp"
-    android:background="#F4F4F4"
+    android:background="@color/background_main"
     android:layout_height="wrap_content">
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:background="#F4F4F4"
+        android:background="@color/background_main"
         android:layout_height="wrap_content">
 
 
@@ -21,7 +21,7 @@
             android:gravity="center"
             android:maxWidth="500dp"
             android:padding="24dp"
-            android:background="#F4F4F4"
+            android:background="@color/background_main"
             app:layout_constraintWidth_max="500dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -54,15 +54,16 @@
                         android:text="Auto Read"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:textColor="@color/text_color" />
+                        android:textColor="@color/text_main" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Automatically read on tag discovery"
                         android:textSize="14sp"
-                        android:textColor="#757575" />
+                        android:textColor="@color/text_alt" />
                 </LinearLayout>
                 <com.google.android.material.materialswitch.MaterialSwitch
+                    app:thumbTint="@color/switch_tint_selector"
                     android:id="@+id/readswitch"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
@@ -85,16 +86,49 @@
                         android:text="Launch App"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:textColor="@color/text_color" />
+                        android:textColor="@color/text_main" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Automatically open this app on tag discovery"
                         android:textSize="14sp"
-                        android:textColor="#757575" />
+                        android:textColor="@color/text_alt" />
                 </LinearLayout>
                 <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/launchswitch"
+                    app:thumbTint="@color/switch_tint_selector"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingVertical="8dp">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dark Mode"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_main" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Enable a dark theme for this app"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_alt" />
+                </LinearLayout>
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/themeswitch"
+                    app:thumbTint="@color/switch_tint_selector"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
             </LinearLayout>
@@ -132,16 +166,17 @@
                         android:text="Enable Spoolman"
                         android:textSize="16sp"
                         android:textStyle="bold"
-                        android:textColor="@color/text_color" />
+                        android:textColor="@color/text_main" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Enable spoolman functionality"
                         android:textSize="14sp"
-                        android:textColor="#757575" />
+                        android:textColor="@color/text_alt" />
                 </LinearLayout>
                 <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/spoolswitch"
+                    app:thumbTint="@color/switch_tint_selector"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
             </LinearLayout>
@@ -149,7 +184,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/layout_host"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxBackgroundColor="#FFFFFF"
+                app:boxBackgroundColor="@color/background_main"
                 app:boxStrokeColor="@color/input_border_color"
                 app:hintTextColor="@color/input_border_color"
                 app:boxStrokeWidth="1.5dp"
@@ -157,7 +192,7 @@
                 android:textColorHint="#1976D2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_color"
+                android:textColor="@color/text_main"
                 android:hint="Host Address"
                 app:expandedHintEnabled="false"
                 android:layout_marginTop="12dp">
@@ -166,15 +201,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="192.168.1.100"
-                    android:textColorHint="#CCCCCC"
-                    android:textColor="@color/text_color"
+                    android:textColorHint="@color/text_alt"
+                    android:textColor="@color/text_main"
                     android:inputType="textUri" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/layout_port"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:boxBackgroundColor="#FFFFFF"
+                app:boxBackgroundColor="@color/background_main"
                 app:boxStrokeColor="@color/input_border_color"
                 app:hintTextColor="@color/input_border_color"
                 android:textColorHint="#1976D2"
@@ -182,7 +217,7 @@
                 app:boxStrokeWidthFocused="2dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/text_color"
+                android:textColor="@color/text_main"
                 android:hint="Port"
                 app:expandedHintEnabled="false"
                 android:layout_marginTop="12dp">
@@ -191,8 +226,8 @@
                     android:maxLength="5"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/text_color"
-                    android:textColorHint="#CCCCCC"
+                    android:textColor="@color/text_main"
+                    android:textColorHint="@color/text_alt"
                     android:hint="7912"
                     android:inputType="number" />
             </com.google.android.material.textfield.TextInputLayout>
