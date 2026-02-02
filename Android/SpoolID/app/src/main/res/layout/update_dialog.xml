@@ -173,6 +173,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button
+            android:textColor="@color/text_inverted"
             android:id="@+id/btnchk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -190,6 +191,7 @@
             tools:ignore="DuplicateClickableBoundsCheck,VisualLintOverlap" />
 
         <Button
+            android:textColor="@color/text_inverted"
             android:id="@+id/btnupd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -202,6 +204,7 @@
             app:layout_constraintEnd_toEndOf="@+id/btnchk" />
 
         <Button
+            android:textColor="@color/text_inverted"
             android:id="@+id/btncls"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -21,12 +21,12 @@
             android:layout_height="wrap_content"
             android:background="@color/background_main"
             android:paddingTop="10dp"
-            app:tabIndicatorColor="#1976D2"
+            app:tabIndicatorColor="@color/primary_brand"
             app:tabMode="fixed"
             app:tabGravity="fill"
             app:tabMaxWidth="0dp"
             app:tabTextAppearance="@style/TabTextAppearance"
-            app:tabSelectedTextColor="#1976D2"
+            app:tabSelectedTextColor="@color/primary_brand"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -85,6 +85,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/vendor_name">
@@ -101,6 +102,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/empty_spool_weight_g">
@@ -118,6 +120,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/external_id">
@@ -134,6 +137,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/comment">
@@ -161,6 +165,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/filament_name">
@@ -185,6 +190,7 @@
                             android:layout_marginEnd="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/material">
@@ -202,6 +208,7 @@
                             android:layout_marginStart="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/price">
@@ -228,6 +235,7 @@
                             android:layout_marginEnd="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/density">
@@ -246,6 +254,7 @@
                             android:layout_marginStart="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/diameter">
@@ -272,6 +281,7 @@
                             android:layout_marginEnd="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/weight_g">
@@ -290,6 +300,7 @@
                             android:layout_marginStart="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/spool_weight">
@@ -308,6 +319,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/article_number">
@@ -332,6 +344,7 @@
                             android:layout_marginEnd="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/extruder_c">
@@ -350,6 +363,7 @@
                             android:layout_marginStart="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/bed_c">
@@ -368,6 +382,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/color_hex">
@@ -387,6 +402,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/multi_color_hexes_csv">
@@ -405,6 +421,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/color_direction">
@@ -424,6 +441,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/external_id">
@@ -440,6 +458,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/comment">
@@ -475,6 +494,7 @@
                             android:layout_marginEnd="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/first_used">
@@ -495,6 +515,7 @@
                             android:layout_marginStart="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/last_used">
@@ -523,6 +544,7 @@
                             android:layout_marginEnd="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/initial_weight">
@@ -541,6 +563,7 @@
                             android:layout_marginStart="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/used_weight">
@@ -567,6 +590,7 @@
                             android:layout_marginEnd="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/remaining_weight_g">
@@ -585,6 +609,7 @@
                             android:layout_marginStart="5dp"
                             android:textColorHint="@color/primary_brand"
                             app:boxStrokeColor="@color/input_border_color"
+                            app:boxBackgroundColor="@color/background_alt"
                             app:expandedHintEnabled="false"
                             app:hintAnimationEnabled="false"
                             android:hint="@string/price">
@@ -603,6 +628,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/location">
@@ -619,6 +645,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/lot_number">
@@ -635,6 +662,7 @@
                         android:layout_marginTop="12dp"
                         android:textColorHint="@color/primary_brand"
                         app:boxStrokeColor="@color/input_border_color"
+                        app:boxBackgroundColor="@color/background_alt"
                         app:expandedHintEnabled="false"
                         app:hintAnimationEnabled="false"
                         android:hint="@string/comment">
@@ -694,6 +722,7 @@
         android:gravity="center">
 
         <Button
+            android:textColor="@color/text_inverted"
             android:id="@+id/btncls"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -704,6 +733,7 @@
             tools:ignore="ButtonStyle"/>
 
         <Button
+            android:textColor="@color/text_inverted"
             android:id="@+id/btnadd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

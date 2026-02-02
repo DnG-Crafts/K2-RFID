@@ -305,6 +305,7 @@
                 app:layout_constraintTop_toBottomOf="@id/action_icons">
 
                 <Button
+                    android:textColor="@color/text_inverted"
                     android:id="@+id/btncls"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -315,6 +316,7 @@
                     tools:ignore="ButtonStyle" />
 
                 <Button
+                    android:textColor="@color/text_inverted"
                     android:id="@+id/btnread"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -324,6 +326,7 @@
                     tools:ignore="ButtonStyle" />
 
                 <Button
+                    android:textColor="@color/text_inverted"
                     android:id="@+id/btnwrite"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

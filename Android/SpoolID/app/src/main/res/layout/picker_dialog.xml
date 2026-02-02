@@ -393,6 +393,7 @@
                     android:layout_weight="1" />
 
                 <Button
+                    android:textColor="@color/text_inverted"
                     android:id="@+id/btncls"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

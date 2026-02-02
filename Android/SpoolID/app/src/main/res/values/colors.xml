@@ -5,6 +5,7 @@
     <color name="primary_error">#FF0A0A</color>
     <color name="text_main">#000000</color>
     <color name="text_alt">#757575</color>
+    <color name="text_inverted">#FAFAFA</color>
     <color name="text_hint">#D3D3D3</color>
     <color name="switch_thumb">#FAFAFA</color>
     <color name="background_main">#F4F4F4</color>

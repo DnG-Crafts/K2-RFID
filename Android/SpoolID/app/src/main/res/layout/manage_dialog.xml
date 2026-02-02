@@ -8,141 +8,144 @@
     android:fillViewport="true"
     android:fitsSystemWindows="true">
 
-<androidx.constraintlayout.widget.ConstraintLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/background_main"
-    android:layout_gravity="center|fill_vertical"
-    android:maxWidth="500dp">
-
-    <TextView
-        android:id="@+id/txtprinter"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="16dp"
-        android:textColor="@color/primary_brand"
-        android:text="@string/manage_printer"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:background="@color/background_main"
+        android:layout_gravity="center|fill_vertical"
+        android:maxWidth="500dp">
 
-    <Spinner
-        android:id="@+id/type"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="34dp"
-        android:spinnerMode="dialog"
-        app:backgroundTint="@color/text_main"
-        app:layout_constraintEnd_toEndOf="@+id/btnadd"
-        app:layout_constraintStart_toStartOf="@+id/btncls"
-        app:layout_constraintTop_toBottomOf="@+id/txtprinter" />
+        <TextView
+            android:id="@+id/txtprinter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="16dp"
+            android:textColor="@color/primary_brand"
+            android:text="@string/manage_printer"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <View
-        android:id="@+id/typeborder"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="34dp"
-        android:background="@drawable/border"
-        app:layout_constraintEnd_toEndOf="@+id/btnadd"
-        app:layout_constraintStart_toStartOf="@+id/btncls"
-        app:layout_constraintTop_toBottomOf="@+id/txtprinter" />
+        <Spinner
+            android:id="@+id/type"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="34dp"
+            android:spinnerMode="dialog"
+            app:backgroundTint="@color/text_main"
+            app:layout_constraintEnd_toEndOf="@+id/btnadd"
+            app:layout_constraintStart_toStartOf="@+id/btncls"
+            app:layout_constraintTop_toBottomOf="@+id/txtprinter" />
 
-
-    <TextView
-        android:id="@+id/lbltype"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:background="@drawable/hint_background"
-        android:paddingStart="4dp"
-        android:paddingEnd="4dp"
-        android:includeFontPadding="false"
-        android:text="@string/printer"
-        android:textColor="@color/primary_brand"
-        android:textSize="12sp"
-        app:layout_constraintBottom_toTopOf="@+id/typeborder"
-        app:layout_constraintStart_toStartOf="@+id/typeborder"
-        app:layout_constraintTop_toTopOf="@+id/typeborder" />
-
-    <TextView
-        android:id="@+id/txtmsg"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="16dp"
-        android:textColor="@color/text_main"
-        android:textAlignment="center"
-        android:text=""
-        android:textStyle="bold"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="@+id/btnadd"
-        app:layout_constraintStart_toStartOf="@+id/btncls"
-        app:layout_constraintTop_toBottomOf="@+id/type" />
+        <View
+            android:id="@+id/typeborder"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="34dp"
+            android:background="@drawable/border"
+            app:layout_constraintEnd_toEndOf="@+id/btnadd"
+            app:layout_constraintStart_toStartOf="@+id/btncls"
+            app:layout_constraintTop_toBottomOf="@+id/txtprinter" />
 
 
-    <ImageView
-        android:importantForAccessibility="no"
-        android:id="@+id/imgprinter"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:layout_marginTop="20dp"
-        android:scaleType="fitCenter"
-        app:layout_constraintEnd_toEndOf="@+id/btnadd"
-        app:layout_constraintStart_toStartOf="@+id/btncls"
-        app:layout_constraintTop_toBottomOf="@+id/txtmsg"
-        app:layout_constraintBottom_toTopOf="@+id/btnadd" />
+        <TextView
+            android:id="@+id/lbltype"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/hint_background"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:includeFontPadding="false"
+            android:text="@string/printer"
+            android:textColor="@color/primary_brand"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toTopOf="@+id/typeborder"
+            app:layout_constraintStart_toStartOf="@+id/typeborder"
+            app:layout_constraintTop_toTopOf="@+id/typeborder" />
 
-    <Button
-        android:id="@+id/btnadd"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginBottom="50dp"
-        android:padding="14dp"
-        android:text="@string/add"
-        android:textSize="16sp"
-        android:backgroundTint="@color/button_selector"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/btncls" />
-
-    <Button
-        android:id="@+id/btnrem"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="14dp"
-        android:text="@string/remove"
-        android:textSize="16sp"
-        app:layout_constraintStart_toStartOf="@+id/btnadd"
-        app:layout_constraintTop_toTopOf="@+id/btnadd"
-        app:layout_constraintBottom_toBottomOf="@+id/btnadd"
-        app:layout_constraintEnd_toEndOf="@+id/btnadd" />
+        <TextView
+            android:id="@+id/txtmsg"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="16dp"
+            android:textColor="@color/text_main"
+            android:textAlignment="center"
+            android:text=""
+            android:textStyle="bold"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="@+id/btnadd"
+            app:layout_constraintStart_toStartOf="@+id/btncls"
+            app:layout_constraintTop_toBottomOf="@+id/type" />
 
 
-    <Button
-        android:id="@+id/btncls"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="70dp"
-        android:layout_marginBottom="50dp"
-        android:padding="14dp"
-        android:text="@string/close"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btnadd"
-        app:layout_constraintStart_toStartOf="parent" />
+        <ImageView
+            android:importantForAccessibility="no"
+            android:id="@+id/imgprinter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="20dp"
+            android:scaleType="fitCenter"
+            app:layout_constraintEnd_toEndOf="@+id/btnadd"
+            app:layout_constraintStart_toStartOf="@+id/btncls"
+            app:layout_constraintTop_toBottomOf="@+id/txtmsg"
+            app:layout_constraintBottom_toTopOf="@+id/btnadd" />
+
+        <Button
+            android:textColor="@color/text_inverted"
+            android:id="@+id/btnadd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="50dp"
+            android:padding="14dp"
+            android:text="@string/add"
+            android:textSize="16sp"
+            android:backgroundTint="@color/button_selector"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/btncls" />
+
+        <Button
+            android:textColor="@color/text_inverted"
+            android:id="@+id/btnrem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="14dp"
+            android:text="@string/remove"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="@+id/btnadd"
+            app:layout_constraintTop_toTopOf="@+id/btnadd"
+            app:layout_constraintBottom_toBottomOf="@+id/btnadd"
+            app:layout_constraintEnd_toEndOf="@+id/btnadd" />
+
+
+        <Button
+            android:textColor="@color/text_inverted"
+            android:id="@+id/btncls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginEnd="70dp"
+            android:layout_marginBottom="50dp"
+            android:padding="14dp"
+            android:text="@string/close"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnadd"
+            app:layout_constraintStart_toStartOf="parent" />
 
 
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

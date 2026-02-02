@@ -2309,12 +2309,12 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                                         PrinterOption selected = (PrinterOption) parent.getItemAtPosition(position);
                                         try {
                                             String thumbnail = selected.data.getString("thumbnail");
-
                                             if (items.contains(selected.data.getString("name"))) {
                                                 mdl.btnrem.setVisibility(View.VISIBLE);
-                                                mdl.txtmsg.setTextColor(Color.RED);
+                                                mdl.txtmsg.setTextColor(ContextCompat.getColor(context, R.color.primary_error));
                                                 mdl.txtmsg.setText(R.string.this_printer_is_already_added);
                                             } else {
+                                                mdl.txtmsg.setTextColor(ContextCompat.getColor(context, R.color.text_main));
                                                 mdl.btnrem.setVisibility(View.INVISIBLE);
                                                 if (!isEmpty) {
                                                     mdl.txtmsg.setText("");

@@ -12,7 +12,7 @@
     android:layout_marginEnd="0dp"
     android:layout_marginBottom="0dp"
     android:orientation="vertical">
-    
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="0dp"
@@ -38,6 +38,7 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <Button
+            android:textColor="@color/text_inverted"
             android:id="@+id/btncls"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -48,6 +49,7 @@
             tools:ignore="ButtonStyle" />
 
         <Button
+            android:textColor="@color/text_inverted"
             android:id="@+id/btnadd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
