@@ -221,16 +221,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         main.txtcolor.setText(MaterialColor);
         main.txtcolor.setTextColor(getContrastColor(Color.parseColor("#" + MaterialColor)));
 
-        try {
-            nfcAdapter = NfcAdapter.getDefaultAdapter(context);
-            if (nfcAdapter != null && nfcAdapter.isEnabled()) {
-                Bundle options = new Bundle();
-                options.putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 250);
-                nfcAdapter.enableReaderMode(activity, this, NfcAdapter.FLAG_READER_NFC_A, options);
-            }
-        } catch (Exception ignored) {}
-
-
         main.colorview.setOnClickListener(view -> openPicker());
         main.readbutton.setOnClickListener(view -> ReadSpoolData());
 
@@ -313,6 +303,31 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         });
 
         ReadTagUID(getIntent());
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        try {
+            nfcAdapter = NfcAdapter.getDefaultAdapter(context);
+            if (nfcAdapter != null && nfcAdapter.isEnabled()) {
+                Bundle options = new Bundle();
+                options.putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 250);
+                nfcAdapter.enableReaderMode(activity, this, NfcAdapter.FLAG_READER_NFC_A, options);
+            }
+        }catch (Exception ignored) {}
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        try {
+            if (nfcAdapter != null) {
+                nfcAdapter.disableReaderMode(this);
+            }
+        } catch (Exception ignored) {}
     }
 
 
@@ -2669,8 +2684,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         });
         sdl.themeswitch.setChecked(GetSetting(context, "enabledm", false));
         sdl.themeswitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            setThemeMode(isChecked);
             SaveSetting(context, "enabledm", isChecked);
+            setThemeMode(isChecked);
         });
         sdl.spoolswitch.setChecked(GetSetting(context, "enablesm", false));
         sdl.smhost.setText(GetSetting(context, "smhost", ""));
