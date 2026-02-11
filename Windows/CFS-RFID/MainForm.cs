@@ -25,6 +25,15 @@ namespace CFS_RFID
         const int MinWidth = 0;
         bool isSmall = false;
 
+        // Pending Spoolman reserve write:
+        // When a spool is created in Spoolman, we queue its spool.id (encoded into reserve6) and
+        // apply it on the next "Write Tag" (and subsequent writes) until the selection changes.
+        // This is intentionally in-memory only (not persisted) so you can "start over" on app restart.
+        private int? _smPendingSpoolId = null;
+        private string _smPendingReserve6 = null;
+        private string _smPendingSignature = null;
+        private string _smPendingLabel = null;
+
         public MainForm()
         {
             InitializeComponent();
@@ -388,7 +397,7 @@ namespace CFS_RFID
             {
                 if (reader == null)
                 {
-                    Toast.Show(this, "Reader not connected", Toast.LENGTH_SHORT, true);
+                    Toast.Show(this, "Tag not present or reader not connected", Toast.LENGTH_SHORT, true);
                 }
                 else
                 {
@@ -452,7 +461,8 @@ namespace CFS_RFID
 
             // Creality's "reserve" field is typically 6 chars; this writer keeps a 14-char slot on-tag
             // (reserve6 + reserved8). We place the Spoolman spool.id into reserve6.
-            string reserve6 = string.IsNullOrEmpty(reserve6Override) ? "000000" : reserve6Override.Trim();
+            string reserve6 = !string.IsNullOrWhiteSpace(reserve6Override) ? reserve6Override.Trim() : TryGetPendingReserve6ForCurrentSelection();
+            if (string.IsNullOrEmpty(reserve6)) reserve6 = "000000";
             if (reserve6.Length < 6) reserve6 = reserve6.PadLeft(6, '0');
             if (reserve6.Length > 6) reserve6 = reserve6.Substring(reserve6.Length - 6, 6);
 
@@ -472,7 +482,7 @@ namespace CFS_RFID
             {
                 if (reader == null)
                 {
-                    Toast.Show(this, "Reader not connected", Toast.LENGTH_SHORT, true);
+                    Toast.Show(this, "Tag not presemt or reader not connected", Toast.LENGTH_SHORT, true);
                     return;
                 }
 
@@ -534,6 +544,8 @@ namespace CFS_RFID
                 {
                     Toast.Show(this, successToast, Toast.LENGTH_SHORT);
                 }
+
+                BeginSpoolmanTagUidWriteback();
             }
             catch (Exception e)
             {
@@ -558,6 +570,128 @@ namespace CFS_RFID
 
             if (spoolId > 999999) return null;
             return spoolId.ToString("D6");
+        }
+
+
+        private string GetCurrentSelectionSignature()
+        {
+            // Anything that should invalidate a queued spool id should be included here.
+            return (printerModel.Text ?? string.Empty) + "|" +
+                   (MaterialID ?? string.Empty) + "|" +
+                   (MaterialColor ?? string.Empty) + "|" +
+                   (MaterialWeight ?? string.Empty);
+        }
+
+        private void SetPendingSpoolmanReserve(int spoolId, string reserve6, string label = null)
+        {
+            _smPendingSpoolId = spoolId > 0 ? (int?)spoolId : null;
+            _smPendingReserve6 = reserve6;
+            _smPendingLabel = label;
+            _smPendingSignature = GetCurrentSelectionSignature();
+        }
+
+        private void ClearPendingSpoolmanReserve()
+        {
+            _smPendingSpoolId = null;
+            _smPendingReserve6 = null;
+            _smPendingSignature = null;
+            _smPendingLabel = null;
+        }
+
+        private string TryGetPendingReserve6ForCurrentSelection()
+        {
+            // Hidden setting:
+            //   HKCU\CFS RFID\Settings\SmWriteReserve (DWORD 0/1)
+            // Default: enabled
+            bool writeReserve = Settings.GetSetting("SmWriteReserve", true);
+            if (!writeReserve) return null;
+
+            if (!_smPendingSpoolId.HasValue) return null;
+            if (string.IsNullOrEmpty(_smPendingReserve6)) return null;
+            if (string.IsNullOrEmpty(_smPendingSignature)) return null;
+
+            if (!string.Equals(_smPendingSignature, GetCurrentSelectionSignature(), StringComparison.Ordinal))
+                return null;
+
+            return _smPendingReserve6;
+        }
+
+        private int? TryGetPendingSpoolIdForCurrentSelection()
+        {
+            if (!_smPendingSpoolId.HasValue) return null;
+            if (string.IsNullOrEmpty(_smPendingSignature)) return null;
+
+            if (!string.Equals(_smPendingSignature, GetCurrentSelectionSignature(), StringComparison.Ordinal))
+                return null;
+
+            return _smPendingSpoolId;
+        }
+
+        private string GetCurrentTagUidCompact()
+        {
+            // lblUid.Text looks like: "04 AB CD EF ..." (hex bytes with spaces)
+            string t = lblUid != null ? (lblUid.Text ?? string.Empty) : string.Empty;
+            if (string.IsNullOrEmpty(t)) return null;
+
+            StringBuilder sb = new StringBuilder(t.Length);
+            for (int i = 0; i < t.Length; i++)
+            {
+                char ch = t[i];
+                if (Uri.IsHexDigit(ch))
+                    sb.Append(char.ToUpperInvariant(ch));
+            }
+
+            string hex = sb.ToString();
+            if (hex.Length < 8) return null;
+
+            // Ensure even length
+            if (hex.Length % 2 == 1) hex = hex.Substring(0, hex.Length - 1);
+
+            return hex;
+        }
+
+        private void BeginSpoolmanTagUidWriteback()
+        {
+            // Hidden setting:
+            //   HKCU\CFS RFID\Settings\SmWriteTagUidBack (DWORD 0/1)
+            // Default: enabled
+            bool enabled = Settings.GetSetting("SmWriteTagUidBack", true);
+            if (!enabled) return;
+
+            int? spoolId = TryGetPendingSpoolIdForCurrentSelection();
+            if (!spoolId.HasValue) return;
+
+            string uid = GetCurrentTagUidCompact();
+            if (string.IsNullOrEmpty(uid)) return;
+
+            string host = Settings.GetSetting("SmHost", String.Empty);
+            int port = Settings.GetSetting("SmPort", 7912);
+            if (string.IsNullOrEmpty(host)) return;
+
+            Task.Run(() => Utils.SmWriteTagUidBackToSpool(host, port, spoolId.Value, uid))
+                .ContinueWith(t2 =>
+                {
+                    string r;
+                    if (t2.IsFaulted)
+                    {
+                        r = "Error: " + (t2.Exception != null ? t2.Exception.GetBaseException().Message : "unknown");
+                    }
+                    else
+                    {
+                        r = (t2.Result ?? string.Empty).Trim();
+                    }
+
+                    if (r.StartsWith("OK", StringComparison.OrdinalIgnoreCase)) return;
+
+                    try
+                    {
+                        this.BeginInvoke((MethodInvoker)delegate
+                        {
+                            Toast.Show(this, "Spoolman writeback: " + r, Toast.LENGTH_SHORT, true);
+                        });
+                    }
+                    catch { }
+                });
         }
 
         private string WriteReserveToTag(string reserve6)
@@ -795,6 +929,7 @@ namespace CFS_RFID
 
         private void BtnColor_Click(object sender, EventArgs e)
         {
+            ClearPendingSpoolmanReserve();
             ColorDialog dlg = new ColorDialog
             {
                 AllowFullOpen = true,
@@ -811,6 +946,7 @@ namespace CFS_RFID
 
         private void MaterialWeight_SelectedIndexChanged(object sender, EventArgs e)
         {
+            ClearPendingSpoolmanReserve();
             try
             {
                 MaterialWeight = materialWeight.Items[materialWeight.SelectedIndex].ToString();
@@ -820,6 +956,7 @@ namespace CFS_RFID
 
         private void PrinterModel_SelectedIndexChanged(object sender, EventArgs e)
         {
+            ClearPendingSpoolmanReserve();
             try
             {
                 PrinterType = printerModel.Items[printerModel.SelectedIndex].ToString();
@@ -1035,12 +1172,6 @@ namespace CFS_RFID
 
                             if (res == null || !res.Success || !res.SpoolId.HasValue) return;
 
-                            if (reader == null)
-                            {
-                                Toast.Show(this, "Spool created, but no tag present to write reserve", Toast.LENGTH_SHORT, true);
-                                return;
-                            }
-
                             string reserve6 = EncodeSpoolmanIdForReserve(res.SpoolId.Value);
                             if (string.IsNullOrEmpty(reserve6))
                             {
@@ -1048,8 +1179,9 @@ namespace CFS_RFID
                                 return;
                             }
 
-                            string wr = WriteReserveToTag(reserve6);
-                            Toast.Show(this, wr, Toast.LENGTH_SHORT, wr.ToLower().StartsWith("error"));
+                            // Queue reserve for the next "Write Tag" (and keep it for multiple writes until selection changes).
+                            SetPendingSpoolmanReserve(res.SpoolId.Value, reserve6, msg);
+                            Toast.Show(this, "Reserve queued: " + reserve6 + " (Spoolman spool ID " + res.SpoolId.Value + ") — click \"Write Tag\" to program one or more tags.", Toast.LENGTH_SHORT);
                         });
                     });
                 }
@@ -1069,11 +1201,13 @@ namespace CFS_RFID
 
         private void PrinterModel_SelectionChangeCommitted(object sender, EventArgs e)
         {
+            ClearPendingSpoolmanReserve();
             Settings.SaveSetting("printerType", printerModel.SelectedIndex);
         }
 
         private void VendorName_SelectedIndexChanged(object sender, EventArgs e)
         {
+            ClearPendingSpoolmanReserve();
             try
             {
                 materialName.Items.Clear();
@@ -1085,6 +1219,7 @@ namespace CFS_RFID
 
         private void MaterialName_SelectedIndexChanged(object sender, EventArgs e)
         {
+            ClearPendingSpoolmanReserve();
             try
             {
                 MaterialID = GetMaterialID(vendorName.Text, materialName.Items[materialName.SelectedIndex].ToString());
