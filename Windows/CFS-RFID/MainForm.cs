@@ -397,7 +397,7 @@ namespace CFS_RFID
             {
                 if (reader == null)
                 {
-                    Toast.Show(this, "Reader not connected", Toast.LENGTH_SHORT, true);
+                    Toast.Show(this, "Tag not present or reader not connected", Toast.LENGTH_SHORT, true);
                 }
                 else
                 {
@@ -482,7 +482,7 @@ namespace CFS_RFID
             {
                 if (reader == null)
                 {
-                    Toast.Show(this, "Reader not connected", Toast.LENGTH_SHORT, true);
+                    Toast.Show(this, "Tag not presemt or reader not connected", Toast.LENGTH_SHORT, true);
                     return;
                 }
 
