@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     ColorMatcher matcher = null;
     private NfcAdapter nfcAdapter;
     Tag currentTag = null;
-    int SelectedSize, SelectedBrand;
+    int SelectedSize, SelectedBrand, SmSpoolID;
     String MaterialName, MaterialID, MaterialWeight, MaterialColor, PrinterType, MaterialVendor, SelectedPrinter;
     Dialog pickerDialog, customDialog, saveDialog, updateDialog, editDialog, addDialog, tagDialog, printerDialog, settingsDialog, spoolDialog;
     AlertDialog inputDialog;
@@ -745,6 +745,10 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         String vendorId = "0276"; //0276 creality
         String color = "0" + Color;
         String serialNum = "000001"; //format(Locale.getDefault(), "%06d", random.nextInt(900000));
+        if (GetSetting(context, "enablesm", false))
+        {
+            serialNum = String.format(Locale.getDefault(), "%06d", SmSpoolID);
+        }
         String reserve = "00000000000000";
         String batch = "A2";
         WriteTag("AB124" + vendorId + batch + filamentId + color + Length + serialNum + reserve + PrinterType);
@@ -2588,15 +2592,19 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                             sBody.put("comment", Objects.requireNonNull(sdl.sComment.getText()).toString());
                             sBody.put("archived", sdl.sArchived.isChecked());
                             String ret = performSmRequest(context, baseUrl + "/spool", "POST", sBody.toString());
-
                             if (ret != null) {
+                                try {
+                                    JSONObject jObj = new JSONObject(ret);
+                                    SmSpoolID = jObj.getInt("id");
+                                }catch (Exception ignored){
+                                    SmSpoolID = 0;
+                                }
                                 showToast("Spool created successfully!", Toast.LENGTH_SHORT);
                                 mainHandler.post(() -> spoolDialog.dismiss());
                             } else {
                                 showToast("Failed to create spool", Toast.LENGTH_SHORT);
                             }
                         }
-
                     } catch (Exception e) {
                         showToast("Error creating spool", Toast.LENGTH_SHORT);
                     }
