@@ -1596,13 +1596,22 @@ namespace CFS_RFID
                 // ---------------------
                 // Spool
                 // ---------------------
-                var sBodyObj = new
+                var sExtra = new JObject
                 {
-                    filament_id = filamentId,
-                    initial_weight = weightGrams,
-                    remaining_weight = weightGrams,
-                    comment = string.Format("[CFS-RFID] RFID tagged for {0}; creality_id={1}; color={2}; color_hex={3}; filament_article={4}",
-                        printerType, materialID, colorLabel, colorHex, variantArticleNumber)
+                    ["creality.creality_id"] = materialID,
+                    ["creality.color"] = colorLabel,
+                    ["creality.color_hex"] = colorHex,
+                    ["creality.filament_article"] = variantArticleNumber,
+                    ["creality.printer_type"] = printerType
+                };
+
+                var sBodyObj = new JObject
+                {
+                    ["filament_id"] = filamentId,
+                    ["initial_weight"] = weightGrams,
+                    ["remaining_weight"] = weightGrams,
+                    ["comment"] = string.Format("[CFS-RFID] RFID tagged for {0}", printerType),
+                    ["extra"] = sExtra
                 };
 
                 string sBody = JsonConvert.SerializeObject(sBodyObj);
@@ -1649,11 +1658,10 @@ namespace CFS_RFID
 
 
         /// <summary>
-        /// After successfully writing an RFID tag, record that tag's UID back into the Spoolman spool comment.
-        /// This gives you a two-way cross reference: RFID tag -> Spoolman spool.id (stored in reserve),
-        /// and Spoolman spool -> RFID tag UID(s) (stored in comment).
+        /// After successfully writing an RFID tag, record that tag's UID (and serial) into Spoolman spool.extra.
+        /// Uses GET -> merge -> PATCH to avoid wiping other tools' extra fields.
         ///
-        /// Uses Spoolman REST API: GET /api/v1/spool/{id} then PATCH /api/v1/spool/{id} with {"comment": "..."}.
+        /// Uses Spoolman REST API: GET /api/v1/spool/{id} then PATCH /api/v1/spool/{id} with {"extra": {...}}.
         /// </summary>
         public static string SmWriteTagUidBackToSpool(string host, int port, int spoolId, string tagUidCompact)
         {
@@ -1667,62 +1675,53 @@ namespace CFS_RFID
             {
                 string uid = tagUidCompact.Trim().ToUpperInvariant();
 
-                // 1) Read existing spool (to preserve comment)
+                // 1) Read existing spool (to preserve extra)
                 string spoolJson = PerformSmRequest(baseUrl + "/spool/" + spoolId, "GET");
                 if (spoolJson == null) return "Error: Unable to read spool from Spoolman";
 
-                string existingComment = string.Empty;
+                JObject extraObj = new JObject();
                 try
                 {
                     JObject spoolObj = JObject.Parse(spoolJson);
-                    if (spoolObj["comment"] != null && spoolObj["comment"].Type != JTokenType.Null)
-                        existingComment = spoolObj["comment"].ToString();
+                    if (spoolObj["extra"] is JObject existingExtra)
+                        extraObj = (JObject)existingExtra.DeepClone();
                 }
-                catch { existingComment = string.Empty; }
+                catch { extraObj = new JObject(); }
 
-                // No-op if already recorded
-                if (!string.IsNullOrEmpty(existingComment) &&
-                    existingComment.IndexOf(uid, StringComparison.OrdinalIgnoreCase) >= 0)
+                // 2) Merge tag UID (preserve existing list if any)
+                var tagUids = new List<string>();
+                if (extraObj.TryGetValue("creality.tag_uid", out JToken existingTag))
                 {
-                    return "OK (already recorded)";
-                }
-
-                // 2) Append the UID
-                string line = "[CFS-RFID] tag_uid=" + uid;
-
-                string newComment = string.IsNullOrWhiteSpace(existingComment)
-                    ? line
-                    : existingComment.TrimEnd() + "\n" + line;
-
-                // API schema maxLength is 1024 for comment. Trim from the start if needed, keeping newest info.
-                if (newComment.Length > 1024)
-                {
-                    int keep = 1024;
-
-                    if (line.Length + 1 > keep)
+                    if (existingTag.Type == JTokenType.Array)
                     {
-                        // Extremely unlikely; just keep the last 1024 chars.
-                        newComment = line.Substring(Math.Max(0, line.Length - keep));
-                    }
-                    else
-                    {
-                        int maxPrefix = keep - (line.Length + 1);
-                        string prefix = (existingComment ?? string.Empty).Trim();
-                        if (prefix.Length > maxPrefix)
+                        foreach (JToken t in existingTag)
                         {
-                            prefix = prefix.Substring(prefix.Length - maxPrefix);
+                            if (t.Type == JTokenType.String && !string.IsNullOrWhiteSpace(t.ToString()))
+                                tagUids.Add(t.ToString().Trim().ToUpperInvariant());
                         }
-                        newComment = prefix + "\n" + line;
-
-                        if (newComment.Length > keep)
-                            newComment = newComment.Substring(newComment.Length - keep);
+                    }
+                    else if (existingTag.Type == JTokenType.String)
+                    {
+                        string existing = existingTag.ToString().Trim().ToUpperInvariant();
+                        if (!string.IsNullOrEmpty(existing)) tagUids.Add(existing);
                     }
                 }
 
-                // 3) PATCH update
-                string patchBody = JsonConvert.SerializeObject(new { comment = newComment });
+                if (!tagUids.Exists(t => string.Equals(t, uid, StringComparison.OrdinalIgnoreCase)))
+                    tagUids.Add(uid);
+
+                if (tagUids.Count == 1)
+                    extraObj["creality.tag_uid"] = tagUids[0];
+                else
+                    extraObj["creality.tag_uid"] = new JArray(tagUids);
+
+                // 3) Also record serialNum D6 for Identity v2
+                extraObj["creality.serial_num"] = spoolId.ToString("D6");
+
+                // 4) PATCH update (extra replaces; we merged first)
+                string patchBody = JsonConvert.SerializeObject(new { extra = extraObj });
                 string patchRes = PerformSmRequest(baseUrl + "/spool/" + spoolId, "PATCH", patchBody);
-                if (patchRes == null) return "Error: Unable to update spool comment in Spoolman";
+                if (patchRes == null) return "Error: Unable to update spool extra in Spoolman";
 
                 return "OK";
             }

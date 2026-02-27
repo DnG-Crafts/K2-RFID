@@ -619,6 +619,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                         }
                         playBeep();
                         showToast(R.string.data_written_to_tag, Toast.LENGTH_SHORT);
+                        UpdateSpoolmanExtraAfterTagWrite(bytesToHex(currentTag.getId()));
 
                     } catch (Exception e) {
                         showToast(R.string.error_writing_to_tag, Toast.LENGTH_SHORT);
@@ -631,6 +632,76 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 }
             });
         }
+    }
+
+    void UpdateSpoolmanExtraAfterTagWrite(String tagUid) {
+        if (tagUid == null) return;
+        String uid = tagUid.trim().toUpperCase();
+        if (uid.isEmpty()) return;
+
+        String smHost = GetSetting(context, "smhost", "");
+        if (smHost.isEmpty()) return;
+        int smPort = GetSetting(context, "smport", 7912);
+
+        String spoolIdRaw = GetSetting(context, "sm_spool_id", "");
+        if (spoolIdRaw == null || spoolIdRaw.trim().isEmpty()) return;
+
+        int spoolId;
+        try {
+            spoolId = Integer.parseInt(spoolIdRaw.trim());
+        } catch (Exception ignored) {
+            return;
+        }
+        if (spoolId <= 0) return;
+
+        String serialNum = GetSpoolmanSerialNum();
+        if (serialNum == null || serialNum.isEmpty()) return;
+
+        executorService.execute(() -> {
+            try {
+                String baseUrl = "http://" + smHost + ":" + smPort + "/api/v1";
+                String spoolJson = performSmRequest(context, baseUrl + "/spool/" + spoolId, "GET", null);
+                if (spoolJson == null) return;
+
+                JSONObject spoolObj = new JSONObject(spoolJson);
+                JSONObject extra = spoolObj.optJSONObject("extra");
+                if (extra == null) extra = new JSONObject();
+
+                Object existing = extra.opt("creality.tag_uid");
+                if (existing instanceof JSONArray) {
+                    JSONArray arr = (JSONArray) existing;
+                    boolean found = false;
+                    for (int i = 0; i < arr.length(); i++) {
+                        String v = arr.optString(i, "");
+                        if (v.equalsIgnoreCase(uid)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) arr.put(uid);
+                    extra.put("creality.tag_uid", arr);
+                } else if (existing instanceof String) {
+                    String prev = ((String) existing).trim();
+                    if (!prev.equalsIgnoreCase(uid) && !prev.isEmpty()) {
+                        JSONArray arr = new JSONArray();
+                        arr.put(prev.toUpperCase());
+                        arr.put(uid);
+                        extra.put("creality.tag_uid", arr);
+                    } else {
+                        extra.put("creality.tag_uid", uid);
+                    }
+                } else {
+                    extra.put("creality.tag_uid", uid);
+                }
+
+                extra.put("creality.serial_num", serialNum);
+
+                JSONObject patch = new JSONObject();
+                patch.put("extra", extra);
+                performSmRequest(context, baseUrl + "/spool/" + spoolId, "PATCH", patch.toString());
+            } catch (Exception ignored) {
+            }
+        });
     }
 
     void FormatTag() {
@@ -744,10 +815,28 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         String filamentId = "1" + MaterialID; //material_database.json
         String vendorId = "0276"; //0276 creality
         String color = "0" + Color;
-        String serialNum = "000001"; //format(Locale.getDefault(), "%06d", random.nextInt(900000));
-        String reserve = "00000000000000";
+        String serialNum = GetSpoolmanSerialNum();
+        if (serialNum == null || serialNum.isEmpty()) {
+            showToast("Spoolman spool ID not set. Create a spool in Spoolman first.", Toast.LENGTH_SHORT);
+            return;
+        }
+        String reserve = "000000";
         String batch = "A2";
         WriteTag("AB124" + vendorId + batch + filamentId + color + Length + serialNum + reserve + PrinterType);
+    }
+
+    String GetSpoolmanSerialNum() {
+        String idRaw = GetSetting(context, "sm_spool_id", "");
+        if (idRaw == null) return null;
+        String trimmed = idRaw.trim();
+        if (trimmed.isEmpty()) return null;
+        try {
+            int id = Integer.parseInt(trimmed);
+            if (id <= 0 || id > 999999) return null;
+            return String.format(Locale.US, "%06d", id);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -2585,11 +2674,29 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                             }
                             sBody.put("location", Objects.requireNonNull(sdl.sLocation.getText()).toString());
                             sBody.put("lot_nr", Objects.requireNonNull(sdl.sLotNr.getText()).toString());
+                            JSONObject extra = new JSONObject();
+                            extra.put("creality.creality_id", MaterialID);
+                            extra.put("creality.color", colorName);
+                            extra.put("creality.color_hex", MaterialColor);
+                            extra.put("creality.printer_type", SelectedPrinter);
+                            String article = Objects.requireNonNull(sdl.fArticleNumber.getText()).toString();
+                            if (!article.isEmpty()) {
+                                extra.put("creality.filament_article", article);
+                            }
+                            sBody.put("extra", extra);
                             sBody.put("comment", Objects.requireNonNull(sdl.sComment.getText()).toString());
                             sBody.put("archived", sdl.sArchived.isChecked());
                             String ret = performSmRequest(context, baseUrl + "/spool", "POST", sBody.toString());
 
                             if (ret != null) {
+                                try {
+                                    JSONObject created = new JSONObject(ret);
+                                    int spoolId = created.optInt("id", -1);
+                                    if (spoolId > 0) {
+                                        SaveSetting(context, "sm_spool_id", String.valueOf(spoolId));
+                                    }
+                                } catch (Exception ignored) {
+                                }
                                 showToast("Spool created successfully!", Toast.LENGTH_SHORT);
                                 mainHandler.post(() -> spoolDialog.dismiss());
                             } else {
