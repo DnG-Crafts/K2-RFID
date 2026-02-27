@@ -25,12 +25,12 @@ namespace CFS_RFID
         const int MinWidth = 0;
         bool isSmall = false;
 
-        // Pending Spoolman reserve write:
-        // When a spool is created in Spoolman, we queue its spool.id (encoded into reserve6) and
+        // Pending Spoolman serial write (Identity v2):
+        // When a spool is created in Spoolman, we queue its spool.id (encoded into serialNum D6) and
         // apply it on the next "Write Tag" (and subsequent writes) until the selection changes.
         // This is intentionally in-memory only (not persisted) so you can "start over" on app restart.
         private int? _smPendingSpoolId = null;
-        private string _smPendingReserve6 = null;
+        private string _smPendingSerialNum = null;
         private string _smPendingSignature = null;
         private string _smPendingLabel = null;
 
@@ -457,12 +457,19 @@ namespace CFS_RFID
             string filamentId = "1" + MaterialID;
             string vendorId = "0276";
             string color = "0" + Color;
-            string serialNum = "000001";
 
-            // Creality's "reserve" field is typically 6 chars; this writer keeps a 14-char slot on-tag
-            // (reserve6 + reserved8). We place the Spoolman spool.id into reserve6.
-            string reserve6 = !string.IsNullOrWhiteSpace(reserve6Override) ? reserve6Override.Trim() : TryGetPendingReserve6ForCurrentSelection();
-            if (string.IsNullOrEmpty(reserve6)) reserve6 = "000000";
+            string serialNum = TryGetPendingSerialNumForCurrentSelection();
+            if (string.IsNullOrEmpty(serialNum))
+            {
+                Toast.Show(this, "Spoolman serial not queued. Create a spool in Spoolman first.", Toast.LENGTH_SHORT, true);
+                return;
+            }
+            if (serialNum.Length < 6) serialNum = serialNum.PadLeft(6, '0');
+            if (serialNum.Length > 6) serialNum = serialNum.Substring(serialNum.Length - 6, 6);
+
+            // Creality's "reserve" field is 6 chars; keep it as legacy/empty by default.
+            // We still reserve a 14-char slot on-tag (reserve6 + reserved8).
+            string reserve6 = !string.IsNullOrWhiteSpace(reserve6Override) ? reserve6Override.Trim() : "000000";
             if (reserve6.Length < 6) reserve6 = reserve6.PadLeft(6, '0');
             if (reserve6.Length > 6) reserve6 = reserve6.Substring(reserve6.Length - 6, 6);
 
@@ -572,6 +579,13 @@ namespace CFS_RFID
             return spoolId.ToString("D6");
         }
 
+        private string EncodeSpoolmanIdForSerial(int spoolId)
+        {
+            if (spoolId < 0) spoolId = 0;
+            if (spoolId > 999999) return null;
+            return spoolId.ToString("D6");
+        }
+
 
         private string GetCurrentSelectionSignature()
         {
@@ -582,38 +596,38 @@ namespace CFS_RFID
                    (MaterialWeight ?? string.Empty);
         }
 
-        private void SetPendingSpoolmanReserve(int spoolId, string reserve6, string label = null)
+        private void SetPendingSpoolmanSerial(int spoolId, string serialNum, string label = null)
         {
             _smPendingSpoolId = spoolId > 0 ? (int?)spoolId : null;
-            _smPendingReserve6 = reserve6;
+            _smPendingSerialNum = serialNum;
             _smPendingLabel = label;
             _smPendingSignature = GetCurrentSelectionSignature();
         }
 
-        private void ClearPendingSpoolmanReserve()
+        private void ClearPendingSpoolmanSerial()
         {
             _smPendingSpoolId = null;
-            _smPendingReserve6 = null;
+            _smPendingSerialNum = null;
             _smPendingSignature = null;
             _smPendingLabel = null;
         }
 
-        private string TryGetPendingReserve6ForCurrentSelection()
+        private string TryGetPendingSerialNumForCurrentSelection()
         {
             // Hidden setting:
-            //   HKCU\CFS RFID\Settings\SmWriteReserve (DWORD 0/1)
+            //   HKCU\CFS RFID\Settings\SmWriteReserve (DWORD 0/1)  # legacy key retained for compatibility
             // Default: enabled
             bool writeReserve = Settings.GetSetting("SmWriteReserve", true);
             if (!writeReserve) return null;
 
             if (!_smPendingSpoolId.HasValue) return null;
-            if (string.IsNullOrEmpty(_smPendingReserve6)) return null;
+            if (string.IsNullOrEmpty(_smPendingSerialNum)) return null;
             if (string.IsNullOrEmpty(_smPendingSignature)) return null;
 
             if (!string.Equals(_smPendingSignature, GetCurrentSelectionSignature(), StringComparison.Ordinal))
                 return null;
 
-            return _smPendingReserve6;
+            return _smPendingSerialNum;
         }
 
         private int? TryGetPendingSpoolIdForCurrentSelection()
@@ -1164,24 +1178,24 @@ namespace CFS_RFID
                             string msg = (res != null && !string.IsNullOrEmpty(res.Message)) ? res.Message : "Error adding spool";
                             Toast.Show(this, msg, Toast.LENGTH_SHORT, msg.ToLower().StartsWith("error"));
 
-                            // Hidden setting:
+                            // Hidden setting (legacy key retained):
                             //   HKCU\CFS RFID\Settings\SmWriteReserve (DWORD 0/1)
                             // Default: enabled
-                            bool writeReserve = Settings.GetSetting("SmWriteReserve", true);
-                            if (!writeReserve) return;
+                            bool writeSerial = Settings.GetSetting("SmWriteReserve", true);
+                            if (!writeSerial) return;
 
                             if (res == null || !res.Success || !res.SpoolId.HasValue) return;
 
-                            string reserve6 = EncodeSpoolmanIdForReserve(res.SpoolId.Value);
-                            if (string.IsNullOrEmpty(reserve6))
+                            string serialNum = EncodeSpoolmanIdForSerial(res.SpoolId.Value);
+                            if (string.IsNullOrEmpty(serialNum))
                             {
-                                Toast.Show(this, "Error: Spool ID too large to encode into reserve (adjust encoding settings)", Toast.LENGTH_SHORT, true);
+                                Toast.Show(this, "Error: Spool ID too large to encode into serialNum (D6)", Toast.LENGTH_SHORT, true);
                                 return;
                             }
 
-                            // Queue reserve for the next "Write Tag" (and keep it for multiple writes until selection changes).
-                            SetPendingSpoolmanReserve(res.SpoolId.Value, reserve6, msg);
-                            Toast.Show(this, "Reserve queued: " + reserve6 + " (Spoolman spool ID " + res.SpoolId.Value + ") — click \"Write Tag\" to program one or more tags.", Toast.LENGTH_SHORT);
+                            // Queue serial for the next "Write Tag" (and keep it for multiple writes until selection changes).
+                            SetPendingSpoolmanSerial(res.SpoolId.Value, serialNum, msg);
+                            Toast.Show(this, "Serial queued: " + serialNum + " (Spoolman spool ID " + res.SpoolId.Value + ") — click \"Write Tag\" to program one or more tags.", Toast.LENGTH_SHORT);
                         });
                     });
                 }
@@ -1201,13 +1215,13 @@ namespace CFS_RFID
 
         private void PrinterModel_SelectionChangeCommitted(object sender, EventArgs e)
         {
-            ClearPendingSpoolmanReserve();
+            ClearPendingSpoolmanSerial();
             Settings.SaveSetting("printerType", printerModel.SelectedIndex);
         }
 
         private void VendorName_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ClearPendingSpoolmanReserve();
+            ClearPendingSpoolmanSerial();
             try
             {
                 materialName.Items.Clear();
@@ -1219,7 +1233,7 @@ namespace CFS_RFID
 
         private void MaterialName_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ClearPendingSpoolmanReserve();
+            ClearPendingSpoolmanSerial();
             try
             {
                 MaterialID = GetMaterialID(vendorName.Text, materialName.Items[materialName.SelectedIndex].ToString());

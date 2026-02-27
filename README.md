@@ -24,9 +24,11 @@ This fork adds an optional **Spoolman** integration to the Windows app to create
 
 ### Key idea
 
-We repurpose the Creality tag’s `reserve` field to store:
+We use the Creality tag’s **serialNum** field to store:
 
-> `reserve` = **Spoolman `spool.id`** (decimal, zero‑padded to 6 digits)
+> `serialNum` = **Spoolman `spool.id`** (decimal, zero‑padded to 6 digits)
+
+Legacy `reserve` defaults to `000000` on new tags.
 
 Example: `000005`
 
@@ -42,8 +44,8 @@ This value is read by the printer and is observable in:
    - captures the returned `spool.id`
    - queues that ID in-memory for writing to tags
 3. Click **Write Tag**:
-   - writes the queued `spool.id` into the tag `reserve` field
-   - writes **tag UID(s)** back into the Spoolman spool comment (two-way breadcrumb)
+   - writes the queued `spool.id` into the tag `serialNum` field
+   - writes **tag UID(s)** back into Spoolman `spool.extra` (two-way breadcrumb)
 4. For Creality CFS usage, write **two tags per spool** (one on each side).
 
 **Queue behavior (by design):**
@@ -59,7 +61,7 @@ If you seed Spoolman filaments from Creality’s material database, this fork ca
 
 (Exact matching behavior depends on how your Spoolman is populated; see Windows README for details.)
 
-## Verify reserve on the printer
+## Verify serialNum on the printer
 
 SSH to the printer and run:
 
@@ -68,14 +70,14 @@ grep -n "000005" /mnt/UDISK/creality/userdata/box/material_box_info.json || echo
 
 Expected output should include something like:
 
-"reserve":"000005"
+"serialNum":"000005"
 
 Tag format (Creality)
 
 The tag data includes the following high-level fields:
 date	vendorId	batch	filamentId	color	filamentLen	serialNum	reserve
 
-    This fork uses the reserve field to store the Spoolman spool ID. 
+    This fork uses the serialNum field to store the Spoolman spool ID. 
 
 Files of interest on the printer
 

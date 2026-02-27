@@ -42,24 +42,24 @@ Output will be under something like:
 When enabled, the app can:
 
 1. Create a spool in **Spoolman** (REST API)
-2. Store the returned **Spoolman `spool.id`** in the Creality tag’s `reserve` field:
+2. Store the returned **Spoolman `spool.id`** in the Creality tag’s `serialNum` field:
    - decimal, zero‑padded to 6 digits (e.g. `000005`)
-3. After writing a tag, write the tag UID back into the Spoolman spool comment:
-   - `[CFS-RFID] tag_uid=80BFA83A`
+3. After writing a tag, write the tag UID back into Spoolman `spool.extra`:
+   - `creality.tag_uid = "80BFA83A"`
 
 This creates a two-way cross-reference:
-- Tag → reserve → Spoolman spool.id
-- Spoolman spool → comment → tag UID(s)
+- Tag → serialNum → Spoolman spool.id
+- Spoolman spool → extra → tag UID(s)
 
 ### Intended workflow
 
 1. Select filament settings (material / color / spool weight)
 2. Click **Add (Spoolman)**  
    - Creates spool in Spoolman
-   - Queues `reserve (Spoolman spool ID): 000005`
+   - Queues `serialNum (Spoolman spool ID): 000005`
 3. Click **Write Tag**  
-   - Writes reserve to the tag
-   - Writes tag UID back into Spoolman
+   - Writes serialNum to the tag
+   - Writes tag UID back into Spoolman extra
 
 Write **two tags per spool** for Creality CFS (one on each side), and use **Write Tag** twice.
 The queued spool id remains active until filament/spool selection changes (and resets on app restart).
@@ -80,16 +80,16 @@ Path:
 Keys:
 
 - `SmWriteReserve` (DWORD, default `1`)  
-  If `1`, store Spoolman spool ID into tag reserve on Write Tag.
+  If `1`, store Spoolman spool ID into tag serialNum on Write Tag (legacy key retained).
 
 - `SmWriteTagUidBack` (DWORD, default `1`)  
-  If `1`, append `[CFS-RFID] tag_uid=...` to Spoolman spool comment after a successful write.
+  If `1`, write `creality.tag_uid` into Spoolman spool extra after a successful write.
 
 - `SmArticlePrefix` (String, default `Creality:`)  
   Prefix used when matching Spoolman filament `article_number`.
 
 - `SmReserveHex` (DWORD, default `0`)  
-  If `1`, encode reserve as hex. Default is decimal (`0`).
+  Legacy only: if `1`, encode reserve as hex. Default is decimal (`0`).
 
 ## Troubleshooting quick hits
 
