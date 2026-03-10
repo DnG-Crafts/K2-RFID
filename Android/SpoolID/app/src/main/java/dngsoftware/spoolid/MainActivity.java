@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     ColorMatcher matcher = null;
     private NfcAdapter nfcAdapter;
     Tag currentTag = null;
-    int SelectedSize, SelectedBrand;
+    int SelectedSize, SelectedBrand, SmSpoolID;
     String MaterialName, MaterialID, MaterialWeight, MaterialColor, PrinterType, MaterialVendor, SelectedPrinter;
     Dialog pickerDialog, customDialog, saveDialog, updateDialog, editDialog, addDialog, tagDialog, printerDialog, settingsDialog, spoolDialog;
     AlertDialog inputDialog;
@@ -2687,7 +2687,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                             sBody.put("comment", Objects.requireNonNull(sdl.sComment.getText()).toString());
                             sBody.put("archived", sdl.sArchived.isChecked());
                             String ret = performSmRequest(context, baseUrl + "/spool", "POST", sBody.toString());
-
                             if (ret != null) {
                                 try {
                                     JSONObject created = new JSONObject(ret);
@@ -2703,7 +2702,6 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                                 showToast("Failed to create spool", Toast.LENGTH_SHORT);
                             }
                         }
-
                     } catch (Exception e) {
                         showToast("Error creating spool", Toast.LENGTH_SHORT);
                     }
