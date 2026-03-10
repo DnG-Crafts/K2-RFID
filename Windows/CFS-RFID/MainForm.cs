@@ -1,4 +1,4 @@
-﻿using PCSC;
+using PCSC;
 using PCSC.Monitoring;
 using System;
 using System.Drawing;
@@ -943,7 +943,7 @@ namespace CFS_RFID
 
         private void BtnColor_Click(object sender, EventArgs e)
         {
-            ClearPendingSpoolmanReserve();
+            ClearPendingSpoolmanSerial();
             ColorDialog dlg = new ColorDialog
             {
                 AllowFullOpen = true,
@@ -960,7 +960,7 @@ namespace CFS_RFID
 
         private void MaterialWeight_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ClearPendingSpoolmanReserve();
+            ClearPendingSpoolmanSerial();
             try
             {
                 MaterialWeight = materialWeight.Items[materialWeight.SelectedIndex].ToString();
@@ -970,7 +970,7 @@ namespace CFS_RFID
 
         private void PrinterModel_SelectedIndexChanged(object sender, EventArgs e)
         {
-            ClearPendingSpoolmanReserve();
+            ClearPendingSpoolmanSerial();
             try
             {
                 PrinterType = printerModel.Items[printerModel.SelectedIndex].ToString();
@@ -1263,3 +1263,5 @@ namespace CFS_RFID
     }
 
 }
+
+
