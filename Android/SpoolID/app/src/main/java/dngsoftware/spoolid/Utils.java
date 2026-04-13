@@ -77,6 +77,7 @@ public class Utils {
             "K2",
             "K1",
             "HI",
+            "i7"
     };
 
     public static String GetMaterialLength(String materialWeight) {

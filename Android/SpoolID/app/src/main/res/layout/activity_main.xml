@@ -333,7 +333,7 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/txtspman">
+                app:layout_constraintTop_toBottomOf="@+id/smbutton">
 
                 <Button
                     android:textColor="@color/text_inverted"
@@ -359,20 +359,20 @@
 
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/txtspman"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:textStyle="bold"
+            <ImageView
+                android:id="@+id/smbutton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:importantForAccessibility="no"
+                android:visibility="invisible"
+                android:drawablePadding="8dp"
                 android:layout_marginTop="30dp"
                 android:gravity="center"
-                android:visibility="invisible"
-                android:text="@string/add_to_spoolman"
-                android:textColor="@color/primary_brand"
+                app:srcCompat="@drawable/spoolman"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/lbltagid"  />
+                app:layout_constraintTop_toBottomOf="@+id/lbltagid"
+                />
 
             <TextView
                 android:id="@+id/txtmsg"

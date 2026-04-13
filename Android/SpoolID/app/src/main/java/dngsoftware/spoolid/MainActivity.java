@@ -167,13 +167,13 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
 
         if (GetSetting(context, "enablesm", false))
         {
-            main.txtspman.setVisibility(View.VISIBLE);
+            main.smbutton.setVisibility(View.VISIBLE);
             executorService.execute(() -> matcher = new ColorMatcher(context));
         }
         else {
-            main.txtspman.setVisibility(View.INVISIBLE);
+            main.smbutton.setVisibility(View.INVISIBLE);
         }
-        main.txtspman.setOnClickListener(view ->
+        main.smbutton.setOnClickListener(view ->
         {
             if (GetSetting(context, "enablesm", false))
             {
@@ -1132,6 +1132,8 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 sshDefault = "Creality2024";
             } else if (PrinterType.toLowerCase().contains("k1")) {
                 sshDefault = "creality_2023";
+            } else if (PrinterType.toLowerCase().contains("i7")) {
+                sshDefault = "creality_2025";
             } else {
                 sshDefault = "creality_2024";
             }
@@ -1545,7 +1547,11 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
                 sshDefault = "Creality2024";
             } else if (PrinterType.toLowerCase().contains("k1")) {
                 sshDefault = "creality_2023";
-            } else {
+            }
+            else if (PrinterType.toLowerCase().contains("i7")) {
+                sshDefault = "creality_2025";
+            }
+            else {
                 sshDefault = "creality_2024";
             }
             sdl.txtpsw.setText(GetSetting(context, "psw_" + PrinterType, sshDefault));
@@ -1949,12 +1955,14 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     }
 
     private void startSAFImportProcess() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("application/octet-stream");
-        String[] mimeTypes = {"application/x-sqlite3", "application/vnd.sqlite3", "application/octet-stream"};
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
-        importFileChooser.launch(intent);
+        try {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("application/octet-stream");
+            String[] mimeTypes = {"application/x-sqlite3", "application/vnd.sqlite3", "application/octet-stream"};
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+            importFileChooser.launch(intent);
+        } catch (Exception ignored) {}
     }
 
     private void performSAFImport(Uri sourceUri) {
@@ -2386,294 +2394,292 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     }
 
     void openSpoolAdd() {
-        spoolDialog = new Dialog(context, R.style.Theme_SpoolID);
-        spoolDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        spoolDialog.setCanceledOnTouchOutside(false);
-        spoolDialog.setTitle(R.string.add_spool_to_spoolman);
-        SpoolDialogBinding sdl = SpoolDialogBinding.inflate(getLayoutInflater());
-        View rv = sdl.getRoot();
-        spoolDialog.setContentView(rv);
-        sdl.btncls.setOnClickListener(v -> {
-            hideKeyboard(v);
-            spoolDialog.dismiss();
-        });
-
-        sdl.containerVendor.setVisibility(View.VISIBLE);
-        sdl.containerFilament.setVisibility(View.GONE);
-        sdl.containerSpool.setVisibility(View.GONE);
-
-        sdl.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                hideKeyboard(sdl.tabLayout);
-                sdl.containerVendor.setVisibility(View.GONE);
-                sdl.containerFilament.setVisibility(View.GONE);
-                sdl.containerSpool.setVisibility(View.GONE);
-                switch (tab.getPosition()) {
-                    case 0:
-                        sdl.containerVendor.setVisibility(View.VISIBLE);
-                        break;
-                    case 1:
-                        sdl.containerFilament.setVisibility(View.VISIBLE);
-                        break;
-                    case 2:
-                        sdl.containerSpool.setVisibility(View.VISIBLE);
-                        break;
-                }
-            }
-
-            @Override
-            public void onTabUnselected(TabLayout.Tab tab) {}
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {}
-        });
-
-        View.OnClickListener dateListener = v -> {
-            TextInputEditText target = (TextInputEditText) v;
-            MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
-                    .setTitleText("Select Date")
-                    .build();
-            picker.addOnPositiveButtonClickListener(selection -> {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-                target.setText(sdf.format(new Date(selection)));
+        try {
+            spoolDialog = new Dialog(context, R.style.Theme_SpoolID);
+            spoolDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            spoolDialog.setCanceledOnTouchOutside(false);
+            spoolDialog.setTitle(R.string.add_spool_to_spoolman);
+            SpoolDialogBinding sdl = SpoolDialogBinding.inflate(getLayoutInflater());
+            View rv = sdl.getRoot();
+            spoolDialog.setContentView(rv);
+            sdl.btncls.setOnClickListener(v -> {
+                hideKeyboard(v);
+                spoolDialog.dismiss();
             });
-            picker.show(getSupportFragmentManager(), "DATE_PICKER");
-        };
 
-        sdl.sFirstUsed.setOnClickListener(dateListener);
-        sdl.sLastUsed.setOnClickListener(dateListener);
+            sdl.containerVendor.setVisibility(View.VISIBLE);
+            sdl.containerFilament.setVisibility(View.GONE);
+            sdl.containerSpool.setVisibility(View.GONE);
 
-        sdl.containerMain.setOnClickListener(v -> hideKeyboard(sdl.containerMain));
-        sdl.containerButton.setOnClickListener(v -> hideKeyboard(sdl.containerButton));
-
-        sdl.vComment.setText(String.format("Created by %s", context.getString(R.string.app_name)));
-        sdl.fComment.setText(String.format("Created by %s", context.getString(R.string.app_name)));
-        sdl.sComment.setText(String.format("RFID tagged for %s", SelectedPrinter));
-
-        Filament localData = matDb.getFilamentById(MaterialID);
-
-        if (localData.filamentParam != null && !localData.filamentParam.isEmpty()) {
-            try {
-                JSONObject root = new JSONObject(localData.filamentParam);
-                JSONObject kvParam = root.optJSONObject("kvParam");
-                JSONObject base = root.optJSONObject("base");
-                if (base != null) {
-                    sdl.fMaterial.setText(base.optString("meterialType"));
-                    sdl.fDiameter.setText(String.format("%s", base.optDouble("diameter")));
-                }
-                if (kvParam != null) {
-                    if (kvParam.has("nozzle_temperature"))
-                        sdl.fTempExtruder.setText(String.format(Locale.getDefault(), "%d", Integer.parseInt(kvParam.getString("nozzle_temperature"))));
-                    if (kvParam.has("hot_plate_temp"))
-                        sdl.fTempBed.setText(String.format(Locale.getDefault(), "%d", Integer.parseInt(kvParam.getString("hot_plate_temp"))));
-                    if (kvParam.has("filament_density"))
-                        sdl.fDensity.setText(String.format("%s", kvParam.optDouble("filament_density")));
-                }
-            } catch (Exception ignored) {
-            }
-        }
-
-        sdl.vName.setText(MaterialVendor);
-        sdl.fMaterial.setText(MaterialName);
-        sdl.sRemainingWeight.setText(String.format(Locale.getDefault(), "%d", Utils.GetMaterialIntWeight(MaterialWeight)));
-        sdl.sInitialWeight.setText(String.format(Locale.getDefault(), "%d", Utils.GetMaterialIntWeight(MaterialWeight)));
-        sdl.fColorHex.setText(MaterialColor);
-        sdl.fExternalId.setText(MaterialID);
-        String colorName = matcher.findNearestColor(MaterialColor);
-        if (colorName == null || colorName.isEmpty())
-        {
-            colorName = MaterialColor;
-        }
-        sdl.fName.setText(String.format("%s (%s)", MaterialName, colorName));
-        String[] directions = new String[] {"coaxial", "longitudinal"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, directions);
-        sdl.fMultiColorDirection.setAdapter(adapter);
-
-        sdl.btnadd.setOnClickListener(v -> {
-            hideKeyboard(v);
-            String smHost = GetSetting(context, "smhost", "");
-            int smPort = GetSetting(context, "smport", 7912);
-
-            if (!smHost.isEmpty()) {
-                String baseUrl = "http://" + smHost + ":" + smPort + "/api/v1";
-
-                executorService.execute(() -> {
-                    try {
-                        String vendorName = Objects.requireNonNull(sdl.vName.getText()).toString().trim();
-                        int vendorId = -1;
-                        String vRes = performSmRequest(context, baseUrl + "/vendor", "GET", null);
-
-                        if (vRes != null) {
-                            JSONArray vArray = new JSONArray(vRes);
-                            for (int i = 0; i < vArray.length(); i++) {
-                                JSONObject vo = vArray.getJSONObject(i);
-                                if (vo.getString("name").equalsIgnoreCase(vendorName)) {
-                                    vendorId = vo.getInt("id");
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (vendorId == -1) {
-                            JSONObject vBody = new JSONObject();
-                            vBody.put("name", vendorName);
-                            vBody.put("comment", Objects.requireNonNull(sdl.vComment.getText()).toString());
-                            vBody.put("empty_spool_weight", getDoubleOrNull(sdl.vEmptySpoolWeight));
-                            vBody.put("external_id", Objects.requireNonNull(sdl.vExternalId.getText()).toString());
-                            String newV = performSmRequest(context, baseUrl + "/vendor", "POST", vBody.toString());
-                            if (newV != null) vendorId = new JSONObject(newV).getInt("id");
-                        }
-
-                        String filamentName = Objects.requireNonNull(sdl.fName.getText()).toString().trim();
-                        int filamentId = -1;
-                        String fRes = performSmRequest(context, baseUrl + "/filament", "GET", null);
-                        if (fRes != null) {
-                            JSONArray fArray = new JSONArray(fRes);
-                            for (int i = 0; i < fArray.length(); i++) {
-                                JSONObject f = fArray.getJSONObject(i);
-                                int vIdCheck = f.has("vendor") && !f.isNull("vendor") ? f.getJSONObject("vendor").getInt("id") : -1;
-                                if (vIdCheck == vendorId && f.getString("name").equalsIgnoreCase(filamentName)) {
-                                    filamentId = f.getInt("id");
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (filamentId == -1) {
-                            JSONObject fBody = new JSONObject();
-                            fBody.put("name", filamentName);
-                            fBody.put("vendor_id", vendorId);
-                            fBody.put("material", Objects.requireNonNull(sdl.fMaterial.getText()).toString());
-                            fBody.put("price", getDoubleOrNull(sdl.fPrice));
-                            fBody.put("density", getDoubleOrNull(sdl.fDensity));
-                            fBody.put("diameter", getDoubleOrNull(sdl.fDiameter));
-                            fBody.put("weight", getDoubleOrNull(sdl.fWeight));
-                            fBody.put("spool_weight", getDoubleOrNull(sdl.fSpoolWeight));
-                            fBody.put("article_number", Objects.requireNonNull(sdl.fArticleNumber.getText()).toString());
-                            fBody.put("comment", Objects.requireNonNull(sdl.fComment.getText()).toString());
-                            fBody.put("settings_extruder_temp", getIntOrNull(sdl.fTempExtruder));
-                            fBody.put("settings_bed_temp", getIntOrNull(sdl.fTempBed));
-                            if (!Objects.requireNonNull(sdl.fMultiColorHexes.getText()).toString().isEmpty()) {
-                                fBody.put("multi_color_hexes", sdl.fMultiColorHexes.getText().toString());
-                                fBody.put("multi_color_direction", sdl.fMultiColorDirection.getText().toString());
-                            }else {
-                                fBody.put("color_hex", Objects.requireNonNull(sdl.fColorHex.getText()).toString().replace("#", ""));
-                            }
-                            fBody.put("external_id", Objects.requireNonNull(sdl.fExternalId.getText()).toString());
-                            String newF = performSmRequest(context, baseUrl + "/filament", "POST", fBody.toString());
-                            if (newF != null) filamentId = new JSONObject(newF).getInt("id");
-                        }
-
-                        if (filamentId != -1) {
-                            JSONObject sBody = new JSONObject();
-                            sBody.put("filament_id", filamentId);
-                            sBody.put("price", getDoubleOrNull(sdl.sPrice));
-                            if (!Objects.requireNonNull(sdl.sFirstUsed.getText()).toString().isEmpty())
-                            {
-                                sBody.put("first_used", Objects.requireNonNull(sdl.sFirstUsed.getText()).toString());
-                            }
-                            if (!Objects.requireNonNull(sdl.sLastUsed.getText()).toString().isEmpty())
-                            {
-                                sBody.put("last_used", Objects.requireNonNull(sdl.sLastUsed.getText()).toString());
-                            }
-                            sBody.put("initial_weight", getDoubleOrNull(sdl.sInitialWeight));
-                            if (getDoubleOrNull(sdl.sRemainingWeight) != JSONObject.NULL)
-                            {
-                                sBody.put("remaining_weight", getDoubleOrNull(sdl.sRemainingWeight));
-
-                            }else if (getDoubleOrNull(sdl.sUsedWeight) != JSONObject.NULL)
-                            {
-                                sBody.put("used_weight", getDoubleOrNull(sdl.sUsedWeight));
-                            }
-                            sBody.put("location", Objects.requireNonNull(sdl.sLocation.getText()).toString());
-                            sBody.put("lot_nr", Objects.requireNonNull(sdl.sLotNr.getText()).toString());
-                            sBody.put("comment", Objects.requireNonNull(sdl.sComment.getText()).toString());
-                            sBody.put("archived", sdl.sArchived.isChecked());
-                            String ret = performSmRequest(context, baseUrl + "/spool", "POST", sBody.toString());
-                            if (ret != null) {
-                                try {
-                                    JSONObject jObj = new JSONObject(ret);
-                                    SmSpoolID = jObj.getInt("id");
-                                }catch (Exception ignored){
-                                    SmSpoolID = 0;
-                                }
-                                showToast("Spool created successfully!", Toast.LENGTH_SHORT);
-                                mainHandler.post(() -> spoolDialog.dismiss());
-                            } else {
-                                showToast("Failed to create spool", Toast.LENGTH_SHORT);
-                            }
-                        }
-                    } catch (Exception e) {
-                        showToast("Error creating spool", Toast.LENGTH_SHORT);
+            sdl.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                @Override
+                public void onTabSelected(TabLayout.Tab tab) {
+                    hideKeyboard(sdl.tabLayout);
+                    sdl.containerVendor.setVisibility(View.GONE);
+                    sdl.containerFilament.setVisibility(View.GONE);
+                    sdl.containerSpool.setVisibility(View.GONE);
+                    switch (tab.getPosition()) {
+                        case 0:
+                            sdl.containerVendor.setVisibility(View.VISIBLE);
+                            break;
+                        case 1:
+                            sdl.containerFilament.setVisibility(View.VISIBLE);
+                            break;
+                        case 2:
+                            sdl.containerSpool.setVisibility(View.VISIBLE);
+                            break;
                     }
+                }
+
+                @Override
+                public void onTabUnselected(TabLayout.Tab tab) {
+                }
+
+                @Override
+                public void onTabReselected(TabLayout.Tab tab) {
+                }
+            });
+
+            View.OnClickListener dateListener = v -> {
+                TextInputEditText target = (TextInputEditText) v;
+                MaterialDatePicker<Long> picker = MaterialDatePicker.Builder.datePicker()
+                        .setTitleText("Select Date")
+                        .build();
+                picker.addOnPositiveButtonClickListener(selection -> {
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+                    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+                    target.setText(sdf.format(new Date(selection)));
                 });
-            } else {
-                showToast(getString(R.string.spoolman_host_is_not_set), Toast.LENGTH_SHORT);
+                picker.show(getSupportFragmentManager(), "DATE_PICKER");
+            };
+
+            sdl.sFirstUsed.setOnClickListener(dateListener);
+            sdl.sLastUsed.setOnClickListener(dateListener);
+
+            sdl.containerMain.setOnClickListener(v -> hideKeyboard(sdl.containerMain));
+            sdl.containerButton.setOnClickListener(v -> hideKeyboard(sdl.containerButton));
+
+            sdl.vComment.setText(String.format("Created by %s", context.getString(R.string.app_name)));
+            sdl.fComment.setText(String.format("Created by %s", context.getString(R.string.app_name)));
+            sdl.sComment.setText(String.format("RFID tagged for %s", SelectedPrinter));
+
+            Filament localData = matDb.getFilamentById(MaterialID);
+
+            if (localData.filamentParam != null && !localData.filamentParam.isEmpty()) {
+                try {
+                    JSONObject root = new JSONObject(localData.filamentParam);
+                    JSONObject kvParam = root.optJSONObject("kvParam");
+                    JSONObject base = root.optJSONObject("base");
+                    if (base != null) {
+                        sdl.fMaterial.setText(base.optString("meterialType"));
+                        sdl.fDiameter.setText(String.format("%s", base.optDouble("diameter")));
+                    }
+                    if (kvParam != null) {
+                        if (kvParam.has("nozzle_temperature"))
+                            sdl.fTempExtruder.setText(String.format(Locale.getDefault(), "%d", Integer.parseInt(kvParam.getString("nozzle_temperature"))));
+                        if (kvParam.has("hot_plate_temp"))
+                            sdl.fTempBed.setText(String.format(Locale.getDefault(), "%d", Integer.parseInt(kvParam.getString("hot_plate_temp"))));
+                        if (kvParam.has("filament_density"))
+                            sdl.fDensity.setText(String.format("%s", kvParam.optDouble("filament_density")));
+                    }
+                } catch (Exception ignored) {
+                }
             }
-        });
-        spoolDialog.show();
+
+            sdl.vName.setText(MaterialVendor);
+            sdl.fMaterial.setText(MaterialName);
+            sdl.sRemainingWeight.setText(String.format(Locale.getDefault(), "%d", Utils.GetMaterialIntWeight(MaterialWeight)));
+            sdl.sInitialWeight.setText(String.format(Locale.getDefault(), "%d", Utils.GetMaterialIntWeight(MaterialWeight)));
+            sdl.fColorHex.setText(MaterialColor);
+            sdl.fExternalId.setText(MaterialID);
+            String colorName = matcher.findNearestColor(MaterialColor);
+            if (colorName == null || colorName.isEmpty()) {
+                colorName = MaterialColor;
+            }
+            sdl.fName.setText(String.format("%s (%s)", MaterialName, colorName));
+            String[] directions = new String[]{"coaxial", "longitudinal"};
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(context, android.R.layout.simple_dropdown_item_1line, directions);
+            sdl.fMultiColorDirection.setAdapter(adapter);
+
+            sdl.btnadd.setOnClickListener(v -> {
+                hideKeyboard(v);
+                String smHost = GetSetting(context, "smhost", "");
+                int smPort = GetSetting(context, "smport", 7912);
+
+                if (!smHost.isEmpty()) {
+                    String baseUrl = "http://" + smHost + ":" + smPort + "/api/v1";
+
+                    executorService.execute(() -> {
+                        try {
+                            String vendorName = Objects.requireNonNull(sdl.vName.getText()).toString().trim();
+                            int vendorId = -1;
+                            String vRes = performSmRequest(context, baseUrl + "/vendor", "GET", null);
+
+                            if (vRes != null) {
+                                JSONArray vArray = new JSONArray(vRes);
+                                for (int i = 0; i < vArray.length(); i++) {
+                                    JSONObject vo = vArray.getJSONObject(i);
+                                    if (vo.getString("name").equalsIgnoreCase(vendorName)) {
+                                        vendorId = vo.getInt("id");
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (vendorId == -1) {
+                                JSONObject vBody = new JSONObject();
+                                vBody.put("name", vendorName);
+                                vBody.put("comment", Objects.requireNonNull(sdl.vComment.getText()).toString());
+                                vBody.put("empty_spool_weight", getDoubleOrNull(sdl.vEmptySpoolWeight));
+                                vBody.put("external_id", Objects.requireNonNull(sdl.vExternalId.getText()).toString());
+                                String newV = performSmRequest(context, baseUrl + "/vendor", "POST", vBody.toString());
+                                if (newV != null) vendorId = new JSONObject(newV).getInt("id");
+                            }
+
+                            String filamentName = Objects.requireNonNull(sdl.fName.getText()).toString().trim();
+                            int filamentId = -1;
+                            String fRes = performSmRequest(context, baseUrl + "/filament", "GET", null);
+                            if (fRes != null) {
+                                JSONArray fArray = new JSONArray(fRes);
+                                for (int i = 0; i < fArray.length(); i++) {
+                                    JSONObject f = fArray.getJSONObject(i);
+                                    int vIdCheck = f.has("vendor") && !f.isNull("vendor") ? f.getJSONObject("vendor").getInt("id") : -1;
+                                    if (vIdCheck == vendorId && f.getString("name").equalsIgnoreCase(filamentName)) {
+                                        filamentId = f.getInt("id");
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (filamentId == -1) {
+                                JSONObject fBody = new JSONObject();
+                                fBody.put("name", filamentName);
+                                fBody.put("vendor_id", vendorId);
+                                fBody.put("material", Objects.requireNonNull(sdl.fMaterial.getText()).toString());
+                                fBody.put("price", getDoubleOrNull(sdl.fPrice));
+                                fBody.put("density", getDoubleOrNull(sdl.fDensity));
+                                fBody.put("diameter", getDoubleOrNull(sdl.fDiameter));
+                                fBody.put("weight", getDoubleOrNull(sdl.fWeight));
+                                fBody.put("spool_weight", getDoubleOrNull(sdl.fSpoolWeight));
+                                fBody.put("article_number", Objects.requireNonNull(sdl.fArticleNumber.getText()).toString());
+                                fBody.put("comment", Objects.requireNonNull(sdl.fComment.getText()).toString());
+                                fBody.put("settings_extruder_temp", getIntOrNull(sdl.fTempExtruder));
+                                fBody.put("settings_bed_temp", getIntOrNull(sdl.fTempBed));
+                                if (!Objects.requireNonNull(sdl.fMultiColorHexes.getText()).toString().isEmpty()) {
+                                    fBody.put("multi_color_hexes", sdl.fMultiColorHexes.getText().toString());
+                                    fBody.put("multi_color_direction", sdl.fMultiColorDirection.getText().toString());
+                                } else {
+                                    fBody.put("color_hex", Objects.requireNonNull(sdl.fColorHex.getText()).toString().replace("#", ""));
+                                }
+                                fBody.put("external_id", Objects.requireNonNull(sdl.fExternalId.getText()).toString());
+                                String newF = performSmRequest(context, baseUrl + "/filament", "POST", fBody.toString());
+                                if (newF != null) filamentId = new JSONObject(newF).getInt("id");
+                            }
+
+                            if (filamentId != -1) {
+                                JSONObject sBody = new JSONObject();
+                                sBody.put("filament_id", filamentId);
+                                sBody.put("price", getDoubleOrNull(sdl.sPrice));
+                                if (!Objects.requireNonNull(sdl.sFirstUsed.getText()).toString().isEmpty()) {
+                                    sBody.put("first_used", Objects.requireNonNull(sdl.sFirstUsed.getText()).toString());
+                                }
+                                if (!Objects.requireNonNull(sdl.sLastUsed.getText()).toString().isEmpty()) {
+                                    sBody.put("last_used", Objects.requireNonNull(sdl.sLastUsed.getText()).toString());
+                                }
+                                sBody.put("initial_weight", getDoubleOrNull(sdl.sInitialWeight));
+                                if (getDoubleOrNull(sdl.sRemainingWeight) != JSONObject.NULL) {
+                                    sBody.put("remaining_weight", getDoubleOrNull(sdl.sRemainingWeight));
+
+                                } else if (getDoubleOrNull(sdl.sUsedWeight) != JSONObject.NULL) {
+                                    sBody.put("used_weight", getDoubleOrNull(sdl.sUsedWeight));
+                                }
+                                sBody.put("location", Objects.requireNonNull(sdl.sLocation.getText()).toString());
+                                sBody.put("lot_nr", Objects.requireNonNull(sdl.sLotNr.getText()).toString());
+                                sBody.put("comment", Objects.requireNonNull(sdl.sComment.getText()).toString());
+                                sBody.put("archived", sdl.sArchived.isChecked());
+                                String ret = performSmRequest(context, baseUrl + "/spool", "POST", sBody.toString());
+                                if (ret != null) {
+                                    try {
+                                        JSONObject jObj = new JSONObject(ret);
+                                        SmSpoolID = jObj.getInt("id");
+                                    } catch (Exception ignored) {
+                                        SmSpoolID = 0;
+                                    }
+                                    showToast("Spool created successfully!", Toast.LENGTH_SHORT);
+                                    mainHandler.post(() -> spoolDialog.dismiss());
+                                } else {
+                                    showToast("Failed to create spool", Toast.LENGTH_SHORT);
+                                }
+                            }
+                        } catch (Exception e) {
+                            showToast("Error creating spool", Toast.LENGTH_SHORT);
+                        }
+                    });
+                } else {
+                    showToast(getString(R.string.spoolman_host_is_not_set), Toast.LENGTH_SHORT);
+                }
+            });
+            spoolDialog.show();
+        } catch (Exception ignored) {}
     }
 
     public void openSettings() {
-        settingsDialog = new Dialog(context, R.style.Theme_SpoolID);
-        settingsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        settingsDialog.setCanceledOnTouchOutside(false);
-        settingsDialog.setTitle(R.string.settings);
-        SettingsDialogBinding sdl = SettingsDialogBinding.inflate(getLayoutInflater());
-        View rv = sdl.getRoot();
-        settingsDialog.setContentView(rv);
-        sdl.readswitch.setChecked(GetSetting(context, "autoread", false));
-        sdl.readswitch.setOnCheckedChangeListener((buttonView, isChecked) -> SaveSetting(context, "autoread", isChecked));
-        sdl.launchswitch.setChecked(GetSetting(context, "autoLaunch", true));
-        sdl.launchswitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            setNfcLaunchMode(context, isChecked);
-            SaveSetting(context, "autoLaunch", isChecked);
-        });
-        sdl.themeswitch.setChecked(GetSetting(context, "enabledm", false));
-        sdl.themeswitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            SaveSetting(context, "enabledm", isChecked);
-            setThemeMode(isChecked);
-        });
-        sdl.spoolswitch.setChecked(GetSetting(context, "enablesm", false));
-        sdl.smhost.setText(GetSetting(context, "smhost", ""));
-        sdl.smport.setText(String.valueOf(GetSetting(context, "smport", 7912)));
-        sdl.smhost.setEnabled(sdl.spoolswitch.isChecked());
-        sdl.smport.setEnabled(sdl.spoolswitch.isChecked());
-        sdl.spoolswitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            sdl.smhost.setEnabled(isChecked);
-            sdl.smport.setEnabled(isChecked);
-            if (isChecked) {
+        try {
+            settingsDialog = new Dialog(context, R.style.Theme_SpoolID);
+            settingsDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            settingsDialog.setCanceledOnTouchOutside(false);
+            settingsDialog.setTitle(R.string.settings);
+            SettingsDialogBinding sdl = SettingsDialogBinding.inflate(getLayoutInflater());
+            View rv = sdl.getRoot();
+            settingsDialog.setContentView(rv);
+            sdl.readswitch.setChecked(GetSetting(context, "autoread", false));
+            sdl.readswitch.setOnCheckedChangeListener((buttonView, isChecked) -> SaveSetting(context, "autoread", isChecked));
+            sdl.launchswitch.setChecked(GetSetting(context, "autoLaunch", true));
+            sdl.launchswitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                setNfcLaunchMode(context, isChecked);
+                SaveSetting(context, "autoLaunch", isChecked);
+            });
+            sdl.themeswitch.setChecked(GetSetting(context, "enabledm", false));
+            sdl.themeswitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                SaveSetting(context, "enabledm", isChecked);
+                setThemeMode(isChecked);
+            });
+            sdl.spoolswitch.setChecked(GetSetting(context, "enablesm", false));
+            sdl.smhost.setText(GetSetting(context, "smhost", ""));
+            sdl.smport.setText(String.valueOf(GetSetting(context, "smport", 7912)));
+            sdl.smhost.setEnabled(sdl.spoolswitch.isChecked());
+            sdl.smport.setEnabled(sdl.spoolswitch.isChecked());
+            sdl.spoolswitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                sdl.smhost.setEnabled(isChecked);
+                sdl.smport.setEnabled(isChecked);
+                if (isChecked) {
+                    sdl.smhost.setTextColor(ContextCompat.getColor(context, R.color.text_main));
+                    sdl.smport.setTextColor(ContextCompat.getColor(context, R.color.text_main));
+                    main.smbutton.setVisibility(View.VISIBLE);
+                    if (matcher == null) {
+                        executorService.execute(() -> matcher = new ColorMatcher(context));
+                    }
+                } else {
+                    sdl.smhost.setTextColor(Color.GRAY);
+                    sdl.smport.setTextColor(Color.GRAY);
+                    main.smbutton.setVisibility(View.INVISIBLE);
+                }
+                SaveSetting(context, "enablesm", isChecked);
+            });
+            if (sdl.spoolswitch.isChecked()) {
                 sdl.smhost.setTextColor(ContextCompat.getColor(context, R.color.text_main));
                 sdl.smport.setTextColor(ContextCompat.getColor(context, R.color.text_main));
-                main.txtspman.setVisibility(View.VISIBLE);
-                if (matcher == null)
-                {
-                    executorService.execute(() -> matcher = new ColorMatcher(context));
-                }
-            }
-            else {
+            } else {
                 sdl.smhost.setTextColor(Color.GRAY);
                 sdl.smport.setTextColor(Color.GRAY);
-                main.txtspman.setVisibility(View.INVISIBLE);
             }
-            SaveSetting(context, "enablesm", isChecked);
-        });
-        if (sdl.spoolswitch.isChecked()) {
-            sdl.smhost.setTextColor(ContextCompat.getColor(context, R.color.text_main));
-            sdl.smport.setTextColor(ContextCompat.getColor(context, R.color.text_main));
-        }
-        else {
-            sdl.smhost.setTextColor(Color.GRAY);
-            sdl.smport.setTextColor(Color.GRAY);
-        }
-        sdl.btncls.setOnClickListener(v -> settingsDialog.dismiss());
-        settingsDialog.setOnDismissListener(dialogInterface -> {
-            SaveSetting(context, "smhost", Objects.requireNonNull(sdl.smhost.getText()).toString());
-            SaveSetting(context, "smport", Integer.parseInt(Objects.requireNonNull(sdl.smport.getText()).toString()));
-        });
-        settingsDialog.show();
+            sdl.btncls.setOnClickListener(v -> settingsDialog.dismiss());
+            settingsDialog.setOnDismissListener(dialogInterface -> {
+                SaveSetting(context, "smhost", Objects.requireNonNull(sdl.smhost.getText()).toString());
+                SaveSetting(context, "smport", Integer.parseInt(Objects.requireNonNull(sdl.smport.getText()).toString()));
+            });
+            settingsDialog.show();
+        }catch (Exception ignored) {}
     }
 
 }
